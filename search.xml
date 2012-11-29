@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<articles xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+<article>
+	<title>随机排序算法简介</title>
+	<url>www.amyangfei.com/2012/11/29/shuffle-algorithm/</url>
+	<date>2012-11-29</date>
+</article>
+
+<article>
+	<title>配置安全ssh的几个方法</title>
+	<url>www.amyangfei.com/2012/11/12/secure-tips-for-ssh/</url>
+	<date>2012-11-12</date>
+</article>
+
+<article>
+	<title>How to move files fast with python</title>
+	<url>www.amyangfei.com/2012/11/05/python-fast-move-files/</url>
+	<date>2012-11-05</date>
+</article>
+
+<article>
+	<title>An Experience of being Attacked</title>
+	<url>www.amyangfei.com/2012/09/20/server-suffering-attack/</url>
+	<date>2012-09-20</date>
+</article>
+
+<article>
+	<title>Running PHP with Nginx on Mac OS X</title>
+	<url>www.amyangfei.com/2012/07/22/php-with-nginx-in-macOS/</url>
+	<date>2012-07-22</date>
+</article>
+
+<article>
+	<title>在mac上安装nginx</title>
+	<url>www.amyangfei.com/2012/05/01/install-nginx-for-mac/</url>
+	<date>2012-05-01</date>
+</article>
+
+<article>
+	<title>六维空间free资源检索工具</title>
+	<url>www.amyangfei.com/2012/04/29/sixv-detect-robot/</url>
+	<date>2012-04-29</date>
+</article>
+
+<article>
+	<title>thrift使用简介</title>
+	<url>www.amyangfei.com/2012/04/11/simple-thrift-useage/</url>
+	<date>2012-04-11</date>
+</article>
+
+<article>
+	<title>Java和C++通信问题杂谈</title>
+	<url>www.amyangfei.com/2012/04/07/communication-Cpp-Java/</url>
+	<date>2012-04-07</date>
+</article>
+
+<article>
+	<title>A brief introduction to BIDE algorithm</title>
+	<url>www.amyangfei.com/2012/03/26/bide-algorithm/</url>
+	<date>2012-03-26</date>
+</article>
+
+<article>
+	<title>Use Named Pipes to Communicate Between Processes</title>
+	<url>www.amyangfei.com/2012/03/21/namedpipe-communication/</url>
+	<date>2012-03-21</date>
+</article>
+
+<article>
+	<title>Hello world</title>
+	<url>www.amyangfei.com/2012/03/20/hello-world/</url>
+	<date>2012-03-20</date>
+</article>
+
+</articles>

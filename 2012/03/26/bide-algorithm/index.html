@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>
+        
+            A brief introduction to BIDE algorithm
+                 
+    </title>
+    <meta name="generator" content="Jekyll" />
+    <meta name="author" content="Fei Yang" />
+    <meta name="description" content="这篇文章简单介绍了关联规则挖掘和频繁闭序列挖掘算法，并给出了BIDE算法的简单分析。BIDE是一个高效的频繁闭序列挖掘算法。" />
+    <meta name="keywords" content="BIDE, algorithm, frequent sequence mining" />
+    <link rel="stylesheet" href="/css/violet.css" type="text/css" />
+    
+    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <!--[if lt IE 9]>
+    <script src="/js/html5.js" type="text/javascript"></script>
+    <![endif]-->
+</head>
+<body class="violet-content">
+    <!--[if IE]>
+    <div class="KillIE">
+        <p>注意：假如您使用 <a href="http://www.google.com/chrome/" target="_blank" rel="nofollow">Chrome</a>, <a href="http://www.mozilla.com/" target="_blank" rel="nofollow">FireFox</a>, 或者 <a href="http://www.apple.com/safari/" rel="nofollow" target="_blank">Safari</a> 等高级浏览器。本站将为您带来更好的体验哦!</p>
+        <p>Attention: If you use <a href="http://www.google.com/chrome/" target="_blank" rel="nofollow">Chrome</a>, <a href="http://www.mozilla.com/" target="_blank" rel="nofollow">FireFox</a>, or <a href="http://www.apple.com/safari/" rel="nofollow" target="_blank">Safari</a> , our site will be more beautiful. Thanks!</p>
+    </div>
+    <![endif]-->
+
+    <header class="head">
+        <div class="head-cnt">
+        <div class="ui-grid-25 ui-grid-right ui-grid-bottom">
+            <div class="ui-grid-20 header-line"></div>
+            <div class="ui-grid-20 header">
+                <div class="header-bg"></div>
+                <div class="ui-grid-9 header-cnt fn-clear">
+                    
+                    <hgroup class="violet-site">
+                        <h1><a href="/" title="amyangfei" rel="nofollow">Amyangfei</a></h1>
+                        <h2>Study, Geek & Share</h2>
+                    </hgroup><!-- //violet-site -->
+                </div><!-- //header-cnt -->
+                <nav class="ui-grid-11 violet-nav">
+                    <ul class="fn-clear" id="J_nav">
+                        <li><a href="/" class="current" rel="nofollow">Home</a></li>
+                        <li><a href="/archives.html" class="" rel="bookmark">Archives</a></li>
+                        <li><a href="/works.html" class="" rel="bookmark">Works</a></li>
+                        <li class="last"><a href="/contact.html" class="" rel="bookmark">Contact</a></li>
+                    </ul>
+                </nav><!-- //nav -->
+            </div><!-- //header -->
+
+            <div class="ui-grid-4 violet-rss fn-clear">
+                <a href="/atom.xml" target="_blank" rel="nofollow" class="subscribe">RSS</a>
+            </div><!-- //violet-flower -->
+        </div><!-- //grid-20 -->
+        </div>
+    </header><!-- //head -->
+
+    <div class="head-bar">
+    </div><!-- //head-bar -->    
+        <section class="content fn-clear" id="i-am-top">
+        <div class="content-cnt">
+        <div class="ui-grid-25 ui-grid-right content-top">
+            <section class="ui-grid-23 violet-post">
+                <div class="v-section-tit">
+                    <a href="/" rel="nofollow" >Home</a>
+                    <span>&#9830;</span>
+                    <a href="/archives.html" rel="nofollow" >Archives</a>
+                    <span>&#9830;</span>
+                    <h2>A brief introduction to BIDE algorithm</h2>
+                </div>
+                <div class="violet-post-det fn-clear">
+                    <div class="ui-grid-15 v-post-detail">
+                        <div class="v-entry">
+                            <h1 class="title">A brief introduction to BIDE algorithm</h1>
+                            <p class="meta"><time class="date" pubdate="2012-03-26">2012-03-26</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+                            <p class="description">这篇文章简单介绍了关联规则挖掘和频繁闭序列挖掘算法，并给出了BIDE算法的简单分析。BIDE是一个高效的频繁闭序列挖掘算法。</p>
+                            <h3>背景</h3>
+
+<p>最近在做的数据库活动检测引擎，要实现一个异常行为检测的模块。简单的说异常行为检测就是先确定描述用户访问数据库的行为模型，然后定义一系列描述正常访问数据库的行为，检测过程中一旦用户行为与正常行为轮廓不符，则被认定为攻击行为。在实际系统中，正常行为轮廓会组成正常行为知识库，这个知识库会很大，所以正常行为轮廓不能简单的人工定义，于是一个自动挖掘正常行为知识库的需求被提了出来。</p>
+
+<p>在系统实现过程中，会将用户对数据库产生影响的原子性操作，比如一次select，一次update抽象成为一个item，用户访问数据库的一系列行为可以抽象成为一个item的序列，由此引出了通过频繁序列挖掘来获得正常行为知识库的想法。</p>
+
+<h3>频繁序列挖掘</h3>
+
+<p>在介绍频繁序列挖掘之前先简单说一下关联规则挖掘，关联规则挖掘用于从大量数据中挖掘出有价值的数据项之间的相关关系。关联规则解决的常见问题如：“如果一个消费者购买了产品A，那么他有多大机会购买产品B?”以及“如果他购买了产品C和D，那么他还将购买什么产品？”。（引自<a href="http://en.wikipedia.org/wiki/Association_rule_learning" target="_blank">维基百科</a>），关联规则挖掘领域最著名的故事就是啤酒和尿布的故事了，比较经典的算法有<a href="http://en.wikipedia.org/wiki/Apriori_algorithm" target="_blank">Apriori</a>，Eclat，FP-Growth等。</p>
+
+<p>频繁序列挖掘（<a href="http://en.wikipedia.org/wiki/Sequence_mining" target="_blank">Sequence Mining</a>）与关联规则挖掘类似，不同的是序列挖掘结果的各个项目之间是有序的。早期比较著名的序列挖掘算法有GSP，SPADE，PrefixSpan，BIDE算法是2004年被提出，它极大地提高了序列挖掘的性能。这里有一篇对各种序列挖掘算法详分析对比的论文：<a href="http://scholar.google.com.hk/scholar?q=Frequent+pattern+mining:+current+status+and+future+directions" target="_blank">Frequent pattern mining: current status and future directions</a></p>
+
+<h3>BIDE算法的实现描述</h3>
+
+<p>提出BIDE算法的论文：BIDE:efficient mining of frequent closed sequences，下面按照论文中的一个例子对算法进行简单的介绍。</p>
+
+<p>序列集合</p>
+
+<table width="100%">
+    <tbody>
+        <tr>
+            <th width="30%">Sequence identifier</th>
+            <th width="70%">Sequence identifier</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>CAABC</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>ABCB</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>CABC</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>ABBCA</td>
+        </tr>
+    </tbody>
+</table>
+
+
+<p>frequent sequences</p>
+
+<ul>
+<li>A:4, AA:2, AB:4, ABB:2, ABC:4, AC:4, B:4, BB:2,BC:4, C:4, CA:3, CAB:2, CABC:2, CAC:2, CB:3, CBC:2,CC:2</li>
+</ul>
+
+
+<p>frequent closed sequences</p>
+
+<ul>
+<li>AA:2, ABB:2, ABC:4, CA:3, CABC:2,CB:3</li>
+</ul>
+
+
+<p>搜索树：</p>
+
+<p><img src="/images/post/bide_search.png" style="width: 580px;"/></p>
+
+<p>一些背景知识：</p>
+
+<ul>
+<li>支持度：有绝对支持度和相对支持度两种，相对支持度是绝对支持度除以总序列数。上表中A，B，C为独立的项（item），不同item的组合形成一个序列，如果序列a中的每个item都在序列b中出现，并且是保序的，那么a是b的子序列。序列数据库（SDB）包含一些序列，一个序列a的所有父序列的总数目即为序列a在SDB中的绝对支持度，简单的说一个序列的支持度就是序列在SDB中出现的次数（在同一条序列中多次出现只记一次）。比如在上表中，A在CAABC中出现2次，计算支持度时只记1。</li>
+<li>最小支持度：挖掘时候需要定义的常量，支持度大于最小支持度的序列被认为是频繁序列。</li>
+<li>闭序列：序列可以进行扩展，比如上表序列1中包括序列CAB，可以扩展成为CABC。如果一个序列的支持度和它的一个扩展序列的支持度相等，那么这个序列就不是闭序列。反之，如果一个序列找不到一个扩展，使得扩展序列支持度与原序列支持度相等，那么这个序列就是闭序列。</li>
+</ul>
+
+
+<p>算法要点</p>
+
+<p>1. 利用BackSpan search space Pruning减少不必要的搜索过程。比如在搜索树中，B开头的序列都会被AB开头的序列包含，所以以B开头的子树可以不用搜索。</p>
+
+<p>2. 利用forward-extension 和 backward extension 检测一个序列是否为闭序列，如果不是闭序列则不会包含在结果集中。</p>
+
+<h3>总结</h3>
+
+<p>BIDE算法的高效体现在两个方面：一是挖掘过程中不需要产生临时的频繁项集，这极大的节约了存储空间；另一方面由于算法只挖掘频繁闭序列，挖掘过程中会减少很多非闭序列的挖掘过程。这两点加起来使得BIDE算法在性能上有了很大的提升。</p>
+
+                        </div>
+                        <div class="v-announce">
+                            <p>声明: 本文采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" target="_blank" rel="nofollow" title="署名-非商业性使用-相同方式共享">BY-NC-SA</a> 协议进行授权. 转载请注明转自: <a href="/2012/03/26/bide-algorithm/" title="A brief introduction to BIDE algorithm" rel="nofollow">A brief introduction to BIDE algorithm</a></p>
+                        </div>
+                        <nav class="v-pagination">
+                            
+                            <a class="prev" href="/2012/03/21/namedpipe-communication/" rel="bookmark">&laquo;&nbsp;Use Named Pipes to Communicate...</a>
+                            
+                            
+                            <a class="next" href="/2012/04/07/communication-Cpp-Java/" rel="bookmark">Java和C++通信问题杂谈&nbsp;&raquo;</a>
+                            
+                         </nav>
+                         <div class="violet-comment">
+                             <div id="disqus_thread"></div>
+                         </div><!-- //violet-comment -->
+                         
+                         <div class="violet-gotop">
+                            <a href="#i-am-top" class="" id="J_gotop">&#8673;</a>
+                         </div><!-- //violet-gotop -->
+                    </div>                   
+                    <div class="ui-grid-6 v-post-aside">
+                        <article class="recent-post">
+                            <h4 class="v-section-tit">Recent Articles</h4>
+                            <ul>
+                               
+                                <li>
+                                    <a href="/2012/11/29/shuffle-algorithm/" title="随机排序算法简介" rel="bookmark">随机排序算法简介</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/11/12/secure-tips-for-ssh/" title="配置安全ssh的几个方法" rel="bookmark">配置安全ssh的几个方法</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/11/05/python-fast-move-files/" title="How to move files fast with python" rel="bookmark">How to move files fast with python</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/09/20/server-suffering-attack/" title="An Experience of being Attacked" rel="bookmark">An Experience of being Attacked</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/07/22/php-with-nginx-in-macOS/" title="Running PHP with Nginx on Mac OS X" rel="bookmark">Running PHP with Nginx on Mac OS X</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/05/01/install-nginx-for-mac/" title="在mac上安装nginx" rel="bookmark">在mac上安装nginx</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/04/29/sixv-detect-robot/" title="六维空间free资源检索工具" rel="bookmark">六维空间free资源检索工具</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/04/11/simple-thrift-useage/" title="thrift使用简介" rel="bookmark">thrift使用简介</a>
+                                </li>                                   
+                            
+                            </ul>
+                        </article>
+                    </div><!-- //v-post-aside -->
+                </div>
+            </section><!-- //violet-post -->
+        </div>
+        </div>
+    </section><!-- //content -->
+
+    <footer class="foot fn-clear">
+        <div class="foot-cnt">
+        <div class="ui-grid-25 ui-grid-right ui-grid-bottom">
+            <section class="ui-grid-14 violet-submenu">
+                <ul>
+                    <li><a href="/" rel="nofollow"><span>&#8227;</span>Home</a></li>
+                    <li><a href="/archives.html" rel="bookmark"><span>&#8227;</span>Archives</a></li>
+                    <li><a href="/works.html" rel="bookmark"><span>&#8227;</span>Works</a></li>
+                    <li><a href="/contact.html" rel="bookmark"><span>&#8227;</span>Contact</a></li>
+                </ul>
+            </section>
+            <section class="ui-grid-6 violet-theme">
+                <p>Powered by <a href="http://jekyllrb.com" target="_blank" rel="nofollow">Jekyll</a> and <a href="http://www.pizn.me" target="_blank" rel="nofollow">PIZn</a>
+		<span class="v-tj">
+		<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
+		</script>
+		</span>
+		</p>
+            </section>
+            <section class="ui-grid-4 violet-copyright">
+                <p>Copyright © 2012 YangFei All rights reserved.</p>
+            </section>
+        </div>
+        </div>
+    </footer>
+    <script src="/js/jquery.js" type="text/javascript"></script>
+    <script src="/js/violet.js" type="text/javascript"></script>
+        
+    
+    <script src="/js/colorcode.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        //colorcode highlight
+        window.onload = function() {
+            DlHighlight.HELPERS.highlightByName('colorcode', 'pre','', true);
+        }
+        
+        //disqus
+        var disqus_shortname = 'amyangfei';
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] ||
+                document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+        
+        //goTop
+        $(document).ready(function() {
+            var scrHeight, topId, topHeight;
+            topId = $("#J_gotop");
+            $(function() {
+                $(window).bind(
+                    "scroll", 
+                    function(){
+                        scrHeight = $(window).scrollTop();
+                        if(scrHeight > 300) {
+                            topId.fadeIn(1500);
+                            topHeight = scrHeight + 120;
+                            topId.parent().css({top: topHeight});
+                        } else {
+                            topId.fadeOut(1500);
+                        }
+                    }
+                );
+                topId.click(function() {
+                        $('body, html').animate({scrollTop: 0}, 1200);
+                    });
+            })
+        });
+    </script>
+    
+    
+    
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30252000-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0];
+              s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    
+    <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+    
+</body>
+</html>

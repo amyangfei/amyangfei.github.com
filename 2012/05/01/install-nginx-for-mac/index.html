@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>
+        
+            在mac上安装nginx
+                 
+    </title>
+    <meta name="generator" content="Jekyll" />
+    <meta name="author" content="Fei Yang" />
+    <meta name="description" content="介绍在mac OS X上安装nginx的基本过程" />
+    <meta name="keywords" content="mac, Lion, nginx" />
+    <link rel="stylesheet" href="/css/violet.css" type="text/css" />
+    
+    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <!--[if lt IE 9]>
+    <script src="/js/html5.js" type="text/javascript"></script>
+    <![endif]-->
+</head>
+<body class="violet-content">
+    <!--[if IE]>
+    <div class="KillIE">
+        <p>注意：假如您使用 <a href="http://www.google.com/chrome/" target="_blank" rel="nofollow">Chrome</a>, <a href="http://www.mozilla.com/" target="_blank" rel="nofollow">FireFox</a>, 或者 <a href="http://www.apple.com/safari/" rel="nofollow" target="_blank">Safari</a> 等高级浏览器。本站将为您带来更好的体验哦!</p>
+        <p>Attention: If you use <a href="http://www.google.com/chrome/" target="_blank" rel="nofollow">Chrome</a>, <a href="http://www.mozilla.com/" target="_blank" rel="nofollow">FireFox</a>, or <a href="http://www.apple.com/safari/" rel="nofollow" target="_blank">Safari</a> , our site will be more beautiful. Thanks!</p>
+    </div>
+    <![endif]-->
+
+    <header class="head">
+        <div class="head-cnt">
+        <div class="ui-grid-25 ui-grid-right ui-grid-bottom">
+            <div class="ui-grid-20 header-line"></div>
+            <div class="ui-grid-20 header">
+                <div class="header-bg"></div>
+                <div class="ui-grid-9 header-cnt fn-clear">
+                    
+                    <hgroup class="violet-site">
+                        <h1><a href="/" title="amyangfei" rel="nofollow">Amyangfei</a></h1>
+                        <h2>Study, Geek & Share</h2>
+                    </hgroup><!-- //violet-site -->
+                </div><!-- //header-cnt -->
+                <nav class="ui-grid-11 violet-nav">
+                    <ul class="fn-clear" id="J_nav">
+                        <li><a href="/" class="current" rel="nofollow">Home</a></li>
+                        <li><a href="/archives.html" class="" rel="bookmark">Archives</a></li>
+                        <li><a href="/works.html" class="" rel="bookmark">Works</a></li>
+                        <li class="last"><a href="/contact.html" class="" rel="bookmark">Contact</a></li>
+                    </ul>
+                </nav><!-- //nav -->
+            </div><!-- //header -->
+
+            <div class="ui-grid-4 violet-rss fn-clear">
+                <a href="/atom.xml" target="_blank" rel="nofollow" class="subscribe">RSS</a>
+            </div><!-- //violet-flower -->
+        </div><!-- //grid-20 -->
+        </div>
+    </header><!-- //head -->
+
+    <div class="head-bar">
+    </div><!-- //head-bar -->    
+        <section class="content fn-clear" id="i-am-top">
+        <div class="content-cnt">
+        <div class="ui-grid-25 ui-grid-right content-top">
+            <section class="ui-grid-23 violet-post">
+                <div class="v-section-tit">
+                    <a href="/" rel="nofollow" >Home</a>
+                    <span>&#9830;</span>
+                    <a href="/archives.html" rel="nofollow" >Archives</a>
+                    <span>&#9830;</span>
+                    <h2>在mac上安装nginx</h2>
+                </div>
+                <div class="violet-post-det fn-clear">
+                    <div class="ui-grid-15 v-post-detail">
+                        <div class="v-entry">
+                            <h1 class="title">在mac上安装nginx</h1>
+                            <p class="meta"><time class="date" pubdate="2012-05-01">2012-05-01</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+                            <p class="description">介绍在mac OS X上安装nginx的基本过程</p>
+                            <p>大名鼎鼎的Nginx听说过很久，它有着高性能、高稳定性等优点，国内的很多大型门户也都部署了Nginx，还有淘宝开源的<a href="http://tengine.taobao.org/" target="_blank">Tengine</a>也是根据Nginx改写。不过自己一直没有使用过，今天白天在新买来的mac上配置了Nginx，这里记录一下配置的过程和遇到的一些问题。配置过程参考了<a href="http://www.kevinworthington.com/nginx-for-mac-os-x-lion-in-2-minutes/" target="_blank">Nginx for Mac OS X Lion in 2 minutes</a>这篇文章。</p>
+
+<h3>概述</h3>
+
+<p>这篇文章介绍了在Mac OS X 10.7.3 Lion下编译Nginx 1.2.0源码并安装的过程。由于在Lion下默认bash没有gcc的一系列命令，比如make，而我们需要编译Nginx的C源码，一个比较简单的解决方案是安装最新版本的XCode，AppStore里可以免费下载，安装结束后启动XCode，然后到XCode->Preferences->Downloads里，选择component，安装“Command Line Tools”就可以了。这样以后就可以方便地在Terminal里make了。</p>
+
+<h3>安装PCRE</h3>
+
+<p>Nginx需要PCRE（Perl Compatible Regular Expressions）的支持，需要先进行安装。一开始我按照<a href="http://www.kevinworthington.com/nginx-for-mac-os-x-lion-in-2-minutes/" target="_blank">Nginx for Mac OS X Lion in 2 minutes</a>文章里的步骤，但是在后来编译Nginx时候会出现下面的问题。</p>
+
+<div class="highlight"><pre><code class="bash">Undefined symbols <span class="k">for </span>architecture x86_64:
+    <span class="s2">&quot;_pcre_free_study&quot;</span>, referenced from:
+        _ngx_pcre_free_studies in ngx_regex.o
+</code></pre>
+</div>
+
+
+<p>在Nginx官方的问题列表里面有这个问题的具体描述，详细请看这里<a href="http://trac.nginx.org/nginx/ticket/94" target="_blank">compilation fails on Mac OS X 10.7.2</a>，其实就是库的位置没有找到。那篇文档中给出了两种解决方案，我使用了第一种，成功解决了问题：</p>
+
+<p>1. Remove the PCRE version installed into /usr/local and reinstall one from macports. This is recommended solution.</p>
+
+<p>2. Force /usr/local/lib to be before /usr/lib in library search path with ./configure --with-ld-opt="-I /usr/local/lib". This may work, but likely you'll be facing the same problem in other places as well.</p>
+
+<p>具体过程首先安装macports，然后利用port安装pcre。安装macports可以编译源码，也可以直接使用dmg安装。<a href="http://www.macports.org/install.php" target="_blank">Installing MacPorts</a>上有详细的安装说明。安装pcre就很简单了，一行命令。</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>port install pcre
+</code></pre>
+</div>
+
+
+<h3>安装Nginx</h3>
+
+<p>准备工作做好了，这一步就很简单了，首先将nginx-1.2.0.tar.gz放在/usr/local/src目录下，执行下面的命令即可。相应的一些参数可以按照个人需求修改。</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>tar xvzf nginx-1.2.0.tar.gz
+<span class="nv">$ </span><span class="nb">cd </span>nginx-1.2.0
+<span class="nv">$ </span>sudo ./configure --prefix<span class="o">=</span>/usr/local/nginx --with-http_ssl_module
+<span class="nv">$ </span>sudo make
+<span class="nv">$ </span>sudo make install
+</code></pre>
+</div>
+
+
+<h3>开启Nginx</h3>
+
+<p>可以将/usr/local/nginx/sbin加入到环境变量里，那样可以直接使用sudo nginx开启Nginx。如果不加入的话使用绝对路径亦可。在使用Nginx的默认参数情况下，访问地址http://localhost/，看到“Welcome to nginx!”，说明Nginx正常工作。接下来就可以进一步学习Nginx的各种参数配置和相关使用了。</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>sudo /usr/local/nginx/sbin/nginx
+</code></pre>
+</div>
+
+
+
+
+                        </div>
+                        <div class="v-announce">
+                            <p>声明: 本文采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" target="_blank" rel="nofollow" title="署名-非商业性使用-相同方式共享">BY-NC-SA</a> 协议进行授权. 转载请注明转自: <a href="/2012/05/01/install-nginx-for-mac/" title="在mac上安装nginx" rel="nofollow">在mac上安装nginx</a></p>
+                        </div>
+                        <nav class="v-pagination">
+                            
+                            <a class="prev" href="/2012/04/29/sixv-detect-robot/" rel="bookmark">&laquo;&nbsp;六维空间free资源检索工具</a>
+                            
+                            
+                            <a class="next" href="/2012/07/22/php-with-nginx-in-macOS/" rel="bookmark">Running PHP with Nginx on...&nbsp;&raquo;</a>
+                            
+                         </nav>
+                         <div class="violet-comment">
+                             <div id="disqus_thread"></div>
+                         </div><!-- //violet-comment -->
+                         
+                         <div class="violet-gotop">
+                            <a href="#i-am-top" class="" id="J_gotop">&#8673;</a>
+                         </div><!-- //violet-gotop -->
+                    </div>                   
+                    <div class="ui-grid-6 v-post-aside">
+                        <article class="recent-post">
+                            <h4 class="v-section-tit">Recent Articles</h4>
+                            <ul>
+                               
+                                <li>
+                                    <a href="/2012/11/29/shuffle-algorithm/" title="随机排序算法简介" rel="bookmark">随机排序算法简介</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/11/12/secure-tips-for-ssh/" title="配置安全ssh的几个方法" rel="bookmark">配置安全ssh的几个方法</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/11/05/python-fast-move-files/" title="How to move files fast with python" rel="bookmark">How to move files fast with python</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/09/20/server-suffering-attack/" title="An Experience of being Attacked" rel="bookmark">An Experience of being Attacked</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/07/22/php-with-nginx-in-macOS/" title="Running PHP with Nginx on Mac OS X" rel="bookmark">Running PHP with Nginx on Mac OS X</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/04/29/sixv-detect-robot/" title="六维空间free资源检索工具" rel="bookmark">六维空间free资源检索工具</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/04/11/simple-thrift-useage/" title="thrift使用简介" rel="bookmark">thrift使用简介</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/04/07/communication-Cpp-Java/" title="Java和C++通信问题杂谈" rel="bookmark">Java和C++通信问题杂谈</a>
+                                </li>                                   
+                            
+                            </ul>
+                        </article>
+                    </div><!-- //v-post-aside -->
+                </div>
+            </section><!-- //violet-post -->
+        </div>
+        </div>
+    </section><!-- //content -->
+
+    <footer class="foot fn-clear">
+        <div class="foot-cnt">
+        <div class="ui-grid-25 ui-grid-right ui-grid-bottom">
+            <section class="ui-grid-14 violet-submenu">
+                <ul>
+                    <li><a href="/" rel="nofollow"><span>&#8227;</span>Home</a></li>
+                    <li><a href="/archives.html" rel="bookmark"><span>&#8227;</span>Archives</a></li>
+                    <li><a href="/works.html" rel="bookmark"><span>&#8227;</span>Works</a></li>
+                    <li><a href="/contact.html" rel="bookmark"><span>&#8227;</span>Contact</a></li>
+                </ul>
+            </section>
+            <section class="ui-grid-6 violet-theme">
+                <p>Powered by <a href="http://jekyllrb.com" target="_blank" rel="nofollow">Jekyll</a> and <a href="http://www.pizn.me" target="_blank" rel="nofollow">PIZn</a>
+		<span class="v-tj">
+		<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
+		</script>
+		</span>
+		</p>
+            </section>
+            <section class="ui-grid-4 violet-copyright">
+                <p>Copyright © 2012 YangFei All rights reserved.</p>
+            </section>
+        </div>
+        </div>
+    </footer>
+    <script src="/js/jquery.js" type="text/javascript"></script>
+    <script src="/js/violet.js" type="text/javascript"></script>
+        
+    
+    <script src="/js/colorcode.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        //colorcode highlight
+        window.onload = function() {
+            DlHighlight.HELPERS.highlightByName('colorcode', 'pre','', true);
+        }
+        
+        //disqus
+        var disqus_shortname = 'amyangfei';
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] ||
+                document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+        
+        //goTop
+        $(document).ready(function() {
+            var scrHeight, topId, topHeight;
+            topId = $("#J_gotop");
+            $(function() {
+                $(window).bind(
+                    "scroll", 
+                    function(){
+                        scrHeight = $(window).scrollTop();
+                        if(scrHeight > 300) {
+                            topId.fadeIn(1500);
+                            topHeight = scrHeight + 120;
+                            topId.parent().css({top: topHeight});
+                        } else {
+                            topId.fadeOut(1500);
+                        }
+                    }
+                );
+                topId.click(function() {
+                        $('body, html').animate({scrollTop: 0}, 1200);
+                    });
+            })
+        });
+    </script>
+    
+    
+    
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30252000-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0];
+              s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    
+    <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+    
+</body>
+</html>

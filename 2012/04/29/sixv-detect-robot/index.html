@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>
+        
+            六维空间free资源检索工具
+                 
+    </title>
+    <meta name="generator" content="Jekyll" />
+    <meta name="author" content="Fei Yang" />
+    <meta name="description" content="利用python的urllib,urllib2库开发的自动登录，检索六维空间免费资源的小工具" />
+    <meta name="keywords" content="urllib, python, fention" />
+    <link rel="stylesheet" href="/css/violet.css" type="text/css" />
+    
+    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <!--[if lt IE 9]>
+    <script src="/js/html5.js" type="text/javascript"></script>
+    <![endif]-->
+</head>
+<body class="violet-content">
+    <!--[if IE]>
+    <div class="KillIE">
+        <p>注意：假如您使用 <a href="http://www.google.com/chrome/" target="_blank" rel="nofollow">Chrome</a>, <a href="http://www.mozilla.com/" target="_blank" rel="nofollow">FireFox</a>, 或者 <a href="http://www.apple.com/safari/" rel="nofollow" target="_blank">Safari</a> 等高级浏览器。本站将为您带来更好的体验哦!</p>
+        <p>Attention: If you use <a href="http://www.google.com/chrome/" target="_blank" rel="nofollow">Chrome</a>, <a href="http://www.mozilla.com/" target="_blank" rel="nofollow">FireFox</a>, or <a href="http://www.apple.com/safari/" rel="nofollow" target="_blank">Safari</a> , our site will be more beautiful. Thanks!</p>
+    </div>
+    <![endif]-->
+
+    <header class="head">
+        <div class="head-cnt">
+        <div class="ui-grid-25 ui-grid-right ui-grid-bottom">
+            <div class="ui-grid-20 header-line"></div>
+            <div class="ui-grid-20 header">
+                <div class="header-bg"></div>
+                <div class="ui-grid-9 header-cnt fn-clear">
+                    
+                    <hgroup class="violet-site">
+                        <h1><a href="/" title="amyangfei" rel="nofollow">Amyangfei</a></h1>
+                        <h2>Study, Geek & Share</h2>
+                    </hgroup><!-- //violet-site -->
+                </div><!-- //header-cnt -->
+                <nav class="ui-grid-11 violet-nav">
+                    <ul class="fn-clear" id="J_nav">
+                        <li><a href="/" class="current" rel="nofollow">Home</a></li>
+                        <li><a href="/archives.html" class="" rel="bookmark">Archives</a></li>
+                        <li><a href="/works.html" class="" rel="bookmark">Works</a></li>
+                        <li class="last"><a href="/contact.html" class="" rel="bookmark">Contact</a></li>
+                    </ul>
+                </nav><!-- //nav -->
+            </div><!-- //header -->
+
+            <div class="ui-grid-4 violet-rss fn-clear">
+                <a href="/atom.xml" target="_blank" rel="nofollow" class="subscribe">RSS</a>
+            </div><!-- //violet-flower -->
+        </div><!-- //grid-20 -->
+        </div>
+    </header><!-- //head -->
+
+    <div class="head-bar">
+    </div><!-- //head-bar -->    
+        <section class="content fn-clear" id="i-am-top">
+        <div class="content-cnt">
+        <div class="ui-grid-25 ui-grid-right content-top">
+            <section class="ui-grid-23 violet-post">
+                <div class="v-section-tit">
+                    <a href="/" rel="nofollow" >Home</a>
+                    <span>&#9830;</span>
+                    <a href="/archives.html" rel="nofollow" >Archives</a>
+                    <span>&#9830;</span>
+                    <h2>六维空间free资源检索工具</h2>
+                </div>
+                <div class="violet-post-det fn-clear">
+                    <div class="ui-grid-15 v-post-detail">
+                        <div class="v-entry">
+                            <h1 class="title">六维空间free资源检索工具</h1>
+                            <p class="meta"><time class="date" pubdate="2012-04-29">2012-04-29</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+                            <p class="description">利用python的urllib,urllib2库开发的自动登录，检索六维空间免费资源的小工具</p>
+                            <p>最近自己对挂六维空间刷下载积分热情高涨，但是六维上挂出免费资源的时间是不确定的，于是写了一个自动检索免费资源的小工具：基本功能是自动登录六维空间并检索指定板块的下载资源，找到在指定时间内最新发布的资源，如果有新的免费资源发送一条飞信给自己的手机。代码没有太多技术含量，主要分为三个模块。</p>
+
+<h3>模拟登录模块</h3>
+
+<p>登录六维空间，以及后面发送飞信登录wap网站，使用的是同样的方法。python提供的urllib,urllib2库很强大，模拟登录，保存cookie非常简单，写法很固定。</p>
+
+<h3>检索资源模块</h3>
+
+<p>没有用一些htmlParser类似相关的技术，只使用了正则表达式匹配。写代码时候遇到了正则匹配的贪婪模式和非贪婪模式，还是很有趣的。可以比较一下下面两行代码，前者为非贪婪匹配，后者为贪婪匹配。关于贪婪匹配与非贪婪匹配<a href="http://www.cnitblog.com/yemoo/archive/2006/06/22/12675.html" target="_blank">关于正则表达式的贪婪与非贪婪模式</a>这篇文章说的很详细。</p>
+
+<div class="highlight"><pre><code class="python"><span class="n">ret</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&quot;&lt;tbody([\s\S]*?)&lt;/tbody&gt;&quot;</span><span class="p">,</span> <span class="n">listpage</span><span class="p">)</span>
+<span class="n">ret</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&quot;&lt;tbody([\s\S]*)&lt;/tbody&gt;&quot;</span><span class="p">,</span> <span class="n">listpage</span><span class="p">)</span>
+</code></pre>
+</div>
+
+
+<h3>发送飞信模块</h3>
+
+<p>我以前在新浪博客上的文章里有写过，移步这里<a href="http://blog.sina.com.cn/s/blog_59b8590c010123x4.html" target="_blank">Python 发送飞信 </a></p>
+
+<h3>使用</h3>
+
+<p>修改自己的六维帐号，飞信帐号信息，timegap是设置检索资源的发布时间区间，用crontab部署脚本，设定好执行间隔，定时执行就OK了！这样有新的下载资源就会及时发送到自己手机。</p>
+
+<h3>源码</h3>
+
+<div class="highlight"><pre><code class="python"><span class="c"># -*- coding: utf-8 -*- </span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">cookielib</span>
+<span class="kn">import</span> <span class="nn">urllib2</span><span class="o">,</span> <span class="nn">urllib</span>
+
+<span class="n">freelable</span> <span class="o">=</span> <span class="s">&quot;images/rates/dlp000.gif&quot;</span>
+<span class="n">viewurl</span> <span class="o">=</span> <span class="s">&quot;http://bt.neu6.edu.cn/viewthread.php?tid=&quot;</span>
+<span class="n">movie</span> <span class="o">=</span> <span class="s">&quot;http://bt.neu6.edu.cn/forumdisplay.php?fid=13&quot;</span>
+<span class="n">hdmov</span> <span class="o">=</span> <span class="s">&quot;http://bt.neu6.edu.cn/forumdisplay.php?fid=45&quot;</span>
+<span class="n">game</span> <span class="o">=</span> <span class="s">&quot;http://bt.neu6.edu.cn/forumdisplay.php?fid=21&quot;</span>
+<span class="n">hdtv</span> <span class="o">=</span> <span class="s">&quot;http://bt.neu6.edu.cn/forumdisplay.php?fid=48&quot;</span>
+<span class="n">downlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">movie</span><span class="p">,</span> <span class="n">hdmov</span><span class="p">,</span> <span class="n">game</span><span class="p">,</span> <span class="n">hdtv</span><span class="p">]</span>
+<span class="n">freedic</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">timegap</span> <span class="o">=</span> <span class="mi">28800</span>
+
+<span class="k">def</span> <span class="nf">sendMsg</span><span class="p">(</span><span class="n">pnum</span><span class="p">,</span> <span class="n">ppass</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="n">url_login</span> <span class="o">=</span> <span class="s">&#39;http://f.10086.cn/im5/login/loginHtml5.action&#39;</span>
+    <span class="n">url_sendmsg</span> <span class="o">=</span> <span class="s">&#39;http://f.10086.cn/im5/user/sendMsgToMyselfs.action&#39;</span>
+    <span class="n">parameter</span><span class="o">=</span> <span class="p">{</span> <span class="s">&#39;m&#39;</span><span class="p">:</span><span class="n">pnum</span><span class="p">,</span> <span class="s">&#39;pass&#39;</span><span class="p">:</span><span class="n">ppass</span><span class="p">,</span> <span class="s">&#39;loginstatus&#39;</span><span class="p">:</span><span class="mi">4</span> <span class="p">}</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;msg&#39;</span><span class="p">:</span><span class="n">msg</span><span class="p">}</span>
+
+    <span class="n">cj</span> <span class="o">=</span> <span class="n">cookielib</span><span class="o">.</span><span class="n">LWPCookieJar</span><span class="p">()</span>
+    <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">urllib2</span><span class="o">.</span><span class="n">HTTPCookieProcessor</span><span class="p">(</span><span class="n">cj</span><span class="p">))</span>
+    <span class="n">urllib2</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+
+    <span class="n">req</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url_login</span><span class="p">,</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlencode</span><span class="p">(</span><span class="n">parameter</span><span class="p">))</span>
+    <span class="n">jump</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+
+    <span class="n">sendmsg</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url_sendmsg</span><span class="p">,</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlencode</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">sendmsg</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">loginSixBt</span><span class="p">(</span><span class="n">uname</span><span class="p">,</span> <span class="n">pwd</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cookies</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">HTTPCookieProcessor</span><span class="p">()</span>
+        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">cookies</span><span class="p">)</span>
+        <span class="n">urllib2</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;username&quot;</span><span class="p">:</span><span class="n">uname</span><span class="p">,</span><span class="s">&quot;password&quot;</span><span class="p">:</span><span class="n">pwd</span><span class="p">}</span>
+        <span class="n">loginUrl</span> <span class="o">=</span> <span class="s">&quot;http://bt.neu6.edu.cn/logging.php?action=login&amp;loginsubmit=yes&amp;inajax=1&amp;loginfield=username&quot;</span>
+        <span class="n">login</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">loginUrl</span><span class="p">,</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlencode</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">freeResDetect</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">listpage</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&quot;&lt;tbody([\s\S]*?)&lt;/tbody&gt;&quot;</span><span class="p">,</span> <span class="n">listpage</span><span class="p">)</span>
+        <span class="c">#ret = re.findall(&quot;&lt;tbody.*&lt;/tbody&gt;&quot;, listpage, re.S)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="s">&quot;&lt;tbody&quot;</span> <span class="o">+</span> <span class="n">item</span> <span class="o">+</span> <span class="s">&quot;&lt;/tbody&gt;&quot;</span>   
+            <span class="k">if</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">freelable</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">itemid</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&quot;&lt;tbody id=</span><span class="se">\&quot;</span><span class="s">stickthread_([0-9]*?)</span><span class="se">\&quot;</span><span class="s">&gt;&quot;</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">itemid</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="n">itemid</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&quot;&lt;tbody id=</span><span class="se">\&quot;</span><span class="s">normalthread_([0-9]*?)</span><span class="se">\&quot;</span><span class="s">&gt;&quot;</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+                    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">itemid</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+                        <span class="k">continue</span>
+                <span class="n">fetchurl</span> <span class="o">=</span> <span class="n">viewurl</span> <span class="o">+</span> <span class="n">itemid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">content</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">fetchurl</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="n">timelist</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&quot;&lt;span title=</span><span class="se">\&quot;</span><span class="s">([\s\S]*?)</span><span class="se">\&quot;</span><span class="s">&gt;&quot;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">timelist</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="k">continue</span>             
+                <span class="n">opentimestr</span> <span class="o">=</span> <span class="n">timelist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">format</span><span class="o">=</span><span class="s">&quot;%Y-%m-</span><span class="si">%d</span><span class="s"> %H:%M&quot;</span>
+                <span class="n">opentime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">opentimestr</span><span class="p">,</span> <span class="n">format</span><span class="p">)</span>
+                <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+                
+                <span class="k">if</span><span class="p">((</span><span class="n">now</span><span class="o">-</span><span class="n">opentime</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span> <span class="o">&lt;</span> <span class="n">timegap</span><span class="p">):</span>
+                    <span class="n">freedic</span><span class="p">[</span><span class="n">itemid</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="n">now</span><span class="o">-</span><span class="n">opentime</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span><span class="o">/</span><span class="mi">60</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">listResDetect</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">downlist</span><span class="p">:</span>
+        <span class="n">freeResDetect</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="n">phonenum</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="n">phonepass</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="n">loginSixBt</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+    <span class="n">listResDetect</span><span class="p">()</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">freedic</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;free resource in &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">timegap</span><span class="p">)</span><span class="o">/</span><span class="mi">60</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; minutes are &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">freedic</span><span class="p">)</span>
+        <span class="n">sendMsg</span><span class="p">(</span><span class="n">phonenum</span><span class="p">,</span> <span class="n">phonepass</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+</code></pre>
+</div>
+
+
+
+
+                        </div>
+                        <div class="v-announce">
+                            <p>声明: 本文采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" target="_blank" rel="nofollow" title="署名-非商业性使用-相同方式共享">BY-NC-SA</a> 协议进行授权. 转载请注明转自: <a href="/2012/04/29/sixv-detect-robot/" title="六维空间free资源检索工具" rel="nofollow">六维空间free资源检索工具</a></p>
+                        </div>
+                        <nav class="v-pagination">
+                            
+                            <a class="prev" href="/2012/04/11/simple-thrift-useage/" rel="bookmark">&laquo;&nbsp;thrift使用简介</a>
+                            
+                            
+                            <a class="next" href="/2012/05/01/install-nginx-for-mac/" rel="bookmark">在mac上安装nginx&nbsp;&raquo;</a>
+                            
+                         </nav>
+                         <div class="violet-comment">
+                             <div id="disqus_thread"></div>
+                         </div><!-- //violet-comment -->
+                         
+                         <div class="violet-gotop">
+                            <a href="#i-am-top" class="" id="J_gotop">&#8673;</a>
+                         </div><!-- //violet-gotop -->
+                    </div>                   
+                    <div class="ui-grid-6 v-post-aside">
+                        <article class="recent-post">
+                            <h4 class="v-section-tit">Recent Articles</h4>
+                            <ul>
+                               
+                                <li>
+                                    <a href="/2012/11/29/shuffle-algorithm/" title="随机排序算法简介" rel="bookmark">随机排序算法简介</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/11/12/secure-tips-for-ssh/" title="配置安全ssh的几个方法" rel="bookmark">配置安全ssh的几个方法</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/11/05/python-fast-move-files/" title="How to move files fast with python" rel="bookmark">How to move files fast with python</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/09/20/server-suffering-attack/" title="An Experience of being Attacked" rel="bookmark">An Experience of being Attacked</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/07/22/php-with-nginx-in-macOS/" title="Running PHP with Nginx on Mac OS X" rel="bookmark">Running PHP with Nginx on Mac OS X</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/05/01/install-nginx-for-mac/" title="在mac上安装nginx" rel="bookmark">在mac上安装nginx</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/04/11/simple-thrift-useage/" title="thrift使用简介" rel="bookmark">thrift使用简介</a>
+                                </li>                                   
+                               
+                                <li>
+                                    <a href="/2012/04/07/communication-Cpp-Java/" title="Java和C++通信问题杂谈" rel="bookmark">Java和C++通信问题杂谈</a>
+                                </li>                                   
+                            
+                            </ul>
+                        </article>
+                    </div><!-- //v-post-aside -->
+                </div>
+            </section><!-- //violet-post -->
+        </div>
+        </div>
+    </section><!-- //content -->
+
+    <footer class="foot fn-clear">
+        <div class="foot-cnt">
+        <div class="ui-grid-25 ui-grid-right ui-grid-bottom">
+            <section class="ui-grid-14 violet-submenu">
+                <ul>
+                    <li><a href="/" rel="nofollow"><span>&#8227;</span>Home</a></li>
+                    <li><a href="/archives.html" rel="bookmark"><span>&#8227;</span>Archives</a></li>
+                    <li><a href="/works.html" rel="bookmark"><span>&#8227;</span>Works</a></li>
+                    <li><a href="/contact.html" rel="bookmark"><span>&#8227;</span>Contact</a></li>
+                </ul>
+            </section>
+            <section class="ui-grid-6 violet-theme">
+                <p>Powered by <a href="http://jekyllrb.com" target="_blank" rel="nofollow">Jekyll</a> and <a href="http://www.pizn.me" target="_blank" rel="nofollow">PIZn</a>
+		<span class="v-tj">
+		<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
+		</script>
+		</span>
+		</p>
+            </section>
+            <section class="ui-grid-4 violet-copyright">
+                <p>Copyright © 2012 YangFei All rights reserved.</p>
+            </section>
+        </div>
+        </div>
+    </footer>
+    <script src="/js/jquery.js" type="text/javascript"></script>
+    <script src="/js/violet.js" type="text/javascript"></script>
+        
+    
+    <script src="/js/colorcode.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        //colorcode highlight
+        window.onload = function() {
+            DlHighlight.HELPERS.highlightByName('colorcode', 'pre','', true);
+        }
+        
+        //disqus
+        var disqus_shortname = 'amyangfei';
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] ||
+                document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+        
+        //goTop
+        $(document).ready(function() {
+            var scrHeight, topId, topHeight;
+            topId = $("#J_gotop");
+            $(function() {
+                $(window).bind(
+                    "scroll", 
+                    function(){
+                        scrHeight = $(window).scrollTop();
+                        if(scrHeight > 300) {
+                            topId.fadeIn(1500);
+                            topHeight = scrHeight + 120;
+                            topId.parent().css({top: topHeight});
+                        } else {
+                            topId.fadeOut(1500);
+                        }
+                    }
+                );
+                topId.click(function() {
+                        $('body, html').animate({scrollTop: 0}, 1200);
+                    });
+            })
+        });
+    </script>
+    
+    
+    
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30252000-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0];
+              s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    
+    <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+    
+</body>
+</html>

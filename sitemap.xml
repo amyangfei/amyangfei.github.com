@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>www.amyangfei.com/</loc>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>www.amyangfei.com/archives.html</loc>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>www.amyangfei.com/works.html</loc>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>www.amyangfei.com/contact.html</loc>
+        <priority>0.6</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/11/29/shuffle-algorithm/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/11/12/secure-tips-for-ssh/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/11/05/python-fast-move-files/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/09/20/server-suffering-attack/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/07/22/php-with-nginx-in-macOS/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/05/01/install-nginx-for-mac/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/04/29/sixv-detect-robot/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/04/11/simple-thrift-useage/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/04/07/communication-Cpp-Java/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/03/26/bide-algorithm/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/03/21/namedpipe-communication/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>www.amyangfei.com/2012/03/20/hello-world/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+</urlset>
