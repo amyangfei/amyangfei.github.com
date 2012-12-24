@@ -48,7 +48,10 @@ body .fn-hide               { display:none; }
 /*--------------------------------------------
                 default
 --------------------------------------------*/
+/*
 body                        { background: url(/images/static/body-bg.jpg) repeat 0 0; }
+*/
+body                        {color: inherit; background-color: #EEE;}
 ::selection                 { background:#292929; color:#ffffff; text-shadow:none !important; }
 *::-moz-selection           { background: none repeat scroll 0 0 #292929; color: #FFFFFF; }
 
