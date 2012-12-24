@@ -2,21 +2,21 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
  
    <title>数列卡索的魔法小屋</title>
-   <link href="www.amyangfei.com/atom.xml" rel="self" type="application/atom+xml"/>
-   <link href="www.amyangfei.com" rel="alternate" type="text/html" />
-   <updated>2012-12-24T11:37:18+08:00</updated>
-   <id>www.amyangfei.com</id>
+   <link href="http://www.amyangfei.com/atom.xml" rel="self" type="application/atom+xml"/>
+   <link href="http://www.amyangfei.com" rel="alternate" type="text/html" />
+   <updated>2012-12-24T17:44:01+08:00</updated>
+   <id>http://www.amyangfei.com</id>
    <author>
-     <name>Fei Yang</name>
+     <name>amyangfei</name>
      <email>amyangfei@gmail.com</email>
    </author>
 
    
    <entry>
      <title>随机排序算法简介</title>
-     <link href="www.amyangfei.com/2012/11/29/shuffle-algorithm/"/>
+     <link href="http://www.amyangfei.com/2012/11/29/shuffle-algorithm/"/>
      <updated>2012-11-29T00:00:00+08:00</updated>
-     <id>www.amyangfei.com/2012/11/29/shuffle-algorithm</id>
+     <id>http://www.amyangfei.com/2012/11/29/shuffle-algorithm</id>
      <content type="html">&lt;p&gt;前几天看了酷壳上的一篇文章&lt;a href=&quot;http://coolshell.cn/articles/8593.html&quot; target=&quot;_blank&quot;&gt;如何测试洗牌程序&lt;/a&gt;，之后仔细看了Wikipedia对&lt;a href=&quot;http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle&quot; target=&quot;_blank&quot;&gt;Fisher–Yates shuffle&lt;/a&gt;算法的介绍，这里简单的总结一下，基本是翻译Wikipedia。&lt;/p&gt;
 
 &lt;h2&gt;Fisher and Yates' original method&lt;/h2&gt;
@@ -127,9 +127,9 @@
    
    <entry>
      <title>配置安全ssh的几个方法</title>
-     <link href="www.amyangfei.com/2012/11/12/secure-tips-for-ssh/"/>
+     <link href="http://www.amyangfei.com/2012/11/12/secure-tips-for-ssh/"/>
      <updated>2012-11-12T00:00:00+08:00</updated>
-     <id>www.amyangfei.com/2012/11/12/secure-tips-for-ssh</id>
+     <id>http://www.amyangfei.com/2012/11/12/secure-tips-for-ssh</id>
      <content type="html">&lt;p&gt;最近一直通过ssh连接到机房的电脑，昨天把ssh端口改回了默认的22，结果今天早上收到Logwatch的报告时发现来自3个不同ip的100多条登陆失败的记录，于是总结一些配置安全ssh的方法。本文实验环境为unbutu12.10。&lt;/p&gt;
 
 &lt;h3&gt;SSH服务配置，合理配置/etc/ssh/sshd_config文件&lt;/h3&gt;
@@ -236,9 +236,9 @@ cat /var/log/auth.log | awk &lt;span class=&quot;s1&quot;&gt;&amp;#39;/Failed/{p
    
    <entry>
      <title>How to move files fast with python</title>
-     <link href="www.amyangfei.com/2012/11/05/python-fast-move-files/"/>
+     <link href="http://www.amyangfei.com/2012/11/05/python-fast-move-files/"/>
      <updated>2012-11-05T00:00:00+08:00</updated>
-     <id>www.amyangfei.com/2012/11/05/python-fast-move-files</id>
+     <id>http://www.amyangfei.com/2012/11/05/python-fast-move-files</id>
      <content type="html">&lt;p&gt;需求很简单，有一个目录下有很多子目录，每个子目录中都会有一些具有特定格式的文件，比如jpg图片。需要将这些文件移动到一个统一的文件夹中，按照指定格式统一命名。可以使用python提供的os.walk遍历子目录，使用os.rename更改文件属性实现移动。另外关于使用shutil.move，操作因其基于复制效率较低，查看Python的官方文档有这样的说明：&lt;/p&gt;
 
 &lt;table width=&quot;100%&quot;&gt;
@@ -284,9 +284,9 @@ cat /var/log/auth.log | awk &lt;span class=&quot;s1&quot;&gt;&amp;#39;/Failed/{p
    
    <entry>
      <title>An Experience of being Attacked</title>
-     <link href="www.amyangfei.com/2012/09/20/server-suffering-attack/"/>
+     <link href="http://www.amyangfei.com/2012/09/20/server-suffering-attack/"/>
      <updated>2012-09-20T00:00:00+08:00</updated>
-     <id>www.amyangfei.com/2012/09/20/server-suffering-attack</id>
+     <id>http://www.amyangfei.com/2012/09/20/server-suffering-attack</id>
      <content type="html">&lt;p&gt;在9月16日导师交给我一台小型服务器，用作测试环境，服务器运行以Linux 2.6.18内核的Asianux 3.0操作系统。我在服务器上面配置了Oracle服务、国产神通数据库服务，并开启了sshd，在sshd_config配置文件中开启了root登录的权限即配置有PermitRootLogin yes，监听地址直接写为了0.0.0.0，这是我犯的第一个错误，就是对ssh的访问限制过于宽松，没有对访问ip进行限制。我犯的第二个严重错误是老师交给我服务器时的root口令较弱，我并没有进行更改。然后9月16日晚上我竟然把服务器连接上外网然后就放在一边置之不理。&lt;/p&gt;
 
 &lt;p&gt;第二天即9月17日晚我尝试使用ssh登录服务器，意外的发现root账户无法登录，给出的错误信息是Permission denied, please try again.使用其他普通账户可以登录，登录查看sshd进程信息发现下面的结果：
@@ -341,9 +341,9 @@ Sep 17 18:29:53 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;1634
    
    <entry>
      <title>Running PHP with Nginx on Mac OS X</title>
-     <link href="www.amyangfei.com/2012/07/22/php-with-nginx-in-macOS/"/>
+     <link href="http://www.amyangfei.com/2012/07/22/php-with-nginx-in-macOS/"/>
      <updated>2012-07-22T00:00:00+08:00</updated>
-     <id>www.amyangfei.com/2012/07/22/php-with-nginx-in-macOS</id>
+     <id>http://www.amyangfei.com/2012/07/22/php-with-nginx-in-macOS</id>
      <content type="html">&lt;p&gt;直接切入正题，关于Mac OS下Nginx的安装部署在&lt;a href=&quot;/2012/05/01/install-nginx-for-mac/&quot; target=&quot;_blank&quot;&gt;mac上安装nginx&lt;/a&gt;这篇文章中有详细的叙述。&lt;a href=&quot;http://en.wikipedia.org/wiki/FastCGI&quot; target=&quot;_blank&quot;&gt; FastCGI &lt;/a&gt;是语言无关的、可伸缩架构的CGI开放扩展，其主要行为是将CGI解释器进程保持在内存中并因此获得较高的性能，PHP-CGI是PHP自带的FastCGI管理器。在Mac OS X Lion中系统自带了Apache服务器以及PHP解释器，通过查看phpinfo可以很清楚的看到PHP使用的Server API是Apache2.0 Handler。&lt;/p&gt;
 
 &lt;h3&gt;安装PHP&lt;/h3&gt;
@@ -408,9 +408,9 @@ sudo /opt/local/bin/php-cgi -b 127.0.0.1:9000
    
    <entry>
      <title>在mac上安装nginx</title>
-     <link href="www.amyangfei.com/2012/05/01/install-nginx-for-mac/"/>
+     <link href="http://www.amyangfei.com/2012/05/01/install-nginx-for-mac/"/>
      <updated>2012-05-01T00:00:00+08:00</updated>
-     <id>www.amyangfei.com/2012/05/01/install-nginx-for-mac</id>
+     <id>http://www.amyangfei.com/2012/05/01/install-nginx-for-mac</id>
      <content type="html">&lt;p&gt;大名鼎鼎的Nginx听说过很久，它有着高性能、高稳定性等优点，国内的很多大型门户也都部署了Nginx，还有淘宝开源的&lt;a href=&quot;http://tengine.taobao.org/&quot; target=&quot;_blank&quot;&gt;Tengine&lt;/a&gt;也是根据Nginx改写。不过自己一直没有使用过，今天白天在新买来的mac上配置了Nginx，这里记录一下配置的过程和遇到的一些问题。配置过程参考了&lt;a href=&quot;http://www.kevinworthington.com/nginx-for-mac-os-x-lion-in-2-minutes/&quot; target=&quot;_blank&quot;&gt;Nginx for Mac OS X Lion in 2 minutes&lt;/a&gt;这篇文章。&lt;/p&gt;
 
 &lt;h3&gt;概述&lt;/h3&gt;
@@ -469,9 +469,9 @@ sudo /opt/local/bin/php-cgi -b 127.0.0.1:9000
    
    <entry>
      <title>六维空间free资源检索工具</title>
-     <link href="www.amyangfei.com/2012/04/29/sixv-detect-robot/"/>
+     <link href="http://www.amyangfei.com/2012/04/29/sixv-detect-robot/"/>
      <updated>2012-04-29T00:00:00+08:00</updated>
-     <id>www.amyangfei.com/2012/04/29/sixv-detect-robot</id>
+     <id>http://www.amyangfei.com/2012/04/29/sixv-detect-robot</id>
      <content type="html">&lt;p&gt;最近自己对挂六维空间刷下载积分热情高涨，但是六维上挂出免费资源的时间是不确定的，于是写了一个自动检索免费资源的小工具：基本功能是自动登录六维空间并检索指定板块的下载资源，找到在指定时间内最新发布的资源，如果有新的免费资源发送一条飞信给自己的手机。代码没有太多技术含量，主要分为三个模块。&lt;/p&gt;
 
 &lt;h3&gt;模拟登录模块&lt;/h3&gt;
@@ -595,9 +595,9 @@ sudo /opt/local/bin/php-cgi -b 127.0.0.1:9000
    
    <entry>
      <title>thrift使用简介</title>
-     <link href="www.amyangfei.com/2012/04/11/simple-thrift-useage/"/>
+     <link href="http://www.amyangfei.com/2012/04/11/simple-thrift-useage/"/>
      <updated>2012-04-11T00:00:00+08:00</updated>
-     <id>www.amyangfei.com/2012/04/11/simple-thrift-useage</id>
+     <id>http://www.amyangfei.com/2012/04/11/simple-thrift-useage</id>
      <content type="html">&lt;p&gt;在上一篇文章中提到过thrift，今天抽出一些时间学习了一下，框架用起来很方便。thrift最初是由facebook开发，用于跨语言的服务部署，它通过接口定义语言来定义RPC的接口和数据类型，使用自己的编译器根据固定格式的thrift文件生成不同语言的代码，并由生成的代码负责RPC协议层和传输层的实现。详细的框架设计，数据传输等等的细节就不多说了，&lt;a href=&quot;http://thrift.apache.org/&quot; target=&quot;_blank&quot;&gt;Thrift&lt;/a&gt;的官方文档说的很详细。接下来介绍的例子也主要参照官方文档的配置方法，也有一处地方在官方文档中没有提及，后面有详细的说明。简单说这些，现在一起Getting Started！&lt;/p&gt;
 
 &lt;h3&gt;下载 Thrift&lt;/h3&gt;
@@ -736,9 +736,9 @@ thrift --gen java helloworld.thrift
    
    <entry>
      <title>Java和C++通信问题杂谈</title>
-     <link href="www.amyangfei.com/2012/04/07/communication-Cpp-Java/"/>
+     <link href="http://www.amyangfei.com/2012/04/07/communication-Cpp-Java/"/>
      <updated>2012-04-07T00:00:00+08:00</updated>
-     <id>www.amyangfei.com/2012/04/07/communication-Cpp-Java</id>
+     <id>http://www.amyangfei.com/2012/04/07/communication-Cpp-Java</id>
      <content type="html">&lt;p&gt;之前一直在做数据库活动检测引擎，是由C++实现的。最近突发奇想要做一个集成Dashboard和admin管理的平台，用来集中管理数据库活动检测的相关数据和系统操作，于是抽出一个下午用Struts，Spring加JSP简单搭了一个BS结构的Dashboard。平台是搭建好了，持久化数据可以从Sqlserver数据库里直接读，但有时java后台还是需要调用检测引擎的一些方法，或者需要检测引擎动态处理一些数据，于是遇到了类似前几天的DT问题：不同编程语言之间的通信。上一次遇到的是C++和C#，这一次是C++和Java，这个问题其实挺普遍，真DT。&lt;/p&gt;
 
 &lt;p&gt;仔细google了一下，发现有一些通用的解决办法，比如一些封装好的多语言RPC通信框架，比较著名的有ZeroC旗下的&lt;a href=&quot;http://www.zeroc.com/ice.html&quot; target=&quot;_blank&quot;&gt;ICE通信框架&lt;/a&gt;，&lt;a href=&quot;http://thrift.apache.org/&quot; target=&quot;_blank&quot;&gt;Thrift&lt;/a&gt;(著名的Key-Value存储服务器Cassandra就是使用Thrift作为其客户端API的)，Google的&lt;a href=&quot;https://developers.google.com/protocol-buffers/docs/overview?hl=zh-CN&quot; target=&quot;_blank&quot;&gt;Protocol Buffers&lt;/a&gt;等等。时间有限，这些框架暂未使用ToT，有空再学吧，不过框架的核心性质就是易于复用，简单的使用起来应该也不难。&lt;/p&gt;
@@ -761,9 +761,9 @@ thrift --gen java helloworld.thrift
    
    <entry>
      <title>A brief introduction to BIDE algorithm</title>
-     <link href="www.amyangfei.com/2012/03/26/bide-algorithm/"/>
+     <link href="http://www.amyangfei.com/2012/03/26/bide-algorithm/"/>
      <updated>2012-03-26T00:00:00+08:00</updated>
-     <id>www.amyangfei.com/2012/03/26/bide-algorithm</id>
+     <id>http://www.amyangfei.com/2012/03/26/bide-algorithm</id>
      <content type="html">&lt;h3&gt;背景&lt;/h3&gt;
 
 &lt;p&gt;最近在做的数据库活动检测引擎，要实现一个异常行为检测的模块。简单的说异常行为检测就是先确定描述用户访问数据库的行为模型，然后定义一系列描述正常访问数据库的行为，检测过程中一旦用户行为与正常行为轮廓不符，则被认定为攻击行为。在实际系统中，正常行为轮廓会组成正常行为知识库，这个知识库会很大，所以正常行为轮廓不能简单的人工定义，于是一个自动挖掘正常行为知识库的需求被提了出来。&lt;/p&gt;
@@ -849,4 +849,3 @@ thrift --gen java helloworld.thrift
    
  
 </feed>
-

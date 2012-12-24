@@ -1,82 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <title>
-        
-            Java和C++通信问题杂谈
-                 
-    </title>
-    <meta name="generator" content="Jekyll" />
-    <meta name="author" content="Fei Yang" />
-    <meta name="description" content="写代码时候需要java端与C++端进行数据交互，有很多实现的方法，做一个比较简单的总结" />
-    <meta name="keywords" content="Socket, Java, C++, RPC" />
-    <link rel="stylesheet" href="/css/violet.css" type="text/css" />
-    
-    <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-    <!--[if lt IE 9]>
-    <script src="/js/html5.js" type="text/javascript"></script>
-    <![endif]-->
+  <meta charset="utf-8" />
+  <title>Java和C++通信问题杂谈 | 数列卡索的魔法小屋</title>
+  <meta name="generator" content="Jekyll" />
+  <meta name="author" content="amyangfei" />
+  <meta name="description" content="" />
+  <link rel="stylesheet" href="/css/style.css" type="text/css" />
+  <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+  <link rel="shortcut icon" href="/blog/favicon.ico" type="image/x-icon" />
 </head>
-<body class="violet-content">
-    <!--[if IE]>
-    <div class="KillIE">
-        <p>注意：假如您使用 <a href="http://www.google.com/chrome/" target="_blank" rel="nofollow">Chrome</a>, <a href="http://www.mozilla.com/" target="_blank" rel="nofollow">FireFox</a>, 或者 <a href="http://www.apple.com/safari/" rel="nofollow" target="_blank">Safari</a> 等高级浏览器。本站将为您带来更好的体验哦!</p>
-        <p>Attention: If you use <a href="http://www.google.com/chrome/" target="_blank" rel="nofollow">Chrome</a>, <a href="http://www.mozilla.com/" target="_blank" rel="nofollow">FireFox</a>, or <a href="http://www.apple.com/safari/" rel="nofollow" target="_blank">Safari</a> , our site will be more beautiful. Thanks!</p>
-    </div>
-    <![endif]-->
-
+<body>
     <header class="head">
-        <div class="head-cnt">
-        <div class="ui-grid-25 ui-grid-right ui-grid-bottom">
-            <div class="ui-grid-20 header-line"></div>
-            <div class="ui-grid-20 header">
-                <div class="header-bg"></div>
-                <div class="ui-grid-9 header-cnt fn-clear">
-                    
-                    <hgroup class="violet-site">
-                        <h1><a href="/" title="amyangfei" rel="nofollow">Amyangfei</a></h1>
-                        <h2>Study, Geek & Share</h2>
-                    </hgroup><!-- //violet-site -->
-                </div><!-- //header-cnt -->
-                <nav class="ui-grid-11 violet-nav">
-                    <ul class="fn-clear" id="J_nav">
-                        <li><a href="/" class="current" rel="nofollow">Home</a></li>
-                        <li><a href="/archives.html" class="" rel="bookmark">Archives</a></li>
-                        <li><a href="/works.html" class="" rel="bookmark">Works</a></li>
-                        <li class="last"><a href="/contact.html" class="" rel="bookmark">Contact</a></li>
-                    </ul>
-                </nav><!-- //nav -->
-            </div><!-- //header -->
+	<div class="header fn-clear">
+		<section class="header-cnt fn-clear">
+			<div class="logo">
+				<div class="logo-cnt">
+				 	<h1><a href="/">Amyangfei</a></h1>
+				 	<h2>Study, Geek & Share</h2>
+				</div>
+			</div>
+			<nav class="nav">
+				<ul>
+					<li><a href="/" >Home</a></li>
+					<li><a href="/archives.html" >Archives</a></li>
+					<li><a href="/contact.html" >About & Contact</a></li>
+					<li><a href="/atom.xml" target="_blank" >Rss</a></li>
+				</ul>
+			</nav>
+		</section>
+	</div>
+</header> 
+  <section id="content">
+    <article id="contenter">
+      <section class="content">
 
-            <div class="ui-grid-4 violet-rss fn-clear">
-                <a href="/atom.xml" target="_blank" rel="nofollow" class="subscribe">RSS</a>
-            </div><!-- //violet-flower -->
-        </div><!-- //grid-20 -->
-        </div>
-    </header><!-- //head -->
+	<div class="content-cnt fn-clear">
 
-    <div class="head-bar">
-    </div><!-- //head-bar -->    
-        <section class="content fn-clear" id="i-am-top">
-        <div class="content-cnt">
-        <div class="ui-grid-25 ui-grid-right content-top">
-            <section class="ui-grid-23 violet-post">
-                <div class="v-section-tit">
-                    <a href="/" rel="nofollow" >Home</a>
-                    <span>&#9830;</span>
-                    <a href="/archives.html" rel="nofollow" >Archives</a>
-                    <span>&#9830;</span>
-                    <h2>Java和C++通信问题杂谈</h2>
-                </div>
-                <div class="violet-post-det fn-clear">
-                    <div class="ui-grid-15 v-post-detail">
-                        <div class="v-entry">
-                            <h1 class="title">Java和C++通信问题杂谈</h1>
-                            <p class="meta"><time class="date" pubdate="2012-04-07">2012-04-07</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
-                            <p class="description">写代码时候需要java端与C++端进行数据交互，有很多实现的方法，做一个比较简单的总结</p>
-                            <p>之前一直在做数据库活动检测引擎，是由C++实现的。最近突发奇想要做一个集成Dashboard和admin管理的平台，用来集中管理数据库活动检测的相关数据和系统操作，于是抽出一个下午用Struts，Spring加JSP简单搭了一个BS结构的Dashboard。平台是搭建好了，持久化数据可以从Sqlserver数据库里直接读，但有时java后台还是需要调用检测引擎的一些方法，或者需要检测引擎动态处理一些数据，于是遇到了类似前几天的DT问题：不同编程语言之间的通信。上一次遇到的是C++和C#，这一次是C++和Java，这个问题其实挺普遍，真DT。</p>
+		<div class="v-section-tit fn-clear">
+	        <a href="/" rel="nofollow" >Home</a>
+	        <span>&#9830;</span>
+	        <a href="/archives.html" rel="nofollow" >Archives</a>
+	        <span>&#9830;</span>
+	        <h2>Java和C++通信问题杂谈</h2>
+    	</div>
+
+		<div class="main fn-clear">
+			<article class="entry">
+				<h1 class="title">Java和C++通信问题杂谈</h1>
+               	<p class="meta"><time class="date" pubdate="2012-04-07">07 Apr 2012</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">写代码时候需要java端与C++端进行数据交互，有很多实现的方法，做一个比较简单的总结</p>
+ 			 	<p>之前一直在做数据库活动检测引擎，是由C++实现的。最近突发奇想要做一个集成Dashboard和admin管理的平台，用来集中管理数据库活动检测的相关数据和系统操作，于是抽出一个下午用Struts，Spring加JSP简单搭了一个BS结构的Dashboard。平台是搭建好了，持久化数据可以从Sqlserver数据库里直接读，但有时java后台还是需要调用检测引擎的一些方法，或者需要检测引擎动态处理一些数据，于是遇到了类似前几天的DT问题：不同编程语言之间的通信。上一次遇到的是C++和C#，这一次是C++和Java，这个问题其实挺普遍，真DT。</p>
 
 <p>仔细google了一下，发现有一些通用的解决办法，比如一些封装好的多语言RPC通信框架，比较著名的有ZeroC旗下的<a href="http://www.zeroc.com/ice.html" target="_blank">ICE通信框架</a>，<a href="http://thrift.apache.org/" target="_blank">Thrift</a>(著名的Key-Value存储服务器Cassandra就是使用Thrift作为其客户端API的)，Google的<a href="https://developers.google.com/protocol-buffers/docs/overview?hl=zh-CN" target="_blank">Protocol Buffers</a>等等。时间有限，这些框架暂未使用ToT，有空再学吧，不过框架的核心性质就是易于复用，简单的使用起来应该也不难。</p>
 
@@ -94,107 +68,104 @@
 
 <p>跨语言技术还是有很多解决方案的，有时间要把Thrift，ICE这几个框架好好研究一下。</p>
 
-                        </div>
-                        <div class="v-announce">
-                            <p>声明: 本文采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" target="_blank" rel="nofollow" title="署名-非商业性使用-相同方式共享">BY-NC-SA</a> 协议进行授权. 转载请注明转自: <a href="/2012/04/07/communication-Cpp-Java/" title="Java和C++通信问题杂谈" rel="nofollow">Java和C++通信问题杂谈</a></p>
-                        </div>
-                        <nav class="v-pagination">
-                            
-                            <a class="prev" href="/2012/03/26/bide-algorithm/" rel="bookmark">&laquo;&nbsp;A brief introduction to BIDE...</a>
-                            
-                            
-                            <a class="next" href="/2012/04/11/simple-thrift-useage/" rel="bookmark">thrift使用简介&nbsp;&raquo;</a>
-                            
-                         </nav>
-                         <div class="violet-comment">
-                             <div id="disqus_thread"></div>
-                         </div><!-- //violet-comment -->
-                         
-                         <div class="violet-gotop">
-                            <a href="#i-am-top" class="" id="J_gotop">&#8673;</a>
-                         </div><!-- //violet-gotop -->
-                    </div>                   
-                    <div class="ui-grid-6 v-post-aside">
-                        <article class="recent-post">
-                            <h4 class="v-section-tit">Recent Articles</h4>
-                            <ul>
-                               
-                                <li>
-                                    <a href="/2012/11/29/shuffle-algorithm/" title="随机排序算法简介" rel="bookmark">随机排序算法简介</a>
-                                </li>                                   
-                               
-                                <li>
-                                    <a href="/2012/11/12/secure-tips-for-ssh/" title="配置安全ssh的几个方法" rel="bookmark">配置安全ssh的几个方法</a>
-                                </li>                                   
-                               
-                                <li>
-                                    <a href="/2012/11/05/python-fast-move-files/" title="How to move files fast with python" rel="bookmark">How to move files fast with python</a>
-                                </li>                                   
-                               
-                                <li>
-                                    <a href="/2012/09/20/server-suffering-attack/" title="An Experience of being Attacked" rel="bookmark">An Experience of being Attacked</a>
-                                </li>                                   
-                               
-                                <li>
-                                    <a href="/2012/07/22/php-with-nginx-in-macOS/" title="Running PHP with Nginx on Mac OS X" rel="bookmark">Running PHP with Nginx on Mac OS X</a>
-                                </li>                                   
-                               
-                                <li>
-                                    <a href="/2012/05/01/install-nginx-for-mac/" title="在mac上安装nginx" rel="bookmark">在mac上安装nginx</a>
-                                </li>                                   
-                               
-                                <li>
-                                    <a href="/2012/04/29/sixv-detect-robot/" title="六维空间free资源检索工具" rel="bookmark">六维空间free资源检索工具</a>
-                                </li>                                   
-                               
-                                <li>
-                                    <a href="/2012/04/11/simple-thrift-useage/" title="thrift使用简介" rel="bookmark">thrift使用简介</a>
-                                </li>                                   
-                            
-                            </ul>
-                        </article>
-                    </div><!-- //v-post-aside -->
-                </div>
-            </section><!-- //violet-post -->
-        </div>
-        </div>
-    </section><!-- //content -->
-
-    <footer class="foot fn-clear">
-        <div class="foot-cnt">
-        <div class="ui-grid-25 ui-grid-right ui-grid-bottom">
-            <section class="ui-grid-14 violet-submenu">
-                <ul>
-                    <li><a href="/" rel="nofollow"><span>&#8227;</span>Home</a></li>
-                    <li><a href="/archives.html" rel="bookmark"><span>&#8227;</span>Archives</a></li>
-                    <li><a href="/works.html" rel="bookmark"><span>&#8227;</span>Works</a></li>
-                    <li><a href="/contact.html" rel="bookmark"><span>&#8227;</span>Contact</a></li>
-                </ul>
-            </section>
-            <section class="ui-grid-6 violet-theme">
-                <p>Powered by <a href="http://jekyllrb.com" target="_blank" rel="nofollow">Jekyll</a> and <a href="http://www.pizn.me" target="_blank" rel="nofollow">PIZn</a>
-		<span class="v-tj">
-		<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
-		</script>
-		</span>
-		</p>
-            </section>
-            <section class="ui-grid-4 violet-copyright">
-                <p>Copyright © 2012 YangFei All rights reserved.</p>
-            </section>
-        </div>
-        </div>
-    </footer>
-    <script src="/js/jquery.js" type="text/javascript"></script>
-    <script src="/js/violet.js" type="text/javascript"></script>
+                <nav class="pagination-link">
+                    
+                    <a class="prev" href="/2012/03/26/bide-algorithm/" rel="bookmark">&laquo;&nbsp;A brief introduction to BIDE...</a>
+                    
+                    
+                    <a class="next" href="/2012/04/11/simple-thrift-useage/" rel="bookmark">thrift使用简介&nbsp;&raquo;</a>
+                    
+                 </nav>
+			</article><!-- .entry -->
+			<div class="violet-comment">
+	             <div id="disqus_thread"></div>
+	        </div><!-- //violet-comment -->
+		</div>
+		<div class="aside fn-clear">
+			<div class="box fn-clear">
+        <h3 class="title">Recent Posts</h3>
+        <ul>
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/11/29/shuffle-algorithm/" title="随机排序算法简介" rel="bookmark">随机排序算法简介</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/11/12/secure-tips-for-ssh/" title="配置安全ssh的几个方法" rel="bookmark">配置安全ssh的几个方法</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/11/05/python-fast-move-files/" title="How to move files fast with python" rel="bookmark">How to move files fast with python</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/09/20/server-suffering-attack/" title="An Experience of being Attacked" rel="bookmark">An Experience of being Attacked</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/07/22/php-with-nginx-in-macOS/" title="Running PHP with Nginx on Mac OS X" rel="bookmark">Running PHP with Nginx on Mac OS X</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/05/01/install-nginx-for-mac/" title="在mac上安装nginx" rel="bookmark">在mac上安装nginx</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/04/29/sixv-detect-robot/" title="六维空间free资源检索工具" rel="bookmark">六维空间free资源检索工具</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/04/11/simple-thrift-useage/" title="thrift使用简介" rel="bookmark">thrift使用简介</a>
+                </li>                                       
         
+        </ul>  
+</div>
+		</div>
+	</div>
+</section>
+    </article>
+  </section>
+    <footer class="foot">
+	<div class="foot-cnt fn-clear">
+		<div class="foot-cnt-det fn-clear">
+			
+			<article class="blogroll">
+				<h4 class="title">QR code</h4>
+				<ul>
+					<img src="/images/static/qrcode.png"></img>
+				</ul>
+			</article>
+			<article class="about">
+				<h4 class="title">About Me</h4>
+				<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
+			</article>
+			<article class="follow">
+				<h4 class="title">Follow Me</h4>
+				<ul>
+					<li><a href="https://github.com/amyangfei" class="ico-github" target="_blank">github</a></li>
+					<li><a href="/atom.xml" class="ico-rss" target="_blank">rss</a></li>
+					<li><a href="https://www.twitter.com/amyangfei" class="ico-twitter" target="_blank">twitter</a></li>
+					<li><a href="https://www.facebook.com/amyangfei" class="ico-facebook" target="_blank">facebook</a></li>
+					<li><a href="http://weibo.com/amyangfei" class="ico-weibo" target="_blank">weibo</a></li>
+					<li><a href="http://www.douban.com/people/amyangfei" class="ico-douban" target="_blank">douban</a></li>
+				</ul>
+			</article>
+		</div>
+	</div>
+	<div class="foot-btn">
+		<div class="foot-btn-det">
+			<p class="copyright">Copyright © 2012 amyangfei All rights reserved.</p>&nbsp&nbsp
+			<span class="v-tj">
+				<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
+				</script>
+			</span>
+			<p class="author">Powered by <a href="http://www.jekyllrb.com" target="_blank">Jekyll</a> and <a href="http://www.pizn.net" target="_blank">PIZn</a>.</p>
+		</div>
+	</div>
+</footer>
+
     
-    <script src="/js/colorcode.js" type="text/javascript"></script>
     <script type="text/javascript">
-        //colorcode highlight
-        window.onload = function() {
-            DlHighlight.HELPERS.highlightByName('colorcode', 'pre','', true);
-        }
         
         //disqus
         var disqus_shortname = 'amyangfei';
@@ -204,35 +175,9 @@
             (document.getElementsByTagName('head')[0] ||
                 document.getElementsByTagName('body')[0]).appendChild(dsq);
         })();
-        
-        //goTop
-        $(document).ready(function() {
-            var scrHeight, topId, topHeight;
-            topId = $("#J_gotop");
-            $(function() {
-                $(window).bind(
-                    "scroll", 
-                    function(){
-                        scrHeight = $(window).scrollTop();
-                        if(scrHeight > 300) {
-                            topId.fadeIn(1500);
-                            topHeight = scrHeight + 120;
-                            topId.parent().css({top: topHeight});
-                        } else {
-                            topId.fadeOut(1500);
-                        }
-                    }
-                );
-                topId.click(function() {
-                        $('body, html').animate({scrollTop: 0}, 1200);
-                    });
-            })
-        });
     </script>
     
-    
-    
-    
+
     <script type="text/javascript">
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', 'UA-30252000-1']);
@@ -244,8 +189,5 @@
               s.parentNode.insertBefore(ga, s);
         })();
     </script>
-    
-    <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
-    
 </body>
 </html>
