@@ -1,79 +1,79 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>http://www.amyangfei.com/</loc>
+        <loc>http://amyangfei.me/</loc>
         <priority>1.0</priority>
     </url>
     <url>
-        <loc>http://www.amyangfei.com/archives.html</loc>
+        <loc>http://amyangfei.me/archives.html</loc>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>http://www.amyangfei.com/works.html</loc>
+        <loc>http://amyangfei.me/works.html</loc>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>http://www.amyangfei.com/contact.html</loc>
+        <loc>http://amyangfei.me/contact.html</loc>
         <priority>0.6</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/11/29/shuffle-algorithm/</loc>
+        <loc>http://amyangfei.me/2012/11/29/shuffle-algorithm/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/11/12/secure-tips-for-ssh/</loc>
+        <loc>http://amyangfei.me/2012/11/12/secure-tips-for-ssh/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/11/05/python-fast-move-files/</loc>
+        <loc>http://amyangfei.me/2012/11/05/python-fast-move-files/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/09/20/server-suffering-attack/</loc>
+        <loc>http://amyangfei.me/2012/09/20/server-suffering-attack/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/07/22/php-with-nginx-in-macOS/</loc>
+        <loc>http://amyangfei.me/2012/07/22/php-with-nginx-in-macOS/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/05/01/install-nginx-for-mac/</loc>
+        <loc>http://amyangfei.me/2012/05/01/install-nginx-for-mac/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/04/29/sixv-detect-robot/</loc>
+        <loc>http://amyangfei.me/2012/04/29/sixv-detect-robot/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/04/11/simple-thrift-useage/</loc>
+        <loc>http://amyangfei.me/2012/04/11/simple-thrift-useage/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/04/07/communication-Cpp-Java/</loc>
+        <loc>http://amyangfei.me/2012/04/07/communication-Cpp-Java/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/03/26/bide-algorithm/</loc>
+        <loc>http://amyangfei.me/2012/03/26/bide-algorithm/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/03/21/namedpipe-communication/</loc>
+        <loc>http://amyangfei.me/2012/03/21/namedpipe-communication/</loc>
         <priority>0.8</priority>
     </url>
     
     <url>
-        <loc>http://www.amyangfei.com/2012/03/20/hello-world/</loc>
+        <loc>http://amyangfei.me/2012/03/20/hello-world/</loc>
         <priority>0.8</priority>
     </url>
     
