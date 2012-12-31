@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>baidu-star算法题-du熊学斐波那契I | 数列卡索的魔法小屋</title>
+  <meta name="generator" content="Jekyll" />
+  <meta name="author" content="amyangfei" />
+  <meta name="description" content="" />
+  <link rel="stylesheet" href="/css/style.css" type="text/css" />
+  <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+  <link rel="shortcut icon" href="/blog/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+    <header class="head">
+	<div class="header fn-clear">
+		<section class="header-cnt fn-clear">
+			<div class="logo">
+				<div class="logo-cnt">
+				 	<h1><a href="/">Amyangfei</a></h1>
+				 	<h2>Study, Geek & Share</h2>
+				</div>
+			</div>
+			<nav class="nav">
+				<ul>
+					<li><a href="/" >Home</a></li>
+					<li><a href="/archives.html" >Archives</a></li>
+					<li><a href="/contact.html" >About & Contact</a></li>
+					<li><a href="/atom.xml" target="_blank" >Rss</a></li>
+				</ul>
+			</nav>
+		</section>
+	</div>
+</header> 
+  <section id="content">
+    <article id="contenter">
+      <section class="content">
+
+	<div class="content-cnt fn-clear">
+
+		<div class="v-section-tit fn-clear">
+	        <a href="/" rel="nofollow" >Home</a>
+	        <span>&#9830;</span>
+	        <a href="/archives.html" rel="nofollow" >Archives</a>
+	        <span>&#9830;</span>
+	        <h2>baidu-star算法题-du熊学斐波那契I</h2>
+    	</div>
+
+		<div class="main fn-clear">
+			<article class="entry">
+				<h1 class="title">baidu-star算法题-du熊学斐波那契I</h1>
+               	<p class="meta"><time class="date" pubdate="2012-12-31">31 Dec 2012</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">来源于百度之星的一道算法题，与fibonacci有那么一点点关系</p>
+ 			 	<p>题目来源：<a href="http://astar.baidu.com/index.php?r=home/detail&id=2" target="_blank">百度之星-du熊学斐波那契I</a></p>
+
+<p>题目其实很简单，如果不考虑时间和内存可以按照fibonacci的生成方式暴力进行下去。注意到每次增长只针对最后两位数字，所以每次增长的两位数字组合最多有100种：[0,0]~[9,9]，所以增长一定次数之后会出现一个内嵌的循环。</p>
+
+<p>在oschina上看到一篇帖子，给出了两种很漂亮的python实现，<a href="http://www.oschina.net/code/snippet_103482_16641" target="_blank">原文</a>。下面来分析一下：</p>
+
+<h3>实现一简洁版</h3>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">f1</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">intDigits</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">x</span><span class="o">+</span><span class="n">intDigits</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:])),</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="p">[</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">test</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">]]</span>
+<span class="k">print</span> <span class="p">[</span><span class="n">f1</span><span class="p">(</span><span class="o">*</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">test</span><span class="p">]</span>
+</code></pre>
+</div>
+
+
+<p>这个版本就是暴力计算了，一直增长n-2次</p>
+
+<h3>实现二高效版</h3>
+
+<div class="highlight"><pre><code class="python"><span class="n">partition</span><span class="o">=</span><span class="k">lambda</span> <span class="n">L</span><span class="p">:</span> <span class="p">[</span><span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+<span class="n">intDigits</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">f2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">r</span><span class="o">=</span><span class="p">[</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">]</span>
+    <span class="k">while</span> <span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">partition</span><span class="p">(</span><span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
+        <span class="n">r</span><span class="o">=</span><span class="n">r</span><span class="o">+</span><span class="n">intDigits</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">pos</span><span class="o">=</span> <span class="n">partition</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:])</span>
+    <span class="k">return</span> <span class="n">r</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">n</span><span class="o">&lt;</span><span class="n">pos</span> <span class="k">else</span> <span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">pos</span><span class="p">)</span><span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">-</span><span class="n">pos</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">pos</span><span class="p">]</span>
+
+<span class="n">test</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">100</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">10</span><span class="o">**</span><span class="mi">8</span><span class="o">-</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">10</span><span class="o">**</span><span class="mi">8</span><span class="p">]]</span>
+<span class="k">print</span> <span class="p">[</span><span class="n">f2</span><span class="p">(</span><span class="o">*</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">test</span><span class="p">]</span>
+</code></pre>
+</div>
+
+
+<p>这种方法通过lambda表达式拆分每次增长后的序列，得到没两位组成的加法模式，出现循环后停止增长，可以很容易返回第n位的值。但是这种算法有一个bug，比如初始值[9, 1, 7]，那么增长出的序列应该是9110112……由于第一次出现的11并不是得到它们的增长过程中的最后两位，因而在出现了110的模式而不是112。</p>
+
+<h3>我的实现</h3>
+
+<div class="highlight"><pre><code class="python"><span class="n">iniDigets</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">fun</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">turplemap</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">]</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">turplemap</span><span class="p">:</span>
+        <span class="n">turplemap</span><span class="p">[(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span>
+        <span class="n">r</span> <span class="o">+=</span> <span class="n">iniDigets</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">turplemap</span><span class="p">[(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+    <span class="k">return</span> <span class="n">r</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">n</span><span class="o">&lt;</span><span class="n">pos</span> <span class="k">else</span> <span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">pos</span><span class="p">)</span><span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="n">pos</span><span class="p">)</span> <span class="o">+</span> <span class="n">pos</span><span class="p">]</span>
+
+<span class="n">test</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">100</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">10</span><span class="o">**</span><span class="mi">8</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">10</span><span class="o">**</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">]]</span>
+<span class="k">print</span> <span class="p">[</span><span class="n">fun</span><span class="p">(</span><span class="o">*</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">test</span><span class="p">]</span>
+</code></pre>
+</div>
+
+
+<p>参考实现二的方法，我利用一个字典记录每次增长后序列<strong><em>最后两位</em></strong>的位置，每次在字典中查找是否已出现模式循环。</p>
+
+                <nav class="pagination-link">
+                    
+                    <a class="prev" href="/2012/11/29/shuffle-algorithm/" rel="bookmark">&laquo;&nbsp;随机排序算法简介</a>
+                    
+                    
+                 </nav>
+			</article><!-- .entry -->
+			<div class="violet-comment">
+	             <div id="disqus_thread"></div>
+	        </div><!-- //violet-comment -->
+		</div>
+		<div class="aside fn-clear">
+			<div class="box fn-clear">
+        <h3 class="title">Recent Posts</h3>
+        <ul>
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/12/31/baidustar-code-fibonacci/" title="baidu-star算法题-du熊学斐波那契I" rel="bookmark">baidu-star算法题-du熊学斐波那契I</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/11/29/shuffle-algorithm/" title="随机排序算法简介" rel="bookmark">随机排序算法简介</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/11/12/secure-tips-for-ssh/" title="配置安全ssh的几个方法" rel="bookmark">配置安全ssh的几个方法</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/11/05/python-fast-move-files/" title="How to move files fast with python" rel="bookmark">How to move files fast with python</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/09/20/server-suffering-attack/" title="An Experience of being Attacked" rel="bookmark">An Experience of being Attacked</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/07/22/php-with-nginx-in-macOS/" title="Running PHP with Nginx on Mac OS X" rel="bookmark">Running PHP with Nginx on Mac OS X</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/05/01/install-nginx-for-mac/" title="在mac上安装nginx" rel="bookmark">在mac上安装nginx</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/04/29/sixv-detect-robot/" title="六维空间free资源检索工具" rel="bookmark">六维空间free资源检索工具</a>
+                </li>                                       
+        
+        </ul>  
+</div>
+		</div>
+	</div>
+</section>
+    </article>
+  </section>
+    <footer class="foot">
+	<div class="foot-cnt fn-clear">
+		<div class="foot-cnt-det fn-clear">
+			
+			<article class="blogroll">
+				<h4 class="title">QR code</h4>
+				<ul>
+					<img src="/images/static/qrcode.png"></img>
+				</ul>
+			</article>
+			<article class="about">
+				<h4 class="title">About Me</h4>
+				<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
+			</article>
+			<article class="follow">
+				<h4 class="title">Follow Me</h4>
+				<ul>
+					<li><a href="https://github.com/amyangfei" class="ico-github" target="_blank">github</a></li>
+					<li><a href="/atom.xml" class="ico-rss" target="_blank">rss</a></li>
+					<li><a href="https://www.twitter.com/amyangfei" class="ico-twitter" target="_blank">twitter</a></li>
+					<li><a href="https://www.facebook.com/amyangfei" class="ico-facebook" target="_blank">facebook</a></li>
+					<li><a href="http://weibo.com/amyangfei" class="ico-weibo" target="_blank">weibo</a></li>
+					<li><a href="http://www.douban.com/people/amyangfei" class="ico-douban" target="_blank">douban</a></li>
+				</ul>
+			</article>
+		</div>
+	</div>
+	<div class="foot-btn">
+		<div class="foot-btn-det">
+			<p class="copyright">Copyright © 2012 amyangfei All rights reserved.</p>&nbsp&nbsp
+			<span class="v-tj">
+				<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
+				</script>
+			</span>
+			<p class="author">Powered by <a href="http://www.jekyllrb.com" target="_blank">Jekyll</a> and <a href="http://www.pizn.net" target="_blank">PIZn</a>.</p>
+		</div>
+	</div>
+</footer>
+
+    
+    <script type="text/javascript">
+        
+        //disqus
+        var disqus_shortname = 'amyangfei';
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] ||
+                document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30252000-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0];
+              s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+</body>
+</html>
