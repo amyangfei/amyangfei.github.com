@@ -4,7 +4,7 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2012-12-31T11:01:10+08:00</updated>
+   <updated>2012-12-31T19:23:19+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
@@ -124,6 +124,62 @@
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
+
+</content>
+   </entry>
+   
+   <entry>
+     <title>how to build this blog</title>
+     <link href="http://amyangfei.me/2012/12/30/how-to-build-this-blog/"/>
+     <updated>2012-12-30T00:00:00+08:00</updated>
+     <id>http://amyangfei.me/2012/12/30/how-to-build-this-blog</id>
+     <content type="html">&lt;p&gt;系统环境Mac OS X 10.8.2，这个博客主要通过jekyll生成静态页面，使用ruby提供的一些扩展插件，比如按月份进行归档等，配置环境的过程如下。&lt;/p&gt;
+
+&lt;p&gt;安装ruby，rubygems&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;sudo port ruby
+sudo port install rb-rubygems
+sudo gem install rubygems-update
+sudo gem update --system
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;安装bundle&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;sudo gem install bundler
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;安装jeklly，rdiscount（支持markdown语法，&lt;a href=&quot;https://github.com/rtomayko/rdiscount&quot; target=&quot;_blank&quot;&gt;rdiscount github&lt;/a&gt;），liquid（支持jekyll模板渲染，&lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/liquid-extensions&quot; target=&quot;_blank&quot;&gt;Liquid Extensions&lt;/a&gt;）。可以写到一个Gemfile文件中然后 bundle install。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;bundle install
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;Gemfile文件内容&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nb&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;http://rubygems.org&amp;quot;&lt;/span&gt;
+
+gem &lt;span class=&quot;s2&quot;&gt;&amp;quot;jekyll&amp;quot;&lt;/span&gt;, &lt;span class=&quot;s2&quot;&gt;&amp;quot;0.10.0&amp;quot;&lt;/span&gt;
+gem &lt;span class=&quot;s2&quot;&gt;&amp;quot;jekyll_ext&amp;quot;&lt;/span&gt;
+gem &lt;span class=&quot;s2&quot;&gt;&amp;quot;liquid&amp;quot;&lt;/span&gt;, &lt;span class=&quot;s2&quot;&gt;&amp;quot;2.2.2&amp;quot;&lt;/span&gt;
+gem &lt;span class=&quot;s2&quot;&gt;&amp;quot;rdiscount&amp;quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;关于jekyll的一些扩展插件，可以参考 &lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/Plugins&quot; target=&quot;_blank&quot;&gt;jekyll plugins&lt;/a&gt; 和 &lt;a href=&quot;https://github.com/rfelix/my_jekyll_extensions&quot; target=&quot;_blank&quot;&gt;rfelix's jelyll extensions&lt;/a&gt; 。&lt;/p&gt;
+
+&lt;p&gt;生成静态页面，运行服务器&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;bundle &lt;span class=&quot;nb&quot;&gt;exec &lt;/span&gt;ejekyll --server
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
 
 </content>
    </entry>
@@ -847,31 +903,6 @@ thrift --gen java helloworld.thrift
 &lt;h3&gt;总结&lt;/h3&gt;
 
 &lt;p&gt;总体感觉按照官方文档thrift配置起来还是很顺手的，同时thrift的源码里有各种语言客户端服务器的使用例子，看一看很快就可以上手。以后有时间今天配thrift有一种似曾相识的感觉，后来想想，这种感觉应该是上学期配置&lt;a href=&quot;http://wso2.com/&quot; target=&quot;_blank&quot;&gt;&lt;/a&gt;WSO2的各种服务吧，Application Server，Enterprise Service Bus，Business Process Server。。。oh no。。。&lt;/p&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>Java和C++通信问题杂谈</title>
-     <link href="http://amyangfei.me/2012/04/07/communication-Cpp-Java/"/>
-     <updated>2012-04-07T00:00:00+08:00</updated>
-     <id>http://amyangfei.me/2012/04/07/communication-Cpp-Java</id>
-     <content type="html">&lt;p&gt;之前一直在做数据库活动检测引擎，是由C++实现的。最近突发奇想要做一个集成Dashboard和admin管理的平台，用来集中管理数据库活动检测的相关数据和系统操作，于是抽出一个下午用Struts，Spring加JSP简单搭了一个BS结构的Dashboard。平台是搭建好了，持久化数据可以从Sqlserver数据库里直接读，但有时java后台还是需要调用检测引擎的一些方法，或者需要检测引擎动态处理一些数据，于是遇到了类似前几天的DT问题：不同编程语言之间的通信。上一次遇到的是C++和C#，这一次是C++和Java，这个问题其实挺普遍，真DT。&lt;/p&gt;
-
-&lt;p&gt;仔细google了一下，发现有一些通用的解决办法，比如一些封装好的多语言RPC通信框架，比较著名的有ZeroC旗下的&lt;a href=&quot;http://www.zeroc.com/ice.html&quot; target=&quot;_blank&quot;&gt;ICE通信框架&lt;/a&gt;，&lt;a href=&quot;http://thrift.apache.org/&quot; target=&quot;_blank&quot;&gt;Thrift&lt;/a&gt;(著名的Key-Value存储服务器Cassandra就是使用Thrift作为其客户端API的)，Google的&lt;a href=&quot;https://developers.google.com/protocol-buffers/docs/overview?hl=zh-CN&quot; target=&quot;_blank&quot;&gt;Protocol Buffers&lt;/a&gt;等等。时间有限，这些框架暂未使用ToT，有空再学吧，不过框架的核心性质就是易于复用，简单的使用起来应该也不难。&lt;/p&gt;
-
-&lt;p&gt;其实如果只是在java和C++之间行简单的数据交互，使用Socket通信可以算是最简单的办法。利用TCP连接或者UDP连接都非常简单，这里不详细描述，具体实现时需要注意的问题也是网络通信常见的问题，包括字节序，字符编码，等等。csdn的&lt;a href=&quot;http://blog.csdn.net/Michaelgs/article/details/934116&quot; target=&quot;_blank&quot;&gt;“C/C++与java网络通信问题汇总及解决方法”&lt;/a&gt;这篇文章说的比较详细。&lt;/p&gt;
-
-&lt;p&gt;而今天我在测试的时候，使用了一种更没有技术含量的方法，就是在java端使用Runtime.getRuntime().exec(command)直接调用外部exe程序，掩面啊，当然只是用来测试的，以后会慢慢改的。使用这种方法的时候要注意Runtime.getRuntime().exec(command)的执行会有一些延迟，所以需要像下面这么用：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;Process&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Runtime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getRuntime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;exec&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;command&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;waitFor&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-
-&lt;p&gt;还要注意的是Runtime.getRuntime().exec方法需要自己处理stderr及stdout流，如果获取“标准输出流”总是堵塞，那很有可能是“错误输出流”的问题，可以为&quot;错误输出流&quot;单开一个线程读取处理。&lt;a href=&quot;http://blog.csdn.net/dysj4099/article/details/5985596&quot; target=&quot;_blank&quot;&gt;“Runtime.getRuntime().exec执行阻塞问题解决”&lt;/a&gt;这篇文章里有具体的实现。&lt;/p&gt;
-
-&lt;p&gt;跨语言技术还是有很多解决方案的，有时间要把Thrift，ICE这几个框架好好研究一下。&lt;/p&gt;
 </content>
    </entry>
    

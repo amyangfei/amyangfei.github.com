@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Running PHP with Nginx on Mac OS X | 数列卡索的魔法小屋</title>
+  <title>how to build this blog | 数列卡索的魔法小屋</title>
   <meta name="generator" content="Jekyll" />
   <meta name="author" content="amyangfei" />
   <meta name="description" content="" />
@@ -42,80 +42,69 @@
 	        <span>&#9830;</span>
 	        <a href="/archives.html" rel="nofollow" >Archives</a>
 	        <span>&#9830;</span>
-	        <h2>Running PHP with Nginx on Mac OS X</h2>
+	        <h2>how to build this blog</h2>
     	</div>
 
 		<div class="main fn-clear">
 			<article class="entry">
-				<h1 class="title">Running PHP with Nginx on Mac OS X</h1>
-               	<p class="meta"><time class="date" pubdate="2012-07-22">22 Jul 2012</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
-               	<p class="description">Nginx拥有比Apache更为卓越的性能，LNMP架构正逐步取代LAMP架构，本文简单介绍了在Mac OS X环境下，在已有Nginx服务部署基础上PHP（FastCGI）的安装和配置。</p>
- 			 	<p>直接切入正题，关于Mac OS下Nginx的安装部署在<a href="/2012/05/01/install-nginx-for-mac/" target="_blank">mac上安装nginx</a>这篇文章中有详细的叙述。<a href="http://en.wikipedia.org/wiki/FastCGI" target="_blank"> FastCGI </a>是语言无关的、可伸缩架构的CGI开放扩展，其主要行为是将CGI解释器进程保持在内存中并因此获得较高的性能，PHP-CGI是PHP自带的FastCGI管理器。在Mac OS X Lion中系统自带了Apache服务器以及PHP解释器，通过查看phpinfo可以很清楚的看到PHP使用的Server API是Apache2.0 Handler。</p>
+				<h1 class="title">how to build this blog</h1>
+               	<p class="meta"><time class="date" pubdate="2012-12-30">30 Dec 2012</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">记录如何使用jekyll，bundle搭建这个博客的过程</p>
+ 			 	<p>系统环境Mac OS X 10.8.2，这个博客主要通过jekyll生成静态页面，使用ruby提供的一些扩展插件，比如按月份进行归档等，配置环境的过程如下。</p>
 
-<h3>安装PHP</h3>
+<p>安装ruby，rubygems</p>
 
-<p>通过macports安装PHP，安装PHP的同时安装了fastcgi模块，php5-eaccelerator模块用来加速PHP</p>
-
-<div class="highlight"><pre><code class="bash">sudo port install php5 +fastcgi fcgi php5-gd php5-mysql php5-sqlite 
-        php5-eaccelerator php5-curl php5-iconv
+<div class="highlight"><pre><code class="bash">sudo port ruby
+sudo port install rb-rubygems
+sudo gem install rubygems-update
+sudo gem update --system
 </code></pre>
 </div>
 
 
-<p>安装结束后进入配置php.ini文件。</p>
+<p>安装bundle</p>
 
-<div class="highlight"><pre><code class="bash"><span class="nb">cd</span> /opt/local/etc/php5
-sudo cp php.ini-development php.ini
+<div class="highlight"><pre><code class="bash">sudo gem install bundler
 </code></pre>
 </div>
 
 
-<p>然后打开配置文件php.ini，适当修改时区date.timezone，eaccelerator等配置信息。</p>
+<p>安装jeklly，rdiscount（支持markdown语法，<a href="https://github.com/rtomayko/rdiscount" target="_blank">rdiscount github</a>），liquid（支持jekyll模板渲染，<a href="https://github.com/mojombo/jekyll/wiki/liquid-extensions" target="_blank">Liquid Extensions</a>）。可以写到一个Gemfile文件中然后 bundle install。</p>
 
-<h3>配置Nginx参数</h3>
-
-<p>首先配置nginx.conf文件。在http节点内的提供php服务的server节点内添加配置信息</p>
-
-<div class="highlight"><pre><code class="bash">location ~ <span class="se">\.</span>php<span class="nv">$ </span><span class="o">{</span>
-    root           html;
-    fastcgi_pass   127.0.0.1:9000;
-    fastcgi_index  index.php;
-    fastcgi_param  SCRIPT_FILENAME  /scripts<span class="nv">$fastcgi_script_name</span>;
-    include        fastcgi.conf;
-<span class="o">}</span>
+<div class="highlight"><pre><code class="bash">bundle install
 </code></pre>
 </div>
 
 
-<p>此处注意，在nginx.conf最后一行的默认参数配置是include fastcgi_params，需要修改为include fastcgi.conf，fastcgi.conf为nginx.conf同目录下配置文件，其中有下面一行参数。如果不修改运行时会出现“No input file specified.”的错误。</p>
+<p>Gemfile文件内容</p>
 
-<div class="highlight"><pre><code class="bash">fastcgi_param  SCRIPT_FILENAME    <span class="nv">$document_root$fastcgi_script_name</span>;
+<div class="highlight"><pre><code class="bash"><span class="nb">source</span> <span class="s2">&quot;http://rubygems.org&quot;</span>
+
+gem <span class="s2">&quot;jekyll&quot;</span>, <span class="s2">&quot;0.10.0&quot;</span>
+gem <span class="s2">&quot;jekyll_ext&quot;</span>
+gem <span class="s2">&quot;liquid&quot;</span>, <span class="s2">&quot;2.2.2&quot;</span>
+gem <span class="s2">&quot;rdiscount&quot;</span>
 </code></pre>
 </div>
 
 
-<h3>检查运行</h3>
+<p>关于jekyll的一些扩展插件，可以参考 <a href="https://github.com/mojombo/jekyll/wiki/Plugins" target="_blank">jekyll plugins</a> 和 <a href="https://github.com/rfelix/my_jekyll_extensions" target="_blank">rfelix's jelyll extensions</a> 。</p>
 
-<p>分别启动nginx和php-cgi</p>
+<p>生成静态页面，运行服务器</p>
 
-<div class="highlight"><pre><code class="bash">--启动Nginx
-sudo /usr/local/nginx/sbin/nginx
---启动php-cgi
-sudo /opt/local/bin/php-cgi -b 127.0.0.1:9000
+<div class="highlight"><pre><code class="bash">bundle <span class="nb">exec </span>ejekyll --server
 </code></pre>
 </div>
 
 
-<p>创建index.php测试，典型内容&lt;?php phpinfo(); ?>,访问页面http://127.0.0.1/index.php，正常访问看到php相关的信息，可以清楚的看到Server API是CGI/FastCGI。</p>
 
-<p>至此，nginx-php基本配置完毕。</p>
 
                 <nav class="pagination-link">
                     
-                    <a class="prev" href="/2012/05/01/install-nginx-for-mac/" rel="bookmark">&laquo;&nbsp;在mac上安装nginx</a>
+                    <a class="prev" href="/2012/11/29/shuffle-algorithm/" rel="bookmark">&laquo;&nbsp;随机排序算法简介</a>
                     
                     
-                    <a class="next" href="/2012/09/20/server-suffering-attack/" rel="bookmark">An Experience of being Attacked...&nbsp;&raquo;</a>
+                    <a class="next" href="/2012/12/31/baidustar-code-fibonacci/" rel="bookmark">baidu-star算法题-du熊学斐波那契I&nbsp;&raquo;</a>
                     
                  </nav>
 			</article><!-- .entry -->
