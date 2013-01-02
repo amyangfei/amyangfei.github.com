@@ -9,12 +9,13 @@
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>http://amyangfei.me/works.html</loc>
-        <priority>0.6</priority>
-    </url>
-    <url>
         <loc>http://amyangfei.me/contact.html</loc>
         <priority>0.6</priority>
+    </url>
+    
+    <url>
+        <loc>http://amyangfei.me/2013/01/02/baidustar-code-digraph/</loc>
+        <priority>0.8</priority>
     </url>
     
     <url>
