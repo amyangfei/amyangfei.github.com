@@ -4,7 +4,7 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-01-27T23:30:02+08:00</updated>
+   <updated>2013-01-27T23:41:10+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
@@ -13,7 +13,7 @@
 
    
    <entry>
-     <title>torando源码分析1</title>
+     <title>tornado源码分析1</title>
      <link href="http://amyangfei.me/2013/01/27/tornado-source-analysis-1/"/>
      <updated>2013-01-27T00:00:00+08:00</updated>
      <id>http://amyangfei.me/2013/01/27/tornado-source-analysis-1</id>
