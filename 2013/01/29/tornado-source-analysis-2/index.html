@@ -186,7 +186,11 @@
 </div>
 
 
-<p>这里分析HTTPServer通过listen函数启动监听，这种方法是单进程模式。另外可以通过先后调用bind和start(num_processes=1)函数启动监听同时创建多进程服务器实例，以后会有关于此的详细描述。bind_sockets在启动监听端口过程中调用，getaddrinfo返回服务器的所有网卡信息, 每块网卡上都要创建监听客户端的请求并返回创建的sockets。返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。</p>
+<p>这里分析HTTPServer通过listen函数启动监听，这种方法是单进程模式。另外可以通过先后调用bind和start(num_processes=1)函数启动监听同时创建多进程服务器实例，后文有关于此的详细描述。</p>
+
+<p>bind_sockets在启动监听端口过程中调用，getaddrinfo返回服务器的所有网卡信息, 每块网卡上都要创建监听客户端的请求并返回创建的sockets。创建socket过程中绑定地址和端口，同时设置了fcntl.FD_CLOEXEC（创建子进程时关闭打开的socket）和socket.SO_REUSEADDR（保证某一socket关闭后立即释放端口，实现端口复用）标志位。sock.listen(backlog=128)默认设定等待被处理的连接最大个数为128。</p>
+
+<p>返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写；同时初始化一个HTTPConnection对象，用于处理HTTPRequest并返回。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。</p>
 
 <h3>多进程HTTPServer</h3>
 
@@ -196,7 +200,7 @@
 
 <h3>参考</h3>
 
-<p><a href="http://kenby.iteye.com/blog/1159621" target="_blank">Tornado源码分析之http服务器篇</a>， <a href="http://www.cnblogs.com/Bozh/archive/2012/07/24/2606765.html" target="_blank">tornado源码分析系列</a></p>
+<p><a href="http://kenby.iteye.com/blog/1159621" target="_blank">Tornado源码分析之http服务器篇</a>， <a href="http://www.cnblogs.com/Bozh/archive/2012/07/24/2606765.html" target="_blank">tornado源码分析系列</a>， <a href="http://golubenco.org/2009/09/19/understanding-the-code-inside-tornado-the-asynchronous-web-server-powering-friendfeed/" target="_blank">Understanding the code inside Tornado, the asynchronous web server</a></p>
 
                 <nav class="pagination-link">
                     

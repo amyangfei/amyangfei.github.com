@@ -4,7 +4,7 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-01-29T17:46:42+08:00</updated>
+   <updated>2013-01-29T23:20:42+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
@@ -153,7 +153,11 @@
 &lt;/div&gt;
 
 
-&lt;p&gt;这里分析HTTPServer通过listen函数启动监听，这种方法是单进程模式。另外可以通过先后调用bind和start(num_processes=1)函数启动监听同时创建多进程服务器实例，以后会有关于此的详细描述。bind_sockets在启动监听端口过程中调用，getaddrinfo返回服务器的所有网卡信息, 每块网卡上都要创建监听客户端的请求并返回创建的sockets。返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。&lt;/p&gt;
+&lt;p&gt;这里分析HTTPServer通过listen函数启动监听，这种方法是单进程模式。另外可以通过先后调用bind和start(num_processes=1)函数启动监听同时创建多进程服务器实例，后文有关于此的详细描述。&lt;/p&gt;
+
+&lt;p&gt;bind_sockets在启动监听端口过程中调用，getaddrinfo返回服务器的所有网卡信息, 每块网卡上都要创建监听客户端的请求并返回创建的sockets。创建socket过程中绑定地址和端口，同时设置了fcntl.FD_CLOEXEC（创建子进程时关闭打开的socket）和socket.SO_REUSEADDR（保证某一socket关闭后立即释放端口，实现端口复用）标志位。sock.listen(backlog=128)默认设定等待被处理的连接最大个数为128。&lt;/p&gt;
+
+&lt;p&gt;返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写；同时初始化一个HTTPConnection对象，用于处理HTTPRequest并返回。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。&lt;/p&gt;
 
 &lt;h3&gt;多进程HTTPServer&lt;/h3&gt;
 
@@ -163,7 +167,7 @@
 
 &lt;h3&gt;参考&lt;/h3&gt;
 
-&lt;p&gt;&lt;a href=&quot;http://kenby.iteye.com/blog/1159621&quot; target=&quot;_blank&quot;&gt;Tornado源码分析之http服务器篇&lt;/a&gt;， &lt;a href=&quot;http://www.cnblogs.com/Bozh/archive/2012/07/24/2606765.html&quot; target=&quot;_blank&quot;&gt;tornado源码分析系列&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://kenby.iteye.com/blog/1159621&quot; target=&quot;_blank&quot;&gt;Tornado源码分析之http服务器篇&lt;/a&gt;， &lt;a href=&quot;http://www.cnblogs.com/Bozh/archive/2012/07/24/2606765.html&quot; target=&quot;_blank&quot;&gt;tornado源码分析系列&lt;/a&gt;， &lt;a href=&quot;http://golubenco.org/2009/09/19/understanding-the-code-inside-tornado-the-asynchronous-web-server-powering-friendfeed/&quot; target=&quot;_blank&quot;&gt;Understanding the code inside Tornado, the asynchronous web server&lt;/a&gt;&lt;/p&gt;
 </content>
    </entry>
    
