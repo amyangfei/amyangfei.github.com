@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>tornado源码分析2 | 数列卡索的魔法小屋</title>
+  <meta name="generator" content="Jekyll" />
+  <meta name="author" content="amyangfei" />
+  <meta name="description" content="" />
+  <link rel="stylesheet" href="/css/style.css" type="text/css" />
+  <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+    <header class="head">
+	<div class="header fn-clear">
+		<section class="header-cnt fn-clear">
+			<div class="logo">
+				<div class="logo-cnt">
+				 	<h1><a href="/">Amyangfei</a></h1>
+				 	<h2>Study, Geek & Share</h2>
+				</div>
+			</div>
+			<nav class="nav">
+				<ul>
+					<li><a href="/" >Home</a></li>
+					<li><a href="/archives.html" >Archives</a></li>
+					<li><a href="/contact.html" >About & Contact</a></li>
+					<li><a href="/atom.xml" target="_blank" >Rss</a></li>
+				</ul>
+			</nav>
+		</section>
+	</div>
+</header> 
+  <section id="content">
+    <article id="contenter">
+      <section class="content">
+
+	<div class="content-cnt fn-clear">
+
+		<div class="v-section-tit fn-clear">
+	        <a href="/" rel="nofollow" >Home</a>
+	        <span>&#9830;</span>
+	        <a href="/archives.html" rel="nofollow" >Archives</a>
+	        <span>&#9830;</span>
+	        <h2>tornado源码分析2</h2>
+    	</div>
+
+		<div class="main fn-clear">
+			<article class="entry">
+				<h1 class="title">tornado源码分析2</h1>
+               	<p class="meta"><time class="date" pubdate="2013-01-29">29 Jan 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">介绍Tornado HTTP服务器的基本流程，分别分析httpserver, ioloop, iostream模块的代码来剖析Tornado底层I/O的内部实现。</p>
+ 			 	<p>httpserver.py中给出了一个简单的http服务器的demo，代码如下所示：</p>
+
+<div class="highlight"><pre><code class="python"><span class="kn">from</span> <span class="nn">tornado</span> <span class="kn">import</span> <span class="n">httpserver</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="kn">import</span> <span class="n">ioloop</span>
+ 
+<span class="k">def</span> <span class="nf">handle_request</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+   <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;You requested </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">request</span><span class="o">.</span><span class="n">uri</span>
+   <span class="n">request</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;HTTP/1.1 200 OK</span><span class="se">\r\n</span><span class="s">Content-Length: </span><span class="si">%d</span><span class="se">\r\n\r\n</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                 <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">),</span> <span class="n">message</span><span class="p">))</span>
+   <span class="n">request</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+ 
+<span class="n">http_server</span> <span class="o">=</span> <span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span><span class="n">handle_request</span><span class="p">)</span>
+<span class="n">http_server</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="mi">8888</span><span class="p">)</span>
+<span class="n">http_server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</code></pre>
+</div>
+
+
+<p>该http服务器主要使用到IOLoop, IOStream, HTTPServer, HTTPConnection几大模块，分别在代码ioloop.py, iostream.py, httpserver.py中实现。工作的流程如下图所示：</p>
+
+<p><img src="/images/post/20130128tornado-httpserver.png" style="width:610px;"/></p>
+
+<p>服务器的工作流程：首先按照socket->bind->listen顺序创建listen socket监听客户端，并将每个listen socket的fd注册到IOLoop的单例实例中；当listen socket可读时回调_handle_events处理客户端请求；在与客户端通信的过程中使用IOStream封装了读、写缓冲区，实现与客户端的异步读写。</p>
+
+<h3>HTTPServer分析</h3>
+
+<p>HTTPServer在httpserver.py中实现，继承自TCPServer（netutil.py中实现），是一个无阻塞、单线程HTTP服务器。支持HTTP/1.1协议keep-alive连接，但不支持chunked encoding。服务器支持'X-Real-IP'和'X-Scheme'头以及SSL传输，支持多进程为prefork模式实现。在源代码的注释中对以上描述比较详细的说明，这里就不再细说。</p>
+
+<p>HTTPServer和TCPServer的类结构</p>
+
+<table width="100%">
+    <tbody>
+        <tr>
+            <td>
+                class HTTPServer(TCPServer):
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;def __init__(self, request_callback, no_keep_alive=False, io_loop=None,
+                 xheaders=False, ssl_options=None, **kwargs):
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def handle_stream(self, stream, address):
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+
+<table width="100%">
+    <tbody>
+        <tr>
+            <td>
+                class TCPServer(object):
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;def __init__(self, io_loop=None, ssl_options=None):
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def listen(self, port, address=""):
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def add_sockets(self, sockets):
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def bind(self, port, address=None, family=socket.AF_UNSPEC, backlog=128):   
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def start(self, num_processes=1):
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def stop(self):
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def handle_stream(self, stream, address):
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def _handle_connection(self, connection, address):
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+<p>文章开始部分创建HTTPServer的过程：首先需要定义处理request的回调函数，在tornado中通常使用tornado.web.Application封装。然后构造HTTPServer实例，注册回调函数。接下来监听端口，启动服务器。最后启动IOLoop。</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
+    <span class="n">sockets</span> <span class="o">=</span> <span class="n">bind_sockets</span><span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_sockets</span><span class="p">(</span><span class="n">sockets</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">bind_sockets</span><span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_UNSPEC</span><span class="p">,</span> <span class="n">backlog</span><span class="o">=</span><span class="mi">128</span><span class="p">):</span>
+    <span class="c"># 省略sockets创建，address，flags处理部分代码</span>
+    <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">getaddrinfo</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">,</span>
+                                  <span class="mi">0</span><span class="p">,</span> <span class="n">flags</span><span class="p">)):</span>
+        <span class="n">af</span><span class="p">,</span> <span class="n">socktype</span><span class="p">,</span> <span class="n">proto</span><span class="p">,</span> <span class="n">canonname</span><span class="p">,</span> <span class="n">sockaddr</span> <span class="o">=</span> <span class="n">res</span>
+        <span class="c"># 创建socket</span>
+        <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">af</span><span class="p">,</span> <span class="n">socktype</span><span class="p">,</span> <span class="n">proto</span><span class="p">)</span>
+        <span class="c"># 设置socket属性，代码省略</span>
+        
+        <span class="n">sock</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">sockaddr</span><span class="p">)</span>
+        <span class="n">sock</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">backlog</span><span class="p">)</span>
+        <span class="n">sockets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sock</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sockets</span>
+
+<span class="k">def</span> <span class="nf">add_sockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sockets</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">sock</span> <span class="ow">in</span> <span class="n">sockets</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sockets</span><span class="p">[</span><span class="n">sock</span><span class="o">.</span><span class="n">fileno</span><span class="p">()]</span> <span class="o">=</span> <span class="n">sock</span>
+        <span class="n">add_accept_handler</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_connection</span><span class="p">,</span>
+                           <span class="n">io_loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="p">)</span>
+                           
+<span class="k">def</span> <span class="nf">add_accept_handler</span><span class="p">(</span><span class="n">sock</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">io_loop</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">io_loop</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">accept_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">connection</span><span class="p">,</span> <span class="n">address</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="n">errno</span><span class="o">.</span><span class="n">EWOULDBLOCK</span><span class="p">,</span> <span class="n">errno</span><span class="o">.</span><span class="n">EAGAIN</span><span class="p">):</span>
+                    <span class="k">return</span>
+                <span class="k">raise</span>
+            <span class="c"># 当有连接被accepted时callback会被调用</span>
+            <span class="n">callback</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+    <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">sock</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">accept_handler</span><span class="p">,</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+    
+<span class="k">def</span> <span class="nf">_handle_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">address</span><span class="p">):</span>
+    <span class="c"># SSL部分省略</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">IOStream</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handle_stream</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Error in connection callback&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre>
+</div>
+
+
+<p>这里分析HTTPServer通过listen函数启动监听，这种方法是单进程模式。另外可以通过先后调用bind和start(num_processes=1)函数启动监听同时创建多进程服务器实例，以后会有关于此的详细描述。bind_sockets在启动监听端口过程中调用，getaddrinfo返回服务器的所有网卡信息, 每块网卡上都要创建监听客户端的请求并返回创建的sockets。返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。</p>
+
+<h3>多进程HTTPServer</h3>
+
+<p>未完待续。</p>
+
+<h3>参考</h3>
+
+<p><a href="http://kenby.iteye.com/blog/1159621" target="_blank">Tornado源码分析之http服务器篇</a>， <a href="http://www.cnblogs.com/Bozh/archive/2012/07/24/2606765.html" target="_blank">tornado源码分析系列</a></p>
+
+                <nav class="pagination-link">
+                    
+                    <a class="prev" href="/2013/01/27/tornado-source-analysis-1/" rel="bookmark">&laquo;&nbsp;tornado源码分析1</a>
+                    
+                    
+                 </nav>
+			</article><!-- .entry -->
+			<div class="violet-comment">
+	             <div id="disqus_thread"></div>
+	        </div><!-- //violet-comment -->
+		</div>
+		<div class="aside fn-clear">
+			<div class="box fn-clear">
+        <h3 class="title">Recent Posts</h3>
+        <ul>
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/29/tornado-source-analysis-2/" title="tornado源码分析2" rel="bookmark">tornado源码分析2</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/27/tornado-source-analysis-1/" title="tornado源码分析1" rel="bookmark">tornado源码分析1</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/07/abtest-script-and-bash-subshell/" title="bash subshell变量作用域问题" rel="bookmark">bash subshell变量作用域问题</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/02/baidustar-code-digraph/" title="baidu-star算法题-地铁" rel="bookmark">baidu-star算法题-地铁</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/12/31/baidustar-code-fibonacci/" title="baidu-star算法题-du熊学斐波那契I" rel="bookmark">baidu-star算法题-du熊学斐波那契I</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/12/30/how-to-build-this-blog/" title="how to build this blog" rel="bookmark">how to build this blog</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/11/29/shuffle-algorithm/" title="随机排序算法简介" rel="bookmark">随机排序算法简介</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/11/12/secure-tips-for-ssh/" title="配置安全ssh的几个方法" rel="bookmark">配置安全ssh的几个方法</a>
+                </li>                                       
+        
+        </ul>  
+</div>
+		</div>
+	</div>
+</section>
+    </article>
+  </section>
+    <footer class="foot">
+	<div class="foot-cnt fn-clear">
+		<div class="foot-cnt-det fn-clear">
+			
+			<article class="blogroll">
+				<h4 class="title">QR code</h4>
+				<ul>
+					<img src="/images/static/qrcode.png"></img>
+				</ul>
+			</article>
+			<article class="about">
+				<h4 class="title">About Me</h4>
+				<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
+			</article>
+			<article class="follow">
+				<h4 class="title">Follow Me</h4>
+				<ul>
+					<li><a href="https://github.com/amyangfei" class="ico-github" target="_blank">github</a></li>
+					<li><a href="/atom.xml" class="ico-rss" target="_blank">rss</a></li>
+					<li><a href="https://www.twitter.com/amyangfei" class="ico-twitter" target="_blank">twitter</a></li>
+					<li><a href="https://www.facebook.com/amyangfei" class="ico-facebook" target="_blank">facebook</a></li>
+					<li><a href="http://weibo.com/amyangfei" class="ico-weibo" target="_blank">weibo</a></li>
+					<li><a href="http://www.douban.com/people/amyangfei" class="ico-douban" target="_blank">douban</a></li>
+				</ul>
+			</article>
+		</div>
+	</div>
+	<div class="foot-btn">
+		<div class="foot-btn-det">
+			<p class="copyright">Copyright © 2012 amyangfei All rights reserved.</p>&nbsp&nbsp
+			<span class="v-tj">
+				<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
+				</script>
+			</span>
+			<p class="author">Powered by <a href="http://www.jekyllrb.com" target="_blank">Jekyll</a> and <a href="http://www.pizn.net" target="_blank">PIZn</a>.</p>
+		</div>
+	</div>
+</footer>
+
+    
+    <script type="text/javascript">
+        
+        //disqus
+        var disqus_shortname = 'amyangfei';
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] ||
+                document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30252000-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0];
+              s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+</body>
+</html>
