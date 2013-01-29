@@ -192,7 +192,7 @@
 
 <p>Tornado的HTTPServer是单进程单线程模式，同时提供了创建多进程服务器的接口，具体实现是在主进程启动HTTPServer时通过process.fork_processes(num_processes)产生新的服务器子进程，所有进程之间共享端口。fork_process的方法在process.py中实现，十分简洁。<a href="http://fjctlzy.diandian.com/post/2012-08-04/40031899614" target="_blank">从开源代码学习Python之tornado的多进程</a> 对fork_process有详细的分析。</p>
 
-<p>FriendFeed使用nginx提供负载均衡、返乡代理服务并作为静态文件服务器，在后端服务器上可以部署多个Tornado实例。<a href="http://www.v2ex.com/t/17505" target="_blank">v2ex:Tornado 项目都是如何部署</a> 里讨论的方案是通过Supervisor控制Tornado app，然后再通过nginx对Tornado的输出进行反向代理。<a href="https://idndx.com/2011/10/18/ways-to-deploy-tornado-under-production-environment-using-supervisor/" target="_blank">Tornado + Supervisor 在生产环境下的部署方法</a> 这篇文章也有相似的讨论。</p>
+<p>FriendFeed使用nginx提供负载均衡、反向代理服务并作为静态文件服务器，在后端服务器上可以部署多个Tornado实例。<a href="http://www.v2ex.com/t/17505" target="_blank">v2ex:Tornado 项目都是如何部署</a> 里讨论的方案是通过Supervisor控制Tornado app，然后再通过nginx对Tornado的输出进行反向代理。<a href="https://idndx.com/2011/10/18/ways-to-deploy-tornado-under-production-environment-using-supervisor/" target="_blank">Tornado + Supervisor 在生产环境下的部署方法</a> 这篇文章也有相似的讨论。</p>
 
 <h3>参考</h3>
 
