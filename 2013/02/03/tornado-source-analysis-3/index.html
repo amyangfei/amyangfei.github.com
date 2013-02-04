@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>tornado源码分析3 | 数列卡索的魔法小屋</title>
+  <meta name="generator" content="Jekyll" />
+  <meta name="author" content="amyangfei" />
+  <meta name="description" content="这是数列卡索的个人博客，我会在这里记录学习工作的点点滴滴，与大家一起交流分享。编程启迪智慧，技术改变世界。" />
+  <meta name="keywords" content="Algorithm, Python, C++, Bash, Mac, Linux, Ubuntu, Hadoop, Big Data, Web, Server, Nginx, Tornado" />
+  <link rel="stylesheet" href="/css/style.css" type="text/css" />
+  <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+    <header class="head">
+	<div class="header fn-clear">
+		<section class="header-cnt fn-clear">
+			<div class="logo">
+				<div class="logo-cnt">
+				 	<h1><a href="/">Amyangfei</a></h1>
+				 	<h2>Study, Geek & Share</h2>
+				</div>
+			</div>
+			<nav class="nav">
+				<ul>
+					<li><a href="/" >Home</a></li>
+					<li><a href="/archives.html" >Archives</a></li>
+					<li><a href="/contact.html" >About & Contact</a></li>
+					<li><a href="/atom.xml" target="_blank" >Rss</a></li>
+				</ul>
+			</nav>
+		</section>
+	</div>
+</header> 
+  <section id="content">
+    <article id="contenter">
+      <section class="content">
+
+	<div class="content-cnt fn-clear">
+
+		<div class="v-section-tit fn-clear">
+	        <a href="/" rel="nofollow" >Home</a>
+	        <span>&#9830;</span>
+	        <a href="/archives.html" rel="nofollow" >Archives</a>
+	        <span>&#9830;</span>
+	        <h2>tornado源码分析3</h2>
+    	</div>
+
+		<div class="main fn-clear">
+			<article class="entry">
+				<h1 class="title">tornado源码分析3</h1>
+               	<p class="meta"><time class="date" pubdate="2013-02-03">03 Feb 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">介绍Tornado HTTP服务器网络底层I/O核心调度模块IOLoop</p>
+ 			 	<p>IOLoop是基于epoll实现的底层网络I/O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例直接调用此方法即可。</p>
+
+<div class="highlight"><pre><code class="python"><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">instance</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    class MyClass(object):</span>
+<span class="sd">        def __init__(self, io_loop=None):</span>
+<span class="sd">            self.io_loop = io_loop or IOLoop.instance()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">IOLoop</span><span class="p">,</span> <span class="s">&quot;_instance&quot;</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">IOLoop</span><span class="p">,</span> <span class="s">&quot;_instance&quot;</span><span class="p">):</span>
+                <span class="c"># New instance after double check</span>
+                <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance</span>
+</code></pre>
+</div>
+
+
+<p>在上一篇文章中已经分析Tornado服务器启动时会创建监听socket，并将socket的file descriptor注册到IOLoop实例中，IOLoop添加对socket的IOLoop.READ事件监听并传入回调处理函数。当某个socket通过accept接受连接请求后调用注册的回调函数进行读写。接下来主要分析IOLoop对epoll的封装和I/O调度具体实现。</p>
+
+<p><a href="http://www.kernel.org/doc/man-pages/online/pages/man4/epoll.4.html" target="_blank">epoll</a>是Linux内核中实现的一种可扩展的I/O事件通知机制，是对POISX系统中<a href="http://www.kernel.org/doc/man-pages/online/pages/man2/select.2.html" target="_blank"> select(2) </a> 和<a href="http://www.kernel.org/doc/man-pages/online/pages/man2/poll.2.html" target="_blank"> poll(2) </a>的替代，具有更高的性能和扩展性，FreeBSD中类似的实现是kqueue。Tornado中基于Python C扩展实现的的epoll模块(或kqueue)对epoll(kqueue)的使用进行了封装，使得IOLoop对象可以通过相应的事件处理机制对I/O进行调度。</p>
+
+<p>IOLoop模块对网络事件类型的封装与epoll一致，分为READ，WRITE， ERROR三类，具体如下所示。</p>
+
+<div class="highlight"><pre><code class="python"><span class="n">READ</span> <span class="o">=</span> <span class="n">_EPOLLIN</span>
+<span class="n">WRITE</span> <span class="o">=</span> <span class="n">_EPOLLOUT</span>
+<span class="n">ERROR</span> <span class="o">=</span> <span class="n">_EPOLLERR</span> <span class="o">|</span> <span class="n">_EPOLLHUP</span>
+</code></pre>
+</div>
+
+
+<h3>IOLoop的初始化</h3>
+
+<p>初始化过程中选择epoll的实现方式，Linux平台为epoll，BSD平台为kqueue，其他平台如果安装有C模块扩展的epoll则使用tornado对epoll的封装，否则退化为select。</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span> <span class="o">=</span> <span class="n">impl</span> <span class="ow">or</span> <span class="n">_poll</span><span class="p">()</span>
+    <span class="c">#省略部分代码</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_waker</span> <span class="o">=</span> <span class="n">Waker</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_waker</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span>
+                     <span class="k">lambda</span> <span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waker</span><span class="o">.</span><span class="n">consume</span><span class="p">(),</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">add_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Registers the given handler to receive the given events for fd.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">]</span> <span class="o">=</span> <span class="n">stack_context</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">events</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+</code></pre>
+</div>
+
+
+<p>在IOLoop初始化的过程中创建了一个Waker对象，将Waker对象fd的读端注册到事件循环中并设定相应的回调函数（这样做的好处是当事件循环阻塞而没有响应描述符出现，需要在最大timeout时间之前返回，就可以向这个管道发送一个字符）。Waker的使用：一种是在其他线程向IOLoop添加callback时使用，唤醒IOLoop同时会将控制权转移给IOLoop线程并完成特定请求。唤醒的方法向管道中写入一个字符'x'。另外，在IOLoop的stop函数中会调用self._waker.wake()，通过向管道写入'x'停止事件循环。</p>
+
+<p>add_handler函数使用了stack_context提供的wrap方法。wrap返回了一个可以直接调用的对象并且保存了传入之前的堆栈信息，在执行时可以恢复，这样就保证了函数的异步调用时具有正确的运行环境。</p>
+
+<h3>IOLoop的start方法</h3>
+
+<p>IOLoop的核心调度集中在start方法中，IOLoop实例对象调用start后开始epoll事件循环机制，该方法会一直运行直到IOLoop对象调用stop函数、当前所有事件循环完成。start方法中主要分三个部分：一个部分是对超时的相关处理；一部分是epoll事件通知阻塞、接收；一部分是对epoll返回I/O事件的处理。</p>
+
+<ul>
+<li><p>为防止IO event starvation，将回调函数延迟到下一轮事件循环中执行。</p></li>
+<li><p>超时的处理
+heapq维护一个最小堆，记录每个回调函数的超时时间（deadline）。每次取出deadline最早的回调函数，如果callback标志位为True并且已经超时，通过_run_callback调用函数；如果没有超时需要重新设定poll_timeout的值。</p></li>
+<li><p>通过self._impl.poll(poll_timeout)进行事件阻塞，当有事件通知或超时时poll返回特定的event_pairs。</p></li>
+<li><p>epoll返回通知事件后将新事件加入待处理队列，将就绪事件逐个弹出，通过stack_context.wrap(handler)保存的可执行对象调用事件处理。</p></li>
+</ul>
+
+
+<div class="highlight"><pre><code class="python"><span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">poll_timeout</span> <span class="o">=</span> <span class="mf">3600.0</span>
+
+    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callback_lock</span><span class="p">:</span>
+        <span class="n">callbacks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="n">callbacks</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+
+    <span class="c"># 超时处理</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">:</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c"># the timeout was cancelled</span>
+                <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">deadline</span> <span class="o">&lt;=</span> <span class="n">now</span><span class="p">:</span>
+                <span class="n">timeout</span> <span class="o">=</span> <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">(</span><span class="n">timeout</span><span class="o">.</span><span class="n">callback</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">seconds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">deadline</span> <span class="o">-</span> <span class="n">now</span>
+                <span class="n">poll_timeout</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">seconds</span><span class="p">,</span> <span class="n">poll_timeout</span><span class="p">)</span>
+                <span class="k">break</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">:</span>
+        <span class="c"># If any callbacks or timeouts called add_callback,</span>
+        <span class="c"># we don&#39;t want to wait in poll() before we run them.</span>
+        <span class="n">poll_timeout</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span><span class="p">:</span>
+        <span class="k">break</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blocking_signal_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># clear alarm so it doesn&#39;t fire while poll is waiting for events.</span>
+        <span class="n">signal</span><span class="o">.</span><span class="n">setitimer</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">ITIMER_REAL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c"># epoll阻塞，当有事件通知或超时返回event_pairs</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">event_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">poll</span><span class="p">(</span><span class="n">poll_timeout</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c"># 异常处理，省略</span>
+
+    <span class="c"># 对epoll返回event_pairs事件的处理</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">event_pairs</span><span class="p">)</span>
+    <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">:</span>
+        <span class="n">fd</span><span class="p">,</span> <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="o">.</span><span class="n">popitem</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">](</span><span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c"># 异常处理，省略</span>
+</code></pre>
+</div>
+
+
+<p>至此IOLoop模块的分析基本完成。下一篇文章将会继续分析IOStream模块。</p>
+
+<h3>参考</h3>
+
+<p><a href="http://kenby.iteye.com/blog/1159621" target="_blank">Tornado源码分析之http服务器篇</a>， <a href="http://www.cnblogs.com/Bozh/archive/2012/07/22/2603976.html" target="_blank">tornado源码分析系列</a></p>
+
+                <nav class="pagination-link">
+                    
+                    <a class="prev" href="/2013/01/29/tornado-source-analysis-2/" rel="bookmark">&laquo;&nbsp;tornado源码分析2</a>
+                    
+                    
+                 </nav>
+			</article><!-- .entry -->
+			<div class="violet-comment">
+	             <div id="disqus_thread"></div>
+	        </div><!-- //violet-comment -->
+		</div>
+		<div class="aside fn-clear">
+			<div class="box fn-clear">
+        <h3 class="title">Recent Posts</h3>
+        <ul>
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/02/03/tornado-source-analysis-3/" title="tornado源码分析3" rel="bookmark">tornado源码分析3</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/29/tornado-source-analysis-2/" title="tornado源码分析2" rel="bookmark">tornado源码分析2</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/27/tornado-source-analysis-1/" title="tornado源码分析1" rel="bookmark">tornado源码分析1</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/07/abtest-script-and-bash-subshell/" title="bash subshell变量作用域问题" rel="bookmark">bash subshell变量作用域问题</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/02/baidustar-code-digraph/" title="baidu-star算法题-地铁" rel="bookmark">baidu-star算法题-地铁</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/12/31/baidustar-code-fibonacci/" title="baidu-star算法题-du熊学斐波那契I" rel="bookmark">baidu-star算法题-du熊学斐波那契I</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/12/30/how-to-build-this-blog/" title="how to build this blog" rel="bookmark">how to build this blog</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/11/29/shuffle-algorithm/" title="随机排序算法简介" rel="bookmark">随机排序算法简介</a>
+                </li>                                       
+        
+        </ul>  
+</div>
+		</div>
+	</div>
+</section>
+    </article>
+  </section>
+    <footer class="foot">
+	<div class="foot-cnt fn-clear">
+		<div class="foot-cnt-det fn-clear">
+			
+			<article class="blogroll">
+				<h4 class="title">QR code</h4>
+				<ul>
+					<img src="/images/static/qrcode.png"></img>
+				</ul>
+			</article>
+			<article class="about">
+				<h4 class="title">About Me</h4>
+				<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
+			</article>
+			<article class="follow">
+				<h4 class="title">Follow Me</h4>
+				<ul>
+					<li><a href="https://github.com/amyangfei" class="ico-github" target="_blank">github</a></li>
+					<li><a href="/atom.xml" class="ico-rss" target="_blank">rss</a></li>
+					<li><a href="https://www.twitter.com/amyangfei" class="ico-twitter" target="_blank">twitter</a></li>
+					<li><a href="https://www.facebook.com/amyangfei" class="ico-facebook" target="_blank">facebook</a></li>
+					<li><a href="http://weibo.com/amyangfei" class="ico-weibo" target="_blank">weibo</a></li>
+					<li><a href="http://www.douban.com/people/amyangfei" class="ico-douban" target="_blank">douban</a></li>
+				</ul>
+			</article>
+		</div>
+	</div>
+	<div class="foot-btn">
+		<div class="foot-btn-det">
+			<p class="copyright">Copyright © 2012 amyangfei All rights reserved.</p>&nbsp&nbsp
+			<span class="v-tj">
+				<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
+				</script>
+			</span>
+			<p class="author">Powered by <a href="http://www.jekyllrb.com" target="_blank">Jekyll</a> and <a href="http://www.pizn.net" target="_blank">PIZn</a>.</p>
+		</div>
+	</div>
+</footer>
+
+    
+    <script type="text/javascript">
+        
+        //disqus
+        var disqus_shortname = 'amyangfei';
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] ||
+                document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30252000-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0];
+              s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+</body>
+</html>

@@ -4,13 +4,149 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-01-31T12:17:40+08:00</updated>
+   <updated>2013-02-04T13:30:45+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
      <email>amyangfei@gmail.com</email>
    </author>
 
+   
+   <entry>
+     <title>tornado源码分析3</title>
+     <link href="http://amyangfei.me/2013/02/03/tornado-source-analysis-3/"/>
+     <updated>2013-02-03T00:00:00+08:00</updated>
+     <id>http://amyangfei.me/2013/02/03/tornado-source-analysis-3</id>
+     <content type="html">&lt;p&gt;IOLoop是基于epoll实现的底层网络I/O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例直接调用此方法即可。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@staticmethod&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;sd&quot;&gt;&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;    class MyClass(object):&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;        def __init__(self, io_loop=None):&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;            self.io_loop = io_loop or IOLoop.instance()&lt;/span&gt;
+&lt;span class=&quot;sd&quot;&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hasattr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;_instance&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_instance_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hasattr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;_instance&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+                &lt;span class=&quot;c&quot;&gt;# New instance after double check&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_instance&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_instance&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;在上一篇文章中已经分析Tornado服务器启动时会创建监听socket，并将socket的file descriptor注册到IOLoop实例中，IOLoop添加对socket的IOLoop.READ事件监听并传入回调处理函数。当某个socket通过accept接受连接请求后调用注册的回调函数进行读写。接下来主要分析IOLoop对epoll的封装和I/O调度具体实现。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.kernel.org/doc/man-pages/online/pages/man4/epoll.4.html&quot; target=&quot;_blank&quot;&gt;epoll&lt;/a&gt;是Linux内核中实现的一种可扩展的I/O事件通知机制，是对POISX系统中&lt;a href=&quot;http://www.kernel.org/doc/man-pages/online/pages/man2/select.2.html&quot; target=&quot;_blank&quot;&gt; select(2) &lt;/a&gt; 和&lt;a href=&quot;http://www.kernel.org/doc/man-pages/online/pages/man2/poll.2.html&quot; target=&quot;_blank&quot;&gt; poll(2) &lt;/a&gt;的替代，具有更高的性能和扩展性，FreeBSD中类似的实现是kqueue。Tornado中基于Python C扩展实现的的epoll模块(或kqueue)对epoll(kqueue)的使用进行了封装，使得IOLoop对象可以通过相应的事件处理机制对I/O进行调度。&lt;/p&gt;
+
+&lt;p&gt;IOLoop模块对网络事件类型的封装与epoll一致，分为READ，WRITE， ERROR三类，具体如下所示。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;READ&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_EPOLLIN&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;WRITE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_EPOLLOUT&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ERROR&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_EPOLLERR&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_EPOLLHUP&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;h3&gt;IOLoop的初始化&lt;/h3&gt;
+
+&lt;p&gt;初始化过程中选择epoll的实现方式，Linux平台为epoll，BSD平台为kqueue，其他平台如果安装有C模块扩展的epoll则使用tornado对epoll的封装，否则退化为select。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;impl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_impl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;impl&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_poll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;#省略部分代码&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_waker&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Waker&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_waker&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fileno&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;
+                     &lt;span class=&quot;k&quot;&gt;lambda&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_waker&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;consume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;
+                     &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;READ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;add_handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;sd&quot;&gt;&amp;quot;&amp;quot;&amp;quot;Registers the given handler to receive the given events for fd.&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_handlers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stack_context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wrap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_impl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;register&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;events&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ERROR&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;在IOLoop初始化的过程中创建了一个Waker对象，将Waker对象fd的读端注册到事件循环中并设定相应的回调函数（这样做的好处是当事件循环阻塞而没有响应描述符出现，需要在最大timeout时间之前返回，就可以向这个管道发送一个字符）。Waker的使用：一种是在其他线程向IOLoop添加callback时使用，唤醒IOLoop同时会将控制权转移给IOLoop线程并完成特定请求。唤醒的方法向管道中写入一个字符'x'。另外，在IOLoop的stop函数中会调用self._waker.wake()，通过向管道写入'x'停止事件循环。&lt;/p&gt;
+
+&lt;p&gt;add_handler函数使用了stack_context提供的wrap方法。wrap返回了一个可以直接调用的对象并且保存了传入之前的堆栈信息，在执行时可以恢复，这样就保证了函数的异步调用时具有正确的运行环境。&lt;/p&gt;
+
+&lt;h3&gt;IOLoop的start方法&lt;/h3&gt;
+
+&lt;p&gt;IOLoop的核心调度集中在start方法中，IOLoop实例对象调用start后开始epoll事件循环机制，该方法会一直运行直到IOLoop对象调用stop函数、当前所有事件循环完成。start方法中主要分三个部分：一个部分是对超时的相关处理；一部分是epoll事件通知阻塞、接收；一部分是对epoll返回I/O事件的处理。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;为防止IO event starvation，将回调函数延迟到下一轮事件循环中执行。&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;超时的处理
+heapq维护一个最小堆，记录每个回调函数的超时时间（deadline）。每次取出deadline最早的回调函数，如果callback标志位为True并且已经超时，通过_run_callback调用函数；如果没有超时需要重新设定poll_timeout的值。&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;通过self._impl.poll(poll_timeout)进行事件阻塞，当有事件通知或超时时poll返回特定的event_pairs。&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;epoll返回通知事件后将新事件加入待处理队列，将就绪事件逐个弹出，通过stack_context.wrap(handler)保存的可执行对象调用事件处理。&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;poll_timeout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;3600.0&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_callback_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;callbacks&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_callbacks&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_callbacks&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;callback&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;callbacks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_run_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# 超时处理&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_timeouts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;now&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_timeouts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_timeouts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;callback&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;c&quot;&gt;# the timeout was cancelled&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;heapq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;heappop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_timeouts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_timeouts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;deadline&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;timeout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;heapq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;heappop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_timeouts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_run_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timeout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;seconds&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_timeouts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;deadline&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;now&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;poll_timeout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seconds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;poll_timeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_callbacks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# If any callbacks or timeouts called add_callback,&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# we don&amp;#39;t want to wait in poll() before we run them.&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;poll_timeout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.0&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_running&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_blocking_signal_threshold&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# clear alarm so it doesn&amp;#39;t fire while poll is waiting for events.&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setitimer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ITIMER_REAL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# epoll阻塞，当有事件通知或超时返回event_pairs&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;event_pairs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_impl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;poll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;poll_timeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;ne&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# 异常处理，省略&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# 对epoll返回event_pairs事件的处理&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_events&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;update&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;event_pairs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;fd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;events&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_events&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;popitem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_handlers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;events&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;ne&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;c&quot;&gt;# 异常处理，省略&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;至此IOLoop模块的分析基本完成。下一篇文章将会继续分析IOStream模块。&lt;/p&gt;
+
+&lt;h3&gt;参考&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://kenby.iteye.com/blog/1159621&quot; target=&quot;_blank&quot;&gt;Tornado源码分析之http服务器篇&lt;/a&gt;， &lt;a href=&quot;http://www.cnblogs.com/Bozh/archive/2012/07/22/2603976.html&quot; target=&quot;_blank&quot;&gt;tornado源码分析系列&lt;/a&gt;&lt;/p&gt;
+</content>
+   </entry>
    
    <entry>
      <title>tornado源码分析2</title>
@@ -1017,63 +1153,6 @@ cat /var/log/auth.log | awk &lt;span class=&quot;s1&quot;&gt;&amp;#39;/Failed/{p
 
 
 &lt;p&gt;后来使用os.rename和shutil的方法进行了一下对比，移动60张jpg文件共139MB从一个目录到另一个目录，os.rename平均时间是0.004508s，shutil.move的平均时间是0.005764s，耗时比os.rename多27.9%&lt;/p&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>An Experience of being Attacked</title>
-     <link href="http://amyangfei.me/2012/09/20/server-suffering-attack/"/>
-     <updated>2012-09-20T00:00:00+08:00</updated>
-     <id>http://amyangfei.me/2012/09/20/server-suffering-attack</id>
-     <content type="html">&lt;p&gt;在9月16日导师交给我一台小型服务器，用作测试环境，服务器运行以Linux 2.6.18内核的Asianux 3.0操作系统。我在服务器上面配置了Oracle服务、国产神通数据库服务，并开启了sshd，在sshd_config配置文件中开启了root登录的权限即配置有PermitRootLogin yes，监听地址直接写为了0.0.0.0，这是我犯的第一个错误，就是对ssh的访问限制过于宽松，没有对访问ip进行限制。我犯的第二个严重错误是老师交给我服务器时的root口令较弱，我并没有进行更改。然后9月16日晚上我竟然把服务器连接上外网然后就放在一边置之不理。&lt;/p&gt;
-
-&lt;p&gt;第二天即9月17日晚我尝试使用ssh登录服务器，意外的发现root账户无法登录，给出的错误信息是Permission denied, please try again.使用其他普通账户可以登录，登录查看sshd进程信息发现下面的结果：
-&lt;img src=&quot;/images/post/ps-info.png&quot;/&gt;
-我查了一些相关资料，notty意思是no tty，很多博客都有说出现这样的进程不一定意味着被黑客攻击，通过sftp建立的连接或者使用scp复制文件都会出现notty的情形。但我当时还是比较困惑，就去直接操作服务器，在服务器上root账户依然无法登录，于是基本断定可能有人进入服务器修改了root密码。非常囧的是其他账户都没有查看系统日志的权限，这也是之前没有做过多的系统用户设定，于是我进行了root密码找回的操作。&lt;/p&gt;
-
-&lt;h3&gt;找回root密码&lt;/h3&gt;
-
-&lt;p&gt;网上关于root密码丢失找回的方法很多，最主要的是在系统引到时以单用户方式进入系统，修改root密码。该操作系统通过grub引导，具体操作流程是先在在引导装载程序过程中键入“e”来进入编辑模式，这时会发现用于启动加载的一些指令，其中有一条指令类似于kernel/boot/vmlinuz-2.4.18-14 ro root=LABEL=/，需要将这一条指令修改为kernel/boot/vmlinuz-2.4.18-14 single ro root=LABEL=/或者kernel/boot/vmlinuz-2.4.18-14 ro root=LABEL=/ 1 。然后按“b”即可进入单用户启动模式，启动完成后会进入一个bash终端，利用passwd root修改root密码，然后reboot即可。&lt;/p&gt;
-
-&lt;h3&gt;查看服务器日志&lt;/h3&gt;
-
-&lt;p&gt;查看9.16～9.17两天之内/var/log/secure中的系统安全日志，发现了来自三处不同ip通过ssh对服务器的几百次访问，访问的形式主要有两种，一种是对root用户的不断密码猜测，另外一种是更换不通名称用户的访问试探。9月17日16:21:21服务器通过sftp连接第一次被侵入。可以断定修改密码的行为来自5.12.152.77这一ip，这个ip指向了RIPE，明显是经过了代理服务器。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;Sep 16 18:12:19 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9397&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: pam_unix&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;sshd:auth&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: authentication failure; &lt;span class=&quot;nv&quot;&gt;logname&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0 &lt;span class=&quot;nv&quot;&gt;euid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0 &lt;span class=&quot;nv&quot;&gt;tty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ssh &lt;span class=&quot;nv&quot;&gt;ruser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;rhost&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;121.37.60.157  &lt;span class=&quot;nv&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;root
-Sep 16 18:12:21 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9397&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: Failed password &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;root from 121.37.60.157 port 35035 ssh2
-Sep 16 18:12:21 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9398&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: Received disconnect from 121.37.60.157: 11: Bye Bye
-
-Sep 17 06:32:36 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;13249&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: Invalid user download from 183.60.143.108
-Sep 17 06:32:36 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;13250&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: input_userauth_request: invalid user download
-Sep 17 06:32:36 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;13249&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: pam_unix&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;sshd:auth&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: check pass; user unknown
-Sep 17 06:32:36 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;13249&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: pam_unix&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;sshd:auth&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: authentication failure; &lt;span class=&quot;nv&quot;&gt;logname&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0 &lt;span class=&quot;nv&quot;&gt;euid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0 &lt;span class=&quot;nv&quot;&gt;tty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;ssh &lt;span class=&quot;nv&quot;&gt;ruser&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;rhost&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;183.60.143.108 
-Sep 17 06:32:36 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;13249&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: pam_succeed_if&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;sshd:auth&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: error retrieving information about user download
-Sep 17 06:32:38 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;13249&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: Failed password &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;invalid user download from 183.60.143.108 port 59145 ssh2
-Sep 17 06:32:38 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;13250&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: Received disconnect from 183.60.143.108: 11: Bye Bye
-
-Sep 17 16:21:21 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;15800&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: Accepted password &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;root from 5.12.152.77 port 2271 ssh2
-Sep 17 16:21:21 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;15800&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: pam_unix&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;sshd:session&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: session opened &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;user root by &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-Sep 17 16:21:22 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;15800&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: subsystem request &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;sftp
-
-Sep 17 18:29:53 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;16349&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: Accepted password &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;root from 5.12.152.77 port 2560 ssh2
-Sep 17 18:29:53 localhost sshd&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;16349&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;: pam_unix&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;sshd:session&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: session opened &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;user root by &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-
-&lt;h3&gt;总结&lt;/h3&gt;
-
-&lt;p&gt;总结一下这次经历中我曾留下的安全漏洞：&lt;/p&gt;
-
-&lt;p&gt;1. 服务器root用户弱口令&lt;/p&gt;
-
-&lt;p&gt;2. ssh允许root登录，没有进行ip访问限制&lt;/p&gt;
-
-&lt;p&gt;3. 没有任何服务器安全保证措施（如防火墙、访问限制等）的基础上将服务器与外网相连&lt;/p&gt;
-
-&lt;p&gt;4. 服务器用户管理不完善&lt;/p&gt;
-
-&lt;p&gt;这次被攻击发现得及时，攻击者也没有做过多其他的事情，不过还是惊出了一身冷汗，初步的体验到了服务器运维的一些辛苦。&lt;/p&gt;
 </content>
    </entry>
    
