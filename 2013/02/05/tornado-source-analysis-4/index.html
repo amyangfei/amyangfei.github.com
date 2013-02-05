@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>数列卡索的魔法小屋</title>
+  <title>tornado源码分析4 | 数列卡索的魔法小屋</title>
   <meta name="generator" content="Jekyll" />
   <meta name="author" content="amyangfei" />
   <meta name="description" content="这是数列卡索的个人博客，我会在这里记录学习工作的点点滴滴，与大家一起交流分享。编程启迪智慧，技术改变世界。" />
@@ -35,73 +35,102 @@
   <section id="content">
     <article id="contenter">
       <section class="content">
+
 	<div class="content-cnt fn-clear">
+
+		<div class="v-section-tit fn-clear">
+	        <a href="/" rel="nofollow" >Home</a>
+	        <span>&#9830;</span>
+	        <a href="/archives.html" rel="nofollow" >Archives</a>
+	        <span>&#9830;</span>
+	        <h2>tornado源码分析4</h2>
+    	</div>
+
 		<div class="main fn-clear">
-			
-            	<article class="main-excerpt fn-clear">
-                    <h3 class="main-excerpt-title"><a href="/2012/04/11/simple-thrift-useage/" title="thrift使用简介" rel="bookmark">thrift使用简介</a></h3>
-                    <p class="date"><time pubdate="Wed Apr 11 00:00:00 +0800 2012">11 Apr 2012</time></p>
-                    <p>结合thrift的官方文档简单介绍如何在unbutu下安装thrift并给出一个简单的使用实例。</p>
-                   	<p class="more"><a href="/2012/04/11/simple-thrift-useage/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
-                </article>
-            
-            	<article class="main-excerpt fn-clear">
-                    <h3 class="main-excerpt-title"><a href="/2012/04/07/communication-Cpp-Java/" title="Java和C++通信问题杂谈" rel="bookmark">Java和C++通信问题杂谈</a></h3>
-                    <p class="date"><time pubdate="Sat Apr 07 00:00:00 +0800 2012">07 Apr 2012</time></p>
-                    <p>写代码时候需要java端与C++端进行数据交互，有很多实现的方法，做一个比较简单的总结</p>
-                   	<p class="more"><a href="/2012/04/07/communication-Cpp-Java/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
-                </article>
-            
-            	<article class="main-excerpt fn-clear">
-                    <h3 class="main-excerpt-title"><a href="/2012/03/26/bide-algorithm/" title="A brief introduction to BIDE algorithm" rel="bookmark">A brief introduction to BIDE algorithm</a></h3>
-                    <p class="date"><time pubdate="Mon Mar 26 00:00:00 +0800 2012">26 Mar 2012</time></p>
-                    <p>这篇文章简单介绍了关联规则挖掘和频繁闭序列挖掘算法，并给出了BIDE算法的简单分析。BIDE是一个高效的频繁闭序列挖掘算法。</p>
-                   	<p class="more"><a href="/2012/03/26/bide-algorithm/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
-                </article>
-            
-            	<article class="main-excerpt fn-clear">
-                    <h3 class="main-excerpt-title"><a href="/2012/03/21/namedpipe-communication/" title="Use Named Pipes to Communicate Between Processes" rel="bookmark">Use Named Pipes to Communicate Between Processes</a></h3>
-                    <p class="date"><time pubdate="Wed Mar 21 00:00:00 +0800 2012">21 Mar 2012</time></p>
-                    <p>这篇文章介绍了一种使用命名管道在C++进程和C#进程之间通信的方法</p>
-                   	<p class="more"><a href="/2012/03/21/namedpipe-communication/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
-                </article>
-            
-            	<article class="main-excerpt fn-clear">
-                    <h3 class="main-excerpt-title"><a href="/2012/03/20/hello-world/" title="Hello world" rel="bookmark">Hello world</a></h3>
-                    <p class="date"><time pubdate="Tue Mar 20 00:00:00 +0800 2012">20 Mar 2012</time></p>
-                    <p>这是 这个博客的第一篇文章，按照所有coder的惯例说一声，您好，世界。</p>
-                   	<p class="more"><a href="/2012/03/20/hello-world/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
-                </article>
-            
-            
-		        <nav id="pagination">
-		            <ul class="pagination">
-		                
-		                    
-		                        <li><a href="/">1</a></li>
-		                    
-		                
-		                    
-		                        <li><a href="/page2/">2</a></li>
-		                    
-		                
-		                    
-		                        <li><a href="/page3/">3</a></li>
-		                    
-		                
-		                    
-		                        <li class="current"><a href="javascript:void(0);">4</a></li>
-		                    
-		                
-		            </ul>
-		        </nav>
-		    			
+			<article class="entry">
+				<h1 class="title">tornado源码分析4</h1>
+               	<p class="meta"><time class="date" pubdate="2013-02-05">05 Feb 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">介绍Tornado HTTP服务器读写缓冲模块IOStream</p>
+ 			 	<p>IOStream对socket读写进行了封装，分别提供读、写缓冲区实现对socket的异步读写。当socket被accept之后HTTPServer的_handle_connection会被回调并初始化IOStream对象，进一步通过IOStream提供的功能接口完成socket的读写。文章接下来将关注IOStream实现读写的细节。</p>
+
+<h3>IOStream的初始化</h3>
+
+<p>IOStream初始化过程中主要完成以下操作：</p>
+
+<ol>
+<li>绑定对应的socket</li>
+<li>绑定ioloop</li>
+<li>创建读缓冲区_read_buffer，一个python deque容器</li>
+<li>创建写缓冲区_write_buffer，同样也是一个python deque容器</li>
+</ol>
+
+
+<h3>IOStream提供的主要功能接口</h3>
+
+<p>主要的读写接口包括以下四个：</p>
+
+<table width="100%">
+    <tbody>
+        <tr>
+            <td>
+                class IOStream(object):
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;def read_until(self, delimiter, callback):
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def read_bytes(self, num_bytes, callback, streaming_callback=None):
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def read_until_regex(self, regex, callback):
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def read_until_close(self, callback, streaming_callback=None):
+            <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;def write(self, data, callback=None):
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+<ul>
+<li>read_until和read_bytes是最常用的读接口，它们工作的过程都是先注册读事件结束时调用的回调函数，然后调用_try_inline_read方法。_try_inline_read首先尝试_read_from_buffer，即从上一次的读缓冲区中取数据，如果有数据直接调用 self._run_callback(callback, self._consume(data_length)) 执行回调函数，_consume消耗掉了_read_buffer中的数据；否则即_read_buffer之前没有未读数据，先通过_read_to_buffer将数据从socket读入_read_buffer，然后再执行_read_from_buffer操作。read_until和read_bytes的区别在于_read_from_buffer过程中截取数据的方法不同，read_until读取到delimiter终止，而read_bytes则读取num_bytes个字节终止。执行过程如下图所示：</li>
+</ul>
+
+
+<p><img src="/images/post/20130205iostream_read.png" style="margin-left:22px;"/></p>
+
+<ul>
+<li><p>read_until_regex相当于delimiter为某一正则表达式的read_until。</p></li>
+<li><p>read_until_close主要用于IOStream流关闭前后的读取：如果调用read_until_close时stream已经关闭，那么将会_consume掉_read_buffer中的所有数据；否则_read_until_close标志位设为True，注册_streaming_callback回调函数，调用_add_io_state添加io_loop.READ状态。</p></li>
+<li><p>write首先将data按照数据块大小WRITE_BUFFER_CHUNK_SIZE分块写入<em>write_buffer，然后调用</em>handle_write向socket发送数据。</p></li>
+</ul>
+
+
+<h3>其他内部功能接口</h3>
+
+<ul>
+<li><p>def _handle_events(self, fd, events): 通常为IOLoop对象add_handler方法传入的回调函数，由IOLoop的事件机制来进行调度。</p></li>
+<li><p>def _add_io_state(self, state): 为IOLoop对象的handler注册IOLoop.READ或IOLoop.WRITE状态，handler为IOStream对象的_handle_events方法。</p></li>
+<li><p>def _consume(self, loc): 合并读缓冲区loc个字节，从读缓冲区删除并返回这些数据</p></li>
+</ul>
+
+
+<h3>参考</h3>
+
+<p><a href="http://kenby.iteye.com/blog/1159621" target="_blank">Tornado源码分析之http服务器篇</a>， <a href="http://www.cnblogs.com/Bozh/archive/2012/07/22/2603976.html" target="_blank">tornado源码分析系列</a></p>
+
+                <nav class="pagination-link">
+                    
+                    <a class="prev" href="/2013/02/03/tornado-source-analysis-3/" rel="bookmark">&laquo;&nbsp;tornado源码分析3</a>
+                    
+                    
+                 </nav>
+			</article><!-- .entry -->
+			<div class="violet-comment">
+	             <div id="disqus_thread"></div>
+	        </div><!-- //violet-comment -->
 		</div>
 		<div class="aside fn-clear">
-			<div class="box fn-clear">
-	<h3 class="title">About Me</h3>
-	<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
-</div>
 			<div class="box fn-clear">
         <h3 class="title">Recent Posts</h3>
         <ul>
@@ -140,18 +169,9 @@
         
         </ul>  
 </div>
-			<div class="box fn-clear">
-	<h3 class="title">GitHub Project</h3>
-	<ul>
-		<li>&#8227;<a href="https://github.com/amyangfei/amyangfei.github.com" target="_blank">amyangfei.github.com</a></li>
-		<li>&#8227;<a href="https://github.com/amyangfei/ClusterAlgorithm" target="_blank">ClusterAlgorithm</a></li>
-		<li>&#8227;<a href="https://github.com/amyangfei/perblog" target="_blank">perblog</a></li>
-	</ul>
-</div>
 		</div>
 	</div>
 </section>
-
     </article>
   </section>
     <footer class="foot">
@@ -193,6 +213,18 @@
 	</div>
 </footer>
 
+    
+    <script type="text/javascript">
+        
+        //disqus
+        var disqus_shortname = 'amyangfei';
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] ||
+                document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
     
 
     <script type="text/javascript">

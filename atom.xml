@@ -4,13 +4,88 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-02-05T09:00:34+08:00</updated>
+   <updated>2013-02-05T19:23:43+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
      <email>amyangfei@gmail.com</email>
    </author>
 
+   
+   <entry>
+     <title>tornado源码分析4</title>
+     <link href="http://amyangfei.me/2013/02/05/tornado-source-analysis-4/"/>
+     <updated>2013-02-05T00:00:00+08:00</updated>
+     <id>http://amyangfei.me/2013/02/05/tornado-source-analysis-4</id>
+     <content type="html">&lt;p&gt;IOStream对socket读写进行了封装，分别提供读、写缓冲区实现对socket的异步读写。当socket被accept之后HTTPServer的_handle_connection会被回调并初始化IOStream对象，进一步通过IOStream提供的功能接口完成socket的读写。文章接下来将关注IOStream实现读写的细节。&lt;/p&gt;
+
+&lt;h3&gt;IOStream的初始化&lt;/h3&gt;
+
+&lt;p&gt;IOStream初始化过程中主要完成以下操作：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;绑定对应的socket&lt;/li&gt;
+&lt;li&gt;绑定ioloop&lt;/li&gt;
+&lt;li&gt;创建读缓冲区_read_buffer，一个python deque容器&lt;/li&gt;
+&lt;li&gt;创建写缓冲区_write_buffer，同样也是一个python deque容器&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;h3&gt;IOStream提供的主要功能接口&lt;/h3&gt;
+
+&lt;p&gt;主要的读写接口包括以下四个：&lt;/p&gt;
+
+&lt;table width=&quot;100%&quot;&gt;
+    &lt;tbody&gt;
+        &lt;tr&gt;
+            &lt;td&gt;
+                class IOStream(object):
+            &lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+            &lt;td&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;def read_until(self, delimiter, callback):
+            &lt;br&gt;
+                &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;def read_bytes(self, num_bytes, callback, streaming_callback=None):
+            &lt;br&gt;
+                &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;def read_until_regex(self, regex, callback):
+            &lt;br&gt;
+                &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;def read_until_close(self, callback, streaming_callback=None):
+            &lt;br&gt;
+                &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;def write(self, data, callback=None):
+            &lt;/td&gt;
+        &lt;/tr&gt;
+    &lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;ul&gt;
+&lt;li&gt;read_until和read_bytes是最常用的读接口，它们工作的过程都是先注册读事件结束时调用的回调函数，然后调用_try_inline_read方法。_try_inline_read首先尝试_read_from_buffer，即从上一次的读缓冲区中取数据，如果有数据直接调用 self._run_callback(callback, self._consume(data_length)) 执行回调函数，_consume消耗掉了_read_buffer中的数据；否则即_read_buffer之前没有未读数据，先通过_read_to_buffer将数据从socket读入_read_buffer，然后再执行_read_from_buffer操作。read_until和read_bytes的区别在于_read_from_buffer过程中截取数据的方法不同，read_until读取到delimiter终止，而read_bytes则读取num_bytes个字节终止。执行过程如下图所示：&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;&lt;img src=&quot;/images/post/20130205iostream_read.png&quot; style=&quot;margin-left:22px;&quot;/&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;read_until_regex相当于delimiter为某一正则表达式的read_until。&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;read_until_close主要用于IOStream流关闭前后的读取：如果调用read_until_close时stream已经关闭，那么将会_consume掉_read_buffer中的所有数据；否则_read_until_close标志位设为True，注册_streaming_callback回调函数，调用_add_io_state添加io_loop.READ状态。&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;write首先将data按照数据块大小WRITE_BUFFER_CHUNK_SIZE分块写入&lt;em&gt;write_buffer，然后调用&lt;/em&gt;handle_write向socket发送数据。&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h3&gt;其他内部功能接口&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;def _handle_events(self, fd, events): 通常为IOLoop对象add_handler方法传入的回调函数，由IOLoop的事件机制来进行调度。&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;def _add_io_state(self, state): 为IOLoop对象的handler注册IOLoop.READ或IOLoop.WRITE状态，handler为IOStream对象的_handle_events方法。&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;def _consume(self, loc): 合并读缓冲区loc个字节，从读缓冲区删除并返回这些数据&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h3&gt;参考&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://kenby.iteye.com/blog/1159621&quot; target=&quot;_blank&quot;&gt;Tornado源码分析之http服务器篇&lt;/a&gt;， &lt;a href=&quot;http://www.cnblogs.com/Bozh/archive/2012/07/22/2603976.html&quot; target=&quot;_blank&quot;&gt;tornado源码分析系列&lt;/a&gt;&lt;/p&gt;
+</content>
+   </entry>
    
    <entry>
      <title>tornado源码分析3</title>
@@ -293,7 +368,7 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 
 &lt;p&gt;bind_sockets在启动监听端口过程中调用，getaddrinfo返回服务器的所有网卡信息, 每块网卡上都要创建监听客户端的请求并返回创建的sockets。创建socket过程中绑定地址和端口，同时设置了fcntl.FD_CLOEXEC（创建子进程时关闭打开的socket）和socket.SO_REUSEADDR（保证某一socket关闭后立即释放端口，实现端口复用）标志位。sock.listen(backlog=128)默认设定等待被处理的连接最大个数为128。&lt;/p&gt;
 
-&lt;p&gt;返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写；同时初始化一个HTTPConnection对象，用于处理HTTPRequest并返回。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。&lt;/p&gt;
+&lt;p&gt;返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写；然后调用handle_stream，传入创建的IOStream对象初始化一个HTTPConnection对象，HTTPConnection封装了IOStream的一些操作，用于处理HTTPRequest并返回。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。&lt;/p&gt;
 
 &lt;h3&gt;多进程HTTPServer&lt;/h3&gt;
 
@@ -1105,54 +1180,6 @@ cat /var/log/auth.log | awk &lt;span class=&quot;s1&quot;&gt;&amp;#39;/Failed/{p
 
 
 
-</content>
-   </entry>
-   
-   <entry>
-     <title>How to move files fast with python</title>
-     <link href="http://amyangfei.me/2012/11/05/python-fast-move-files/"/>
-     <updated>2012-11-05T00:00:00+08:00</updated>
-     <id>http://amyangfei.me/2012/11/05/python-fast-move-files</id>
-     <content type="html">&lt;p&gt;需求很简单，有一个目录下有很多子目录，每个子目录中都会有一些具有特定格式的文件，比如jpg图片。需要将这些文件移动到一个统一的文件夹中，按照指定格式统一命名。可以使用python提供的os.walk遍历子目录，使用os.rename更改文件属性实现移动。另外关于使用shutil.move，操作因其基于复制效率较低，查看Python的官方文档有这样的说明：&lt;/p&gt;
-
-&lt;table width=&quot;100%&quot;&gt;
-    &lt;tbody&gt;
-        &lt;tr&gt;
-            &lt;td&gt;
-                &lt;a href=&quot;http://docs.python.org/2/library/shutil.html#shutil.move&quot; target=&quot;_blank&quot;&gt; shutil.move(src, dst) &lt;/a&gt;
-            &lt;/td&gt;
-        &lt;/tr&gt;
-        &lt;tr&gt;
-            &lt;td&gt;If the destination is a directory or a symlink to a directory, then src is moved inside that directory.
-                &lt;br&gt;The destination directory must not already exist. If the destination already exists but is not a directory, it may be overwritten depending on os.rename() semantics.
-                &lt;br&gt;If the destination is on the current filesystem, then os.rename() is used. Otherwise, src is copied (using shutil.copy2()) to dst and then removed.
-            &lt;/td&gt;
-        &lt;/tr&gt;
-    &lt;/tbody&gt;
-&lt;/table&gt;
-
-
-&lt;p&gt;不多说，直接贴代码：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;./dst&amp;#39;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;movfiles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pathstr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;global&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;
-    &lt;span class=&quot;c&quot;&gt;#os.walk yields a 3-tuple (dirpath, dirnames, filenames)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ret&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;walk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pathstr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fname&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ret&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]:&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;.jpg&amp;#39;&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;shutil&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;move&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ret&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; 
-                    &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dst&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;_&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fname&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-
-&lt;p&gt;后来使用os.rename和shutil的方法进行了一下对比，移动60张jpg文件共139MB从一个目录到另一个目录，os.rename平均时间是0.004508s，shutil.move的平均时间是0.005764s，耗时比os.rename多27.9%&lt;/p&gt;
 </content>
    </entry>
    

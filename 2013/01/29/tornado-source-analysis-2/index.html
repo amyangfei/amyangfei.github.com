@@ -191,7 +191,7 @@
 
 <p>bind_sockets在启动监听端口过程中调用，getaddrinfo返回服务器的所有网卡信息, 每块网卡上都要创建监听客户端的请求并返回创建的sockets。创建socket过程中绑定地址和端口，同时设置了fcntl.FD_CLOEXEC（创建子进程时关闭打开的socket）和socket.SO_REUSEADDR（保证某一socket关闭后立即释放端口，实现端口复用）标志位。sock.listen(backlog=128)默认设定等待被处理的连接最大个数为128。</p>
 
-<p>返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写；同时初始化一个HTTPConnection对象，用于处理HTTPRequest并返回。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。</p>
+<p>返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写；然后调用handle_stream，传入创建的IOStream对象初始化一个HTTPConnection对象，HTTPConnection封装了IOStream的一些操作，用于处理HTTPRequest并返回。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。</p>
 
 <h3>多进程HTTPServer</h3>
 
@@ -222,6 +222,10 @@
         <ul>
            
                 <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/02/05/tornado-source-analysis-4/" title="tornado源码分析4" rel="bookmark">tornado源码分析4</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
                         <span class="v-span">&#8227;</span><a href="/2013/02/03/tornado-source-analysis-3/" title="tornado源码分析3" rel="bookmark">tornado源码分析3</a>
                 </li>                                       
            
@@ -247,10 +251,6 @@
            
                 <li class="v-aside-li">
                         <span class="v-span">&#8227;</span><a href="/2012/12/30/how-to-build-this-blog/" title="how to build this blog" rel="bookmark">how to build this blog</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2012/11/29/shuffle-algorithm/" title="随机排序算法简介" rel="bookmark">随机排序算法简介</a>
                 </li>                                       
         
         </ul>  
