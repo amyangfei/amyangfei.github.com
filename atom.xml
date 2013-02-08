@@ -4,7 +4,7 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-02-08T21:51:43+08:00</updated>
+   <updated>2013-02-08T21:59:28+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
@@ -48,7 +48,7 @@
 
 &lt;h3&gt;其他&lt;/h3&gt;
 
-&lt;p&gt;最后这部分就是与文章内容不相关了。是一个虾米音乐自动签到的程序。需要注意的就是登录是一定将headers中的User-Agent修改为浏览器的User-Agent，签到的post请求需要修改headers中的User-Agent和Referer地址。其他就没有什么了（突然想到和某只喵喵的比赛是不是可以拿TaskBomb+SL4A作弊），看官求轻拍，捂面。&lt;/p&gt;
+&lt;p&gt;最后这部分就是与文章内容不相关了。是一个虾米音乐自动签到的程序。需要注意的就是登录时一定要将headers中的User-Agent修改为浏览器的User-Agent，签到的post请求需要修改headers中的User-Agent和Referer地址。其他就没有什么了（突然想到和某只喵喵的比赛是不是可以拿TaskBomb+SL4A作弊），各位看官求轻拍，捂面。&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
 
