@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Android运行脚本与定时工具 | 数列卡索的魔法小屋</title>
+  <meta name="generator" content="Jekyll" />
+  <meta name="author" content="amyangfei" />
+  <meta name="description" content="这是数列卡索的个人博客，我会在这里记录学习工作的点点滴滴，与大家一起交流分享。编程启迪智慧，技术改变世界。" />
+  <meta name="keywords" content="Algorithm, Python, C++, Bash, Mac, Linux, Ubuntu, Hadoop, Big Data, Web, Server, Nginx, Tornado" />
+  <link rel="stylesheet" href="/css/style.css" type="text/css" />
+  <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+    <header class="head">
+	<div class="header fn-clear">
+		<section class="header-cnt fn-clear">
+			<div class="logo">
+				<div class="logo-cnt">
+				 	<h1><a href="/">Amyangfei</a></h1>
+				 	<h2>Study, Geek & Share</h2>
+				</div>
+			</div>
+			<nav class="nav">
+				<ul>
+					<li><a href="/" >Home</a></li>
+					<li><a href="/archives.html" >Archives</a></li>
+					<li><a href="/contact.html" >About & Contact</a></li>
+					<li><a href="/atom.xml" target="_blank" >Rss</a></li>
+				</ul>
+			</nav>
+		</section>
+	</div>
+</header> 
+  <section id="content">
+    <article id="contenter">
+      <section class="content">
+
+	<div class="content-cnt fn-clear">
+
+		<div class="v-section-tit fn-clear">
+	        <a href="/" rel="nofollow" >Home</a>
+	        <span>&#9830;</span>
+	        <a href="/archives.html" rel="nofollow" >Archives</a>
+	        <span>&#9830;</span>
+	        <h2>Android运行脚本与定时工具</h2>
+    	</div>
+
+		<div class="main fn-clear">
+			<article class="entry">
+				<h1 class="title">Android运行脚本与定时工具</h1>
+               	<p class="meta"><time class="date" pubdate="2013-02-08">08 Feb 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">介绍一个Android上执行定时任务的工具以及SL4A这样一个在Android系统上运行脚本的项目</p>
+ 			 	<p>用惯了crontab，实验室的机器因为某些原因连不上，于是希望在自己的Android手机上完成定时执行一些脚本的任务。google一下找到了 <a href="http://i55m411.appspot.com/?p=594004" target="_blank">android应用实现定时打电话</a> 这样一篇文章，正好满足我的需求。下面做一个简单的总结。</p>
+
+<h3>安装的软件</h3>
+
+<ul>
+<li><p><a href="http://code.google.com/p/android-scripting" target="_blank">SL4A(Scripting Layer for Android)</a>，Andriod系统下运行脚本的环境，可以在终端、后台或Locale中运行，现阶段支持Python, Perl, JRuby, Lua, BeanShell, JavaScript, Tcl和shell脚本。</p></li>
+<li><p><a href="http://code.google.com/p/android-scripting/downloads/detail?name=PythonForAndroid_r4.apk&can=2" target="_blank">Py4A</a>，SL4A的python插件，安装之后就可以运行python脚本。</p></li>
+<li><p><a href="https://play.google.com/store/apps/details?id=org.androidideas.taskbomb" target="_blank">TaskBomb task scheduler</a>，一个可以执行计划任务的app，类似于Unix中的crontab。</p></li>
+<li><p><a href="https://play.google.com/store/apps/details?id=org.androidideas.scriptlauncher" target="_blank">SL4A Script Launcher</a>，TaskBomb可以通过此app执行SL4A脚本。</p></li>
+</ul>
+
+
+<h3>简单使用</h3>
+
+<ul>
+<li><p>安装Py4A后进入程序，点击最上边的Install会自动下载Python运行所需要的类库。</p></li>
+<li><p>进入SL4A会看到在SL4A程序Scripts目录下的脚本，可以在terminal或后台运行这些脚本；在SL4A中可以添加、修改、删除脚本程序，使用方法很简单，不详细说明。</p></li>
+<li><p>需要注意的是Py4A支持的是python2.6，最新的python-for-android的项目地址已经在 <a href="http://code.google.com/p/python-for-android/" target="_blank">这里</a> 。Py4A不仅支持python的原生API，同时可以很方便的调用Android的系统API，比如可以使用下边很简单的代码向目标手机发送短信。详细可参考 <a href="http://code.google.com/p/android-scripting/wiki/ApiReference" target="_blank">ApiReference</a>。</p></li>
+</ul>
+
+
+<div class="highlight"><pre><code class="python"><span class="kn">import</span> <span class="nn">android</span>
+
+<span class="n">droid</span> <span class="o">=</span> <span class="n">android</span><span class="o">.</span><span class="n">Android</span><span class="p">()</span>
+<span class="n">droid</span><span class="o">.</span><span class="n">smsSend</span><span class="p">(</span><span class="s">&#39;15120000xxx&#39;</span><span class="p">,</span> <span class="s">&#39;this is an sms auto sent by Py4A.&#39;</span><span class="p">)</span>
+</code></pre>
+</div>
+
+
+<h3>其他</h3>
+
+<p>最后这部分就是与文章内容不相关了。是一个虾米音乐自动签到的程序。需要注意的就是登录是一定将headers中的User-Agent修改为浏览器的User-Agent，签到的post请求需要修改headers中的User-Agent和Referer地址。其他就没有什么了（突然想到和某只喵喵的比赛是不是可以拿TaskBomb+SL4A作弊），看官求轻拍，捂面。</p>
+
+<div class="highlight"><pre><code class="python"><span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">urllib2</span><span class="o">,</span> <span class="nn">urllib</span>
+
+<span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cookies</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">HTTPCookieProcessor</span><span class="p">()</span>
+        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">cookies</span><span class="p">)</span>
+        <span class="n">urllib2</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;email&#39;</span><span class="p">:</span><span class="n">email</span><span class="p">,</span> <span class="s">&#39;password&#39;</span><span class="p">:</span><span class="n">password</span><span class="p">,</span> <span class="s">&#39;submit&#39;</span><span class="p">:</span><span class="s">&#39;登 录&#39;</span><span class="p">}</span>
+        <span class="n">loginUrl</span> <span class="o">=</span> <span class="s">&#39;http://www.xiami.com/member/login&#39;</span>
+
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.57 Safari/537.17&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span>
+            <span class="n">url</span>     <span class="o">=</span> <span class="n">loginUrl</span><span class="p">,</span>
+            <span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span><span class="p">,</span>
+            <span class="n">data</span>    <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlencode</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">login</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&#39;login successfully...&#39;</span>
+        <span class="k">return</span> <span class="n">login</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;login failed:&#39;</span><span class="p">,</span> <span class="n">e</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+<span class="k">def</span> <span class="nf">signin</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+    <span class="n">signurl</span> <span class="o">=</span> <span class="s">&#39;http://www.xiami.com/task/signin&#39;</span>
+    <span class="k">if</span> <span class="n">login</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&quot;Referer&quot;</span><span class="p">:</span> <span class="s">&quot;http://www.xiami.com/?register&quot;</span><span class="p">,</span>
+                <span class="s">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.57 Safari/537.17&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span>
+                <span class="n">url</span>  <span class="o">=</span> <span class="n">signurl</span><span class="p">,</span>
+                <span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span>
+                <span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="n">retcode</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">(</span><span class="n">retcode</span><span class="p">):</span>
+                <span class="k">print</span> <span class="s">&#39;sign in days:&#39;</span><span class="p">,</span> <span class="n">retcode</span>                   
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;signin error:&#39;</span><span class="p">,</span> <span class="n">e</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="s">&#39;xxx&#39;</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="s">&#39;xxx&#39;</span>   
+    <span class="n">signin</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+</code></pre>
+</div>
+
+
+<h3>参考</h3>
+
+<p><a href="http://i55m411.appspot.com/?p=594004" target="_blank">android应用实现定时打电话</a>， <a href="http://code.google.com/p/android-scripting/" target="_blank">google code SL4A</a></p>
+
+                <nav class="pagination-link">
+                    
+                    <a class="prev" href="/2013/02/05/tornado-source-analysis-4/" rel="bookmark">&laquo;&nbsp;tornado源码分析4</a>
+                    
+                    
+                 </nav>
+			</article><!-- .entry -->
+			<div class="violet-comment">
+	             <div id="disqus_thread"></div>
+	        </div><!-- //violet-comment -->
+		</div>
+		<div class="aside fn-clear">
+			<div class="box fn-clear">
+        <h3 class="title">Recent Posts</h3>
+        <ul>
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/02/08/android-taskscheduler-and-scripting/" title="Android运行脚本与定时工具" rel="bookmark">Android运行脚本与定时工具</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/02/05/tornado-source-analysis-4/" title="tornado源码分析4" rel="bookmark">tornado源码分析4</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/02/03/tornado-source-analysis-3/" title="tornado源码分析3" rel="bookmark">tornado源码分析3</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/29/tornado-source-analysis-2/" title="tornado源码分析2" rel="bookmark">tornado源码分析2</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/27/tornado-source-analysis-1/" title="tornado源码分析1" rel="bookmark">tornado源码分析1</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/07/abtest-script-and-bash-subshell/" title="bash subshell变量作用域问题" rel="bookmark">bash subshell变量作用域问题</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/01/02/baidustar-code-digraph/" title="baidu-star算法题-地铁" rel="bookmark">baidu-star算法题-地铁</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2012/12/31/baidustar-code-fibonacci/" title="baidu-star算法题-du熊学斐波那契I" rel="bookmark">baidu-star算法题-du熊学斐波那契I</a>
+                </li>                                       
+        
+        </ul>  
+</div>
+		</div>
+	</div>
+</section>
+    </article>
+  </section>
+    <footer class="foot">
+	<div class="foot-cnt fn-clear">
+		<div class="foot-cnt-det fn-clear">
+			
+			<article class="blogroll">
+				<h4 class="title">QR code</h4>
+				<ul>
+					<img src="/images/static/qrcode.png"></img>
+				</ul>
+			</article>
+			<article class="about">
+				<h4 class="title">About Me</h4>
+				<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
+			</article>
+			<article class="follow">
+				<h4 class="title">Follow Me</h4>
+				<ul>
+					<li><a href="https://github.com/amyangfei" class="ico-github" target="_blank">github</a></li>
+					<li><a href="/atom.xml" class="ico-rss" target="_blank">rss</a></li>
+					<li><a href="https://www.twitter.com/amyangfei" class="ico-twitter" target="_blank">twitter</a></li>
+					<li><a href="https://www.facebook.com/amyangfei" class="ico-facebook" target="_blank">facebook</a></li>
+					<li><a href="http://weibo.com/amyangfei" class="ico-weibo" target="_blank">weibo</a></li>
+					<li><a href="http://www.douban.com/people/amyangfei" class="ico-douban" target="_blank">douban</a></li>
+				</ul>
+			</article>
+		</div>
+	</div>
+	<div class="foot-btn">
+		<div class="foot-btn-det">
+			<p class="copyright">Copyright © 2012 amyangfei All rights reserved.</p>&nbsp&nbsp
+			<span class="v-tj">
+				<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
+				</script>
+			</span>
+			<p class="author">Powered by <a href="http://www.jekyllrb.com" target="_blank">Jekyll</a> and <a href="http://www.pizn.net" target="_blank">PIZn</a>.</p>
+		</div>
+	</div>
+</footer>
+
+    
+    <script type="text/javascript">
+        
+        //disqus
+        var disqus_shortname = 'amyangfei';
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] ||
+                document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30252000-1']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0];
+              s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+</body>
+</html>
