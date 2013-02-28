@@ -2,11 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>数列卡索的魔法小屋</title>
+  <title>通过端口映射访问虚拟机内部网络 | 数列卡索的魔法小屋</title>
   <meta name="generator" content="Jekyll" />
   <meta name="author" content="amyangfei" />
-  <meta name="description" content="这是数列卡索的个人博客，我会在这里记录学习工作的点点滴滴，与大家一起交流分享。编程启迪智慧，技术改变世界。" />
-  <meta name="keywords" content="Algorithm, Python, C++, Bash, Mac, Linux, Ubuntu, Hadoop, Big Data, Web, Server, Nginx, Tornado " />
+  <meta name="description" content="一台远程主机运行虚拟机，虚拟机通过NAT获得的内网ip上网，使用端口映射达到直接在外网访问虚拟机内部网络的目的。 " />
+  <meta name="keywords" content="port mapping, virtual machine, NAT " />
   <link rel="stylesheet" href="/css/style.css" type="text/css" />
   <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
@@ -35,77 +35,54 @@
   <section id="content">
     <article id="contenter">
       <section class="content">
+
 	<div class="content-cnt fn-clear">
+
+		<div class="v-section-tit fn-clear">
+	        <a href="/" rel="nofollow" >Home</a>
+	        <span>&#9830;</span>
+	        <a href="/archives.html" rel="nofollow" >Archives</a>
+	        <span>&#9830;</span>
+	        <h2>通过端口映射访问虚拟机内部网络</h2>
+    	</div>
+
 		<div class="main fn-clear">
-			
-            	<article class="main-excerpt fn-clear">
-                    <h3 class="main-excerpt-title"><a href="/2013/02/28/access-vm-ssh-via-port-mapping/" title="通过端口映射访问虚拟机内部网络" rel="bookmark">通过端口映射访问虚拟机内部网络</a></h3>
-                    <p class="date"><time pubdate="Thu Feb 28 00:00:00 +0800 2013">28 Feb 2013</time></p>
-                    <p>一台远程主机运行虚拟机，虚拟机通过NAT获得的内网ip上网，使用端口映射达到直接在外网访问虚拟机内部网络的目的。</p>
-                   	<p class="more"><a href="/2013/02/28/access-vm-ssh-via-port-mapping/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
-                </article>
-            
-            	<article class="main-excerpt fn-clear">
-                    <h3 class="main-excerpt-title"><a href="/2013/02/08/android-taskscheduler-and-scripting/" title="Android运行脚本与定时工具" rel="bookmark">Android运行脚本与定时工具</a></h3>
-                    <p class="date"><time pubdate="Fri Feb 08 00:00:00 +0800 2013">08 Feb 2013</time></p>
-                    <p>介绍一个Android上执行定时任务的工具以及SL4A这样一个在Android系统上运行脚本的项目</p>
-                   	<p class="more"><a href="/2013/02/08/android-taskscheduler-and-scripting/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
-                </article>
-            
-            	<article class="main-excerpt fn-clear">
-                    <h3 class="main-excerpt-title"><a href="/2013/02/05/tornado-source-analysis-4/" title="tornado源码分析4" rel="bookmark">tornado源码分析4</a></h3>
-                    <p class="date"><time pubdate="Tue Feb 05 00:00:00 +0800 2013">05 Feb 2013</time></p>
-                    <p>介绍Tornado HTTP服务器读写缓冲模块IOStream</p>
-                   	<p class="more"><a href="/2013/02/05/tornado-source-analysis-4/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
-                </article>
-            
-            	<article class="main-excerpt fn-clear">
-                    <h3 class="main-excerpt-title"><a href="/2013/02/03/tornado-source-analysis-3/" title="tornado源码分析3" rel="bookmark">tornado源码分析3</a></h3>
-                    <p class="date"><time pubdate="Sun Feb 03 00:00:00 +0800 2013">03 Feb 2013</time></p>
-                    <p>介绍Tornado HTTP服务器网络底层I/O核心调度模块IOLoop</p>
-                   	<p class="more"><a href="/2013/02/03/tornado-source-analysis-3/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
-                </article>
-            
-            	<article class="main-excerpt fn-clear">
-                    <h3 class="main-excerpt-title"><a href="/2013/01/29/tornado-source-analysis-2/" title="tornado源码分析2" rel="bookmark">tornado源码分析2</a></h3>
-                    <p class="date"><time pubdate="Tue Jan 29 00:00:00 +0800 2013">29 Jan 2013</time></p>
-                    <p>介绍Tornado HTTP服务器的基本流程，分别分析httpserver, ioloop, iostream模块的代码来剖析Tornado底层I/O的内部实现。</p>
-                   	<p class="more"><a href="/2013/01/29/tornado-source-analysis-2/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
-                </article>
-            
-            
-		        <nav id="pagination">
-		            <ul class="pagination">
-		                
-		                    
-		                        <li class="current"><a href="javascript:void(0);">1</a></li>
-		                    
-		                
-		                    
-		                        <li><a href="/page2/">2</a></li>
-		                    
-		                
-		                    
-		                        <li><a href="/page3/">3</a></li>
-		                    
-		                
-		                    
-		                        <li><a href="/page4/">4</a></li>
-		                    
-		                
-		                    
-		                        <li><a href="/page5/">5</a></li>
-		                    
-		                
-		            </ul>
-		        </nav>
-		    			
+			<article class="entry">
+				<h1 class="title">通过端口映射访问虚拟机内部网络</h1>
+               	<p class="meta"><time class="date" pubdate="2013-02-28">28 Feb 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">一台远程主机运行虚拟机，虚拟机通过NAT获得的内网ip上网，使用端口映射达到直接在外网访问虚拟机内部网络的目的。</p>
+ 			 	<p>在VMware Workstation中如果使用NAT，虚拟机内部只会获取内网地址。现在我有这样的实验环境：</p>
+
+<ul>
+<li><p>主机：Windows7 + Vmware Workstation 9  公网IP: 166.111.x.x</p></li>
+<li><p>虚拟机：Ubuntu12.10  内网IP: 192.168.248.129</p></li>
+</ul>
+
+
+<p>需求：在虚拟机内部搭建http服务，在外网可以直接访问；在外网通过ssh连接虚拟机。下边是进行ssh端口映射的步骤，http服务类似。</p>
+
+<p>1. 找到Edit-Virtual Network Editor，选取虚拟机对应的网卡，这里为VMnet8。打开NAT Settings。</p>
+
+<p><img src="/images/post/20130228network_editor.png" style=""/></p>
+
+<p>2. 在port forwarding中添加端口映射，将主机的10000端口影射为虚拟机的22端口。如果主机打开了防火墙，主机开了防火墙，手动打开10000端口，<a href="http://windows.microsoft.com/zh-CN/windows7/Open-a-port-in-Windows-Firewall" target="_blank">开启端口方法</a>。</p>
+
+<p><img src="/images/post/20130228portmapping.png" style=""/></p>
+
+<p>之后就可以在外网直接通过ssh连接虚拟机： ssh username@166.111.x.x -p10000</p>
+
+                <nav class="pagination-link">
+                    
+                    <a class="prev" href="/2013/02/08/android-taskscheduler-and-scripting/" rel="bookmark">&laquo;&nbsp;Android运行脚本与定时工具</a>
+                    
+                    
+                 </nav>
+			</article><!-- .entry -->
+			<div class="violet-comment">
+	             <div id="disqus_thread"></div>
+	        </div><!-- //violet-comment -->
 		</div>
 		<div class="aside fn-clear">
-			<div class="box fn-clear">
-	<h3 class="title">About Me</h3>
-	<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
-</div>
 			<div class="box fn-clear">
         <h3 class="title">Recent Posts</h3>
         <ul>
@@ -144,18 +121,9 @@
         
         </ul>  
 </div>
-			<div class="box fn-clear">
-	<h3 class="title">GitHub Project</h3>
-	<ul>
-		<li>&#8227;<a href="https://github.com/amyangfei/amyangfei.github.com" target="_blank">amyangfei.github.com</a></li>
-		<li>&#8227;<a href="https://github.com/amyangfei/ClusterAlgorithm" target="_blank">ClusterAlgorithm</a></li>
-		<li>&#8227;<a href="https://github.com/amyangfei/perblog" target="_blank">perblog</a></li>
-	</ul>
-</div>
 		</div>
 	</div>
 </section>
-
     </article>
   </section>
     <footer class="foot">
@@ -197,6 +165,18 @@
 	</div>
 </footer>
 
+    
+    <script type="text/javascript">
+        
+        //disqus
+        var disqus_shortname = 'amyangfei';
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] ||
+                document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
     
 
     <script type="text/javascript">
