@@ -195,7 +195,7 @@
 
 <h3>HTTPConnection分析</h3>
 
-<p>该类用于处理http请求。在HTTPConnection初始化时赋值self.request_callback为一个可调用的对象（该对象用于对http请求的具体处理以及response的生成）。该类首先读取http请求的header结束符b("\r\n\r\n")，然后回调self._on_headers函数。request_callback在以后的系列中有详细介绍。</p>
+<p>该类用于处理http请求。在HTTPConnection初始化时对self.request_callback赋值为一个可调用的对象（该对象用于对http请求的具体处理和应答）。该类首先读取http请求中header的结束符b("\r\n\r\n")，然后回调self._on_headers函数。request_callback的相关实现在以后的系列中有详细介绍。</p>
 
 <div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">request_callback</span><span class="p">,</span> <span class="n">no_keep_alive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                  <span class="n">xheaders</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>

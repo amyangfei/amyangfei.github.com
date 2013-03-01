@@ -6,7 +6,7 @@
   <meta name="generator" content="Jekyll" />
   <meta name="author" content="amyangfei" />
   <meta name="description" content="介绍Tornado的核心web框架，包括RequestHandler和Application两个重要的类 " />
-  <meta name="keywords" content="Tornado, web framework, Request handlers, python " />
+  <meta name="keywords" content="Tornado, web framework, request handlers, python " />
   <link rel="stylesheet" href="/css/style.css" type="text/css" />
   <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
@@ -51,7 +51,7 @@
 				<h1 class="title">tornado源码分析5</h1>
                	<p class="meta"><time class="date" pubdate="2013-03-01">01 Mar 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
                	<p class="description">介绍Tornado的核心web框架，包括RequestHandler和Application两个重要的类</p>
- 			 	<p>Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application。源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。</p>
+ 			 	<p>Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application，源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。</p>
 
 <h3>RequestHandler分析</h3>
 
@@ -108,7 +108,7 @@ autoreload.main<span class="o">(</span>your-main-func<span class="o">)</span>
 
 <h3>总结</h3>
 
-<p><a href="http://amyangfei.me/2013/01/29/tornado-source-analysis-2/" target="_blank">tornado源码分析2</a> 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection框架的handle_request中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。</p>
+<p><a href="http://amyangfei.me/2013/01/29/tornado-source-analysis-2/" target="_blank">tornado源码分析2</a> 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection大方框的handle_request椭圆中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。</p>
 
 <div class="highlight"><pre><code class="bash"><span class="nv">http_server</span> <span class="o">=</span> httpserver.HTTPServer<span class="o">(</span>handle_request<span class="o">)</span>
 <span class="nv">http_server</span> <span class="o">=</span> httpserver.HTTPServer<span class="o">(</span>application<span class="o">)</span>

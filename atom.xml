@@ -4,7 +4,7 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-03-01T19:11:36+08:00</updated>
+   <updated>2013-03-01T23:13:46+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
@@ -17,7 +17,7 @@
      <link href="http://amyangfei.me/2013/03/01/tornado-source-analysis-5/"/>
      <updated>2013-03-01T00:00:00+08:00</updated>
      <id>http://amyangfei.me/2013/03/01/tornado-source-analysis-5</id>
-     <content type="html">&lt;p&gt;Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application。源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。&lt;/p&gt;
+     <content type="html">&lt;p&gt;Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application，源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。&lt;/p&gt;
 
 &lt;h3&gt;RequestHandler分析&lt;/h3&gt;
 
@@ -74,7 +74,7 @@ autoreload.main&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;your-main-func&lt;s
 
 &lt;h3&gt;总结&lt;/h3&gt;
 
-&lt;p&gt;&lt;a href=&quot;http://amyangfei.me/2013/01/29/tornado-source-analysis-2/&quot; target=&quot;_blank&quot;&gt;tornado源码分析2&lt;/a&gt; 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection框架的handle_request中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://amyangfei.me/2013/01/29/tornado-source-analysis-2/&quot; target=&quot;_blank&quot;&gt;tornado源码分析2&lt;/a&gt; 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection大方框的handle_request椭圆中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;http_server&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; httpserver.HTTPServer&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;handle_request&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;nv&quot;&gt;http_server&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; httpserver.HTTPServer&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;application&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
@@ -571,7 +571,7 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 
 &lt;h3&gt;HTTPConnection分析&lt;/h3&gt;
 
-&lt;p&gt;该类用于处理http请求。在HTTPConnection初始化时赋值self.request_callback为一个可调用的对象（该对象用于对http请求的具体处理以及response的生成）。该类首先读取http请求的header结束符b(&quot;\r\n\r\n&quot;)，然后回调self._on_headers函数。request_callback在以后的系列中有详细介绍。&lt;/p&gt;
+&lt;p&gt;该类用于处理http请求。在HTTPConnection初始化时对self.request_callback赋值为一个可调用的对象（该对象用于对http请求的具体处理和应答）。该类首先读取http请求中header的结束符b(&quot;\r\n\r\n&quot;)，然后回调self._on_headers函数。request_callback的相关实现在以后的系列中有详细介绍。&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;address&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;request_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;no_keep_alive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
                  &lt;span class=&quot;n&quot;&gt;xheaders&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
