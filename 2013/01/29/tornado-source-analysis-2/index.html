@@ -193,6 +193,24 @@
 
 <p>返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写；然后调用handle_stream，传入创建的IOStream对象初始化一个HTTPConnection对象，HTTPConnection封装了IOStream的一些操作，用于处理HTTPRequest并返回。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。</p>
 
+<h3>HTTPConnection分析</h3>
+
+<p>该类用于处理http请求。在HTTPConnection初始化时赋值self.request_callback为一个可调用的对象（该对象用于对http请求的具体处理以及response的生成）。该类首先读取http请求的header结束符b("\r\n\r\n")，然后回调self._on_headers函数。request_callback在以后的系列中有详细介绍。</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">request_callback</span><span class="p">,</span> <span class="n">no_keep_alive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">xheaders</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span> <span class="o">=</span> <span class="n">request_callback</span>
+    <span class="c"># some configuration code</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_header_callback</span> <span class="o">=</span> <span class="n">stack_context</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_headers</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\r\n\r\n</span><span class="s">&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_header_callback</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_on_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="c"># some codes</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">)</span>
+</code></pre>
+</div>
+
+
 <h3>多进程HTTPServer</h3>
 
 <p>Tornado的HTTPServer是单进程单线程模式，同时提供了创建多进程服务器的接口，具体实现是在主进程启动HTTPServer时通过process.fork_processes(num_processes)产生新的服务器子进程，所有进程之间共享端口。fork_process的方法在process.py中实现，十分简洁。<a href="http://fjctlzy.diandian.com/post/2012-08-04/40031899614" target="_blank">从开源代码学习Python之tornado的多进程</a> 对fork_process有详细的分析。</p>
@@ -222,6 +240,10 @@
         <ul>
            
                 <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2013/03/01/tornado-source-analysis-5/" title="tornado源码分析5" rel="bookmark">tornado源码分析5</a>
+                </li>                                       
+           
+                <li class="v-aside-li">
                         <span class="v-span">&#8227;</span><a href="/2013/02/28/access-vm-ssh-via-port-mapping/" title="通过端口映射访问虚拟机内部网络" rel="bookmark">通过端口映射访问虚拟机内部网络</a>
                 </li>                                       
            
@@ -247,10 +269,6 @@
            
                 <li class="v-aside-li">
                         <span class="v-span">&#8227;</span><a href="/2013/01/07/abtest-script-and-bash-subshell/" title="bash subshell变量作用域问题" rel="bookmark">bash subshell变量作用域问题</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/01/02/baidustar-code-digraph/" title="baidu-star算法题-地铁" rel="bookmark">baidu-star算法题-地铁</a>
                 </li>                                       
         
         </ul>  

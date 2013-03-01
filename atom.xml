@@ -4,13 +4,87 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-02-28T19:23:53+08:00</updated>
+   <updated>2013-03-01T19:11:36+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
      <email>amyangfei@gmail.com</email>
    </author>
 
+   
+   <entry>
+     <title>tornado源码分析5</title>
+     <link href="http://amyangfei.me/2013/03/01/tornado-source-analysis-5/"/>
+     <updated>2013-03-01T00:00:00+08:00</updated>
+     <id>http://amyangfei.me/2013/03/01/tornado-source-analysis-5</id>
+     <content type="html">&lt;p&gt;Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application。源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。&lt;/p&gt;
+
+&lt;h3&gt;RequestHandler分析&lt;/h3&gt;
+
+&lt;p&gt;RequestHandler提供了一个针对http请求处理的基类封装，方法比较多，主要有以下功能：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;提供了GET/HEAD/POST/DELETE/PATCH/PUT/OPTIONS等方法的功能接口，具体开发时RequestHandler的子类重写这些方法以支持不同需求的请求处理。&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;提供对http请求的处理方法，包括对headers，页面元素，cookie的处理。&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;提供对请求响应的一些列功能，包括redirect，write（将数据写入输出缓冲区），渲染模板（render, reander_string）等&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;其他的一些辅助功能，如结束请求/响应，刷新输出缓冲区，对用户授权相关处理等。&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;h3&gt;Application分析&lt;/h3&gt;
+
+&lt;p&gt;源代码中的注释写的非常好：A collection of request handlers that make up a web application. Instances of this class are &lt;strong&gt;callable&lt;/strong&gt; and can be passed directly to HTTPServer to serve the application. 该类初始化的第一个参数接受一个(regexp, request_class)形式的列表，指定了针对不同URL请求所采取的处理方法，包括对静态文件请求的处理（web.StaticFileHandler）。Application类中实现 &lt;a href=&quot;http://docs.python.org/2/reference/datamodel.html#object.__call__&quot; target=&quot;_blank&quot;&gt;__call__&lt;/a&gt; 函数，这样该类就成为可调用的对象，由HTTPServer来进行调用。比如下边是httpserver.py中HTTPConection类的代码，该处request_callback即为Application对象。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;_on_headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# some codes...&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;__call__函数会遍历Application的handlers列表，匹配到相应的URL后通过handler._execute进行相应处理；如果没有匹配的URL，则会调用ErrorHandler。&lt;/p&gt;
+
+&lt;p&gt;在Application初始时有一个debug参数，当debug=True时，运行程序时当有代码、模块发生修改，程序会自动重新加载，即实现了auto-reload功能。该功能在autoreload.py文件中实现，是否需要reload的检查在每次接收到http请求时进行，基本原理是检查每一个sys.modules以及_watched_files所包含的模块在程序中所保存的最近修改时间和文件系统中的最近修改时间是否一致，如果不一致，则整个程序重新加载。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;_reload_on_update&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;modify_times&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;modules&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# module test and some path handles&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_check_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;modify_times&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_watched_files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_check_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;modify_times&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;Tornado的autoreload模块提供了一个对外的main接口，可以通过下边的方法实现运行test.py程序运行的auto-reload。但是测试了一下，功能有限，相比于django的autorelaod模块（具有较好的封装和较完善的功能）还是有一定的差距。最主要的原因是Tornado中的实现耦合了一些ioloop的功能，因而autoreload不是一个可独立的模块。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# tornado&lt;/span&gt;
+python -m tornado.autoreload test.py &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;args...&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# django&lt;/span&gt;
+from django.utils import autoreload
+autoreload.main&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;your-main-func&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;h3&gt;asynchronous方法&lt;/h3&gt;
+
+&lt;p&gt;该方法通常被用为请求处理函数的decorator，以实现异步操作，被@asynchronous修饰后的请求处理为长连接，在调用self.finish之前会一直处于连接等待状态。&lt;/p&gt;
+
+&lt;h3&gt;总结&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://amyangfei.me/2013/01/29/tornado-source-analysis-2/&quot; target=&quot;_blank&quot;&gt;tornado源码分析2&lt;/a&gt; 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection框架的handle_request中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;http_server&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; httpserver.HTTPServer&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;handle_request&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;http_server&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; httpserver.HTTPServer&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;application&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+
+</content>
+   </entry>
    
    <entry>
      <title>通过端口映射访问虚拟机内部网络</title>
@@ -494,6 +568,24 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 &lt;p&gt;bind_sockets在启动监听端口过程中调用，getaddrinfo返回服务器的所有网卡信息, 每块网卡上都要创建监听客户端的请求并返回创建的sockets。创建socket过程中绑定地址和端口，同时设置了fcntl.FD_CLOEXEC（创建子进程时关闭打开的socket）和socket.SO_REUSEADDR（保证某一socket关闭后立即释放端口，实现端口复用）标志位。sock.listen(backlog=128)默认设定等待被处理的连接最大个数为128。&lt;/p&gt;
 
 &lt;p&gt;返回的每一个socket都加入到IOLoop中同时添加回调函数_handle_connection，IOLoop添加对相应socket的IOLoop.READ事件监听。_handle_connection在接受客户端的连接处理结束之后会被调用，调用时传入连接和ioloop对象初始化IOStream对象，用于对客户端的异步读写；然后调用handle_stream，传入创建的IOStream对象初始化一个HTTPConnection对象，HTTPConnection封装了IOStream的一些操作，用于处理HTTPRequest并返回。至此HTTP Server的创建、启动、注册回调函数的过程分析结束。&lt;/p&gt;
+
+&lt;h3&gt;HTTPConnection分析&lt;/h3&gt;
+
+&lt;p&gt;该类用于处理http请求。在HTTPConnection初始化时赋值self.request_callback为一个可调用的对象（该对象用于对http请求的具体处理以及response的生成）。该类首先读取http请求的header结束符b(&quot;\r\n\r\n&quot;)，然后回调self._on_headers函数。request_callback在以后的系列中有详细介绍。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;address&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;request_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;no_keep_alive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                 &lt;span class=&quot;n&quot;&gt;xheaders&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request_callback&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;request_callback&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# some configuration code&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_header_callback&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stack_context&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wrap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_on_headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read_until&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_header_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;_on_headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# some codes&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
 
 &lt;h3&gt;多进程HTTPServer&lt;/h3&gt;
 
@@ -1026,62 +1118,6 @@ Case 6: 1
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
-
-</content>
-   </entry>
-   
-   <entry>
-     <title>how to build this blog</title>
-     <link href="http://amyangfei.me/2012/12/30/how-to-build-this-blog/"/>
-     <updated>2012-12-30T00:00:00+08:00</updated>
-     <id>http://amyangfei.me/2012/12/30/how-to-build-this-blog</id>
-     <content type="html">&lt;p&gt;系统环境Mac OS X 10.8.2，这个博客主要通过jekyll生成静态页面，使用ruby提供的一些扩展插件，比如按月份进行归档等，配置环境的过程如下。&lt;/p&gt;
-
-&lt;p&gt;安装ruby，rubygems&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;sudo port ruby
-sudo port install rb-rubygems
-sudo gem install rubygems-update
-sudo gem update --system
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-
-&lt;p&gt;安装bundle&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;sudo gem install bundler
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-
-&lt;p&gt;安装jeklly，rdiscount（支持markdown语法，&lt;a href=&quot;https://github.com/rtomayko/rdiscount&quot; target=&quot;_blank&quot;&gt;rdiscount github&lt;/a&gt;），liquid（支持jekyll模板渲染，&lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/liquid-extensions&quot; target=&quot;_blank&quot;&gt;Liquid Extensions&lt;/a&gt;）。可以写到一个Gemfile文件中然后 bundle install。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;bundle install
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-
-&lt;p&gt;Gemfile文件内容&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nb&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;http://rubygems.org&amp;quot;&lt;/span&gt;
-
-gem &lt;span class=&quot;s2&quot;&gt;&amp;quot;jekyll&amp;quot;&lt;/span&gt;, &lt;span class=&quot;s2&quot;&gt;&amp;quot;0.10.0&amp;quot;&lt;/span&gt;
-gem &lt;span class=&quot;s2&quot;&gt;&amp;quot;jekyll_ext&amp;quot;&lt;/span&gt;
-gem &lt;span class=&quot;s2&quot;&gt;&amp;quot;liquid&amp;quot;&lt;/span&gt;, &lt;span class=&quot;s2&quot;&gt;&amp;quot;2.2.2&amp;quot;&lt;/span&gt;
-gem &lt;span class=&quot;s2&quot;&gt;&amp;quot;rdiscount&amp;quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-
-&lt;p&gt;关于jekyll的一些扩展插件，可以参考 &lt;a href=&quot;https://github.com/mojombo/jekyll/wiki/Plugins&quot; target=&quot;_blank&quot;&gt;jekyll plugins&lt;/a&gt; 和 &lt;a href=&quot;https://github.com/rfelix/my_jekyll_extensions&quot; target=&quot;_blank&quot;&gt;rfelix's jelyll extensions&lt;/a&gt; 。&lt;/p&gt;
-
-&lt;p&gt;生成静态页面，运行服务器&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;bundle &lt;span class=&quot;nb&quot;&gt;exec &lt;/span&gt;ejekyll --server
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-
 
 </content>
    </entry>

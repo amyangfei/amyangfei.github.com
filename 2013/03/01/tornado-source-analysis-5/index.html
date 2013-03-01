@@ -2,11 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Java和C++通信问题杂谈 | 数列卡索的魔法小屋</title>
+  <title>tornado源码分析5 | 数列卡索的魔法小屋</title>
   <meta name="generator" content="Jekyll" />
   <meta name="author" content="amyangfei" />
-  <meta name="description" content="写代码时候需要java端与C++端进行数据交互，有很多实现的方法，做一个比较简单的总结 " />
-  <meta name="keywords" content="Socket, Java, C++, RPC " />
+  <meta name="description" content="介绍Tornado的核心web框架，包括RequestHandler和Application两个重要的类 " />
+  <meta name="keywords" content="Tornado, web framework, Request handlers, python " />
   <link rel="stylesheet" href="/css/style.css" type="text/css" />
   <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
@@ -43,38 +43,85 @@
 	        <span>&#9830;</span>
 	        <a href="/archives.html" rel="nofollow" >Archives</a>
 	        <span>&#9830;</span>
-	        <h2>Java和C++通信问题杂谈</h2>
+	        <h2>tornado源码分析5</h2>
     	</div>
 
 		<div class="main fn-clear">
 			<article class="entry">
-				<h1 class="title">Java和C++通信问题杂谈</h1>
-               	<p class="meta"><time class="date" pubdate="2012-04-07">07 Apr 2012</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
-               	<p class="description">写代码时候需要java端与C++端进行数据交互，有很多实现的方法，做一个比较简单的总结</p>
- 			 	<p>之前一直在做数据库活动检测引擎，是由C++实现的。最近突发奇想要做一个集成Dashboard和admin管理的平台，用来集中管理数据库活动检测的相关数据和系统操作，于是抽出一个下午用Struts，Spring加JSP简单搭了一个BS结构的Dashboard。平台是搭建好了，持久化数据可以从Sqlserver数据库里直接读，但有时java后台还是需要调用检测引擎的一些方法，或者需要检测引擎动态处理一些数据，于是遇到了类似前几天的DT问题：不同编程语言之间的通信。上一次遇到的是C++和C#，这一次是C++和Java，这个问题其实挺普遍，真DT。</p>
+				<h1 class="title">tornado源码分析5</h1>
+               	<p class="meta"><time class="date" pubdate="2013-03-01">01 Mar 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">介绍Tornado的核心web框架，包括RequestHandler和Application两个重要的类</p>
+ 			 	<p>Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application。源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。</p>
 
-<p>仔细google了一下，发现有一些通用的解决办法，比如一些封装好的多语言RPC通信框架，比较著名的有ZeroC旗下的<a href="http://www.zeroc.com/ice.html" target="_blank">ICE通信框架</a>，<a href="http://thrift.apache.org/" target="_blank">Thrift</a>(著名的Key-Value存储服务器Cassandra就是使用Thrift作为其客户端API的)，Google的<a href="https://developers.google.com/protocol-buffers/docs/overview?hl=zh-CN" target="_blank">Protocol Buffers</a>等等。时间有限，这些框架暂未使用ToT，有空再学吧，不过框架的核心性质就是易于复用，简单的使用起来应该也不难。</p>
+<h3>RequestHandler分析</h3>
 
-<p>其实如果只是在java和C++之间行简单的数据交互，使用Socket通信可以算是最简单的办法。利用TCP连接或者UDP连接都非常简单，这里不详细描述，具体实现时需要注意的问题也是网络通信常见的问题，包括字节序，字符编码，等等。csdn的<a href="http://blog.csdn.net/Michaelgs/article/details/934116" target="_blank">“C/C++与java网络通信问题汇总及解决方法”</a>这篇文章说的比较详细。</p>
+<p>RequestHandler提供了一个针对http请求处理的基类封装，方法比较多，主要有以下功能：</p>
 
-<p>而今天我在测试的时候，使用了一种更没有技术含量的方法，就是在java端使用Runtime.getRuntime().exec(command)直接调用外部exe程序，掩面啊，当然只是用来测试的，以后会慢慢改的。使用这种方法的时候要注意Runtime.getRuntime().exec(command)的执行会有一些延迟，所以需要像下面这么用：</p>
+<ol>
+<li><p>提供了GET/HEAD/POST/DELETE/PATCH/PUT/OPTIONS等方法的功能接口，具体开发时RequestHandler的子类重写这些方法以支持不同需求的请求处理。</p></li>
+<li><p>提供对http请求的处理方法，包括对headers，页面元素，cookie的处理。</p></li>
+<li><p>提供对请求响应的一些列功能，包括redirect，write（将数据写入输出缓冲区），渲染模板（render, reander_string）等</p></li>
+<li><p>其他的一些辅助功能，如结束请求/响应，刷新输出缓冲区，对用户授权相关处理等。</p></li>
+</ol>
 
-<div class="highlight"><pre><code class="java"><span class="n">Process</span> <span class="n">p</span> <span class="o">=</span> <span class="n">Runtime</span><span class="o">.</span><span class="na">getRuntime</span><span class="o">().</span><span class="na">exec</span><span class="o">(</span><span class="n">command</span><span class="o">);</span>
-<span class="n">p</span><span class="o">.</span><span class="na">waitFor</span><span class="o">();</span>
+
+<h3>Application分析</h3>
+
+<p>源代码中的注释写的非常好：A collection of request handlers that make up a web application. Instances of this class are <strong>callable</strong> and can be passed directly to HTTPServer to serve the application. 该类初始化的第一个参数接受一个(regexp, request_class)形式的列表，指定了针对不同URL请求所采取的处理方法，包括对静态文件请求的处理（web.StaticFileHandler）。Application类中实现 <a href="http://docs.python.org/2/reference/datamodel.html#object.__call__" target="_blank">__call__</a> 函数，这样该类就成为可调用的对象，由HTTPServer来进行调用。比如下边是httpserver.py中HTTPConection类的代码，该处request_callback即为Application对象。</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">_on_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="c"># some codes...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">)</span>
 </code></pre>
 </div>
 
 
-<p>还要注意的是Runtime.getRuntime().exec方法需要自己处理stderr及stdout流，如果获取“标准输出流”总是堵塞，那很有可能是“错误输出流”的问题，可以为"错误输出流"单开一个线程读取处理。<a href="http://blog.csdn.net/dysj4099/article/details/5985596" target="_blank">“Runtime.getRuntime().exec执行阻塞问题解决”</a>这篇文章里有具体的实现。</p>
+<p>__call__函数会遍历Application的handlers列表，匹配到相应的URL后通过handler._execute进行相应处理；如果没有匹配的URL，则会调用ErrorHandler。</p>
 
-<p>跨语言技术还是有很多解决方案的，有时间要把Thrift，ICE这几个框架好好研究一下。</p>
+<p>在Application初始时有一个debug参数，当debug=True时，运行程序时当有代码、模块发生修改，程序会自动重新加载，即实现了auto-reload功能。该功能在autoreload.py文件中实现，是否需要reload的检查在每次接收到http请求时进行，基本原理是检查每一个sys.modules以及_watched_files所包含的模块在程序中所保存的最近修改时间和文件系统中的最近修改时间是否一致，如果不一致，则整个程序重新加载。</p>
+
+<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">_reload_on_update</span><span class="p">(</span><span class="n">modify_times</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="c"># module test and some path handles</span>
+        <span class="n">_check_file</span><span class="p">(</span><span class="n">modify_times</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_watched_files</span><span class="p">:</span>
+        <span class="n">_check_file</span><span class="p">(</span><span class="n">modify_times</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+</code></pre>
+</div>
+
+
+<p>Tornado的autoreload模块提供了一个对外的main接口，可以通过下边的方法实现运行test.py程序运行的auto-reload。但是测试了一下，功能有限，相比于django的autorelaod模块（具有较好的封装和较完善的功能）还是有一定的差距。最主要的原因是Tornado中的实现耦合了一些ioloop的功能，因而autoreload不是一个可独立的模块。</p>
+
+<div class="highlight"><pre><code class="bash"><span class="c"># tornado</span>
+python -m tornado.autoreload test.py <span class="o">[</span>args...<span class="o">]</span>
+
+<span class="c"># django</span>
+from django.utils import autoreload
+autoreload.main<span class="o">(</span>your-main-func<span class="o">)</span>
+</code></pre>
+</div>
+
+
+<h3>asynchronous方法</h3>
+
+<p>该方法通常被用为请求处理函数的decorator，以实现异步操作，被@asynchronous修饰后的请求处理为长连接，在调用self.finish之前会一直处于连接等待状态。</p>
+
+<h3>总结</h3>
+
+<p><a href="http://amyangfei.me/2013/01/29/tornado-source-analysis-2/" target="_blank">tornado源码分析2</a> 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection框架的handle_request中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">http_server</span> <span class="o">=</span> httpserver.HTTPServer<span class="o">(</span>handle_request<span class="o">)</span>
+<span class="nv">http_server</span> <span class="o">=</span> httpserver.HTTPServer<span class="o">(</span>application<span class="o">)</span>
+</code></pre>
+</div>
+
+
+
 
                 <nav class="pagination-link">
                     
-                    <a class="prev" href="/2012/03/26/bide-algorithm/" rel="bookmark">&laquo;&nbsp;A brief introduction to BIDE...</a>
+                    <a class="prev" href="/2013/02/28/access-vm-ssh-via-port-mapping/" rel="bookmark">&laquo;&nbsp;通过端口映射访问虚拟机内部网络</a>
                     
-                    
-                    <a class="next" href="/2012/04/11/simple-thrift-useage/" rel="bookmark">thrift使用简介&nbsp;&raquo;</a>
                     
                  </nav>
 			</article><!-- .entry -->
