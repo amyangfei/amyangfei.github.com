@@ -108,7 +108,7 @@ autoreload.main<span class="o">(</span>your-main-func<span class="o">)</span>
 
 <h3>总结</h3>
 
-<p><a href="http://amyangfei.me/2013/01/29/tornado-source-analysis-2/" target="_blank">tornado源码分析2</a> 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection大方框的handle_request椭圆中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。</p>
+<p><a href="/2013/01/29/tornado-source-analysis-2/" target="_blank">tornado源码分析2</a> 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection大方框的handle_request椭圆中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。</p>
 
 <div class="highlight"><pre><code class="bash"><span class="nv">http_server</span> <span class="o">=</span> httpserver.HTTPServer<span class="o">(</span>handle_request<span class="o">)</span>
 <span class="nv">http_server</span> <span class="o">=</span> httpserver.HTTPServer<span class="o">(</span>application<span class="o">)</span>
