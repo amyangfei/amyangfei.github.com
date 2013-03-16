@@ -14,6 +14,11 @@
     </url>
     
     <url>
+        <loc>http://amyangfei.me/2013/03/16/tips-of-scrapy/</loc>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
         <loc>http://amyangfei.me/2013/03/01/tornado-source-analysis-5/</loc>
         <priority>0.8</priority>
     </url>
