@@ -4,7 +4,7 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-03-17T00:05:39+08:00</updated>
+   <updated>2013-04-30T16:21:20+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
@@ -381,7 +381,9 @@ autoreload.main&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;your-main-func&lt;s
      <link href="http://amyangfei.me/2013/02/03/tornado-source-analysis-3/"/>
      <updated>2013-02-03T00:00:00+08:00</updated>
      <id>http://amyangfei.me/2013/02/03/tornado-source-analysis-3</id>
-     <content type="html">&lt;p&gt;IOLoop是基于epoll实现的底层网络I/O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例直接调用此方法即可。&lt;/p&gt;
+     <content type="html">&lt;p&gt;注：在分割线之前是基于 Tornado2.4 的分析。在Tornado3.0+以后IOLoop发生了一些改动，分割线之后有相应的介绍。&lt;/p&gt;
+
+&lt;p&gt;IOLoop是基于epoll实现的底层网络I/O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例直接调用此方法即可。&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@staticmethod&lt;/span&gt;
 &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
@@ -505,6 +507,29 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 
 
 &lt;p&gt;至此IOLoop模块的分析基本完成。下一篇文章将会继续分析IOStream模块。&lt;/p&gt;
+
+&lt;p&gt;------------------------------------------------我是分割线---------------------------------------------------&lt;/p&gt;
+
+&lt;p&gt;补充于2013年4月30日，介绍Tornado3.0以后IOLoop模块的一些改动。&lt;/p&gt;
+
+&lt;p&gt;1. IOLoop成为util.Configurable的子类，IOLoop 中绝大多数成员方法都作为抽象接口，具体实现由派生类 PollIOLoop 完成。IOLoop实现了 Configurable 中的 configurable_base 和 configurable_default 这两个抽象接口，用于初始化过程中获取类类型和类的实现方法（即 IOLoop 中 poller 的实现方式）。在Tornado3.0+ 中针对不同平台，单独出 poller 相应的实现，EPollIOLoop、KQueueIOLoop、SelectIOLoop 均继承于 PollIOLoop。下边的代码是 configurable_default 方法根据平台选择相应的 epoll 实现。初始化 IOLoop 的过程中会自动根据平台选择合适的 poller 的实现方法。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;nd&quot;&gt;@classmethod&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;configurable_default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hasattr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;epoll&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado.platform.epoll&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EPollIOLoop&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EPollIOLoop&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;hasattr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;kqueue&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;c&quot;&gt;# Python 2.6+ on BSD or Mac&lt;/span&gt;
+        &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado.platform.kqueue&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KQueueIOLoop&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KQueueIOLoop&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado.platform.select&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SelectIOLoop&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SelectIOLoop&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+
+&lt;p&gt;2. 其他有很多细节上的改动，详细可参见官方文档&lt;a href=&quot;http://www.tornadoweb.org/en/stable/releases/v3.0.0.html#tornado-ioloop&quot; target=&quot;_blank&quot;&gt;What’s new in Tornado 3.0&lt;/a&gt;&lt;/p&gt;
 
 &lt;h3&gt;参考&lt;/h3&gt;
 

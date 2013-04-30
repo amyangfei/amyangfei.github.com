@@ -51,7 +51,9 @@
 				<h1 class="title">tornado源码分析3</h1>
                	<p class="meta"><time class="date" pubdate="2013-02-03">03 Feb 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
                	<p class="description">介绍Tornado HTTP服务器网络底层I/O核心调度模块IOLoop</p>
- 			 	<p>IOLoop是基于epoll实现的底层网络I/O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例直接调用此方法即可。</p>
+ 			 	<p>注：在分割线之前是基于 Tornado2.4 的分析。在Tornado3.0+以后IOLoop发生了一些改动，分割线之后有相应的介绍。</p>
+
+<p>IOLoop是基于epoll实现的底层网络I/O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例直接调用此方法即可。</p>
 
 <div class="highlight"><pre><code class="python"><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">instance</span><span class="p">():</span>
@@ -175,6 +177,29 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 
 
 <p>至此IOLoop模块的分析基本完成。下一篇文章将会继续分析IOStream模块。</p>
+
+<p>------------------------------------------------我是分割线---------------------------------------------------</p>
+
+<p>补充于2013年4月30日，介绍Tornado3.0以后IOLoop模块的一些改动。</p>
+
+<p>1. IOLoop成为util.Configurable的子类，IOLoop 中绝大多数成员方法都作为抽象接口，具体实现由派生类 PollIOLoop 完成。IOLoop实现了 Configurable 中的 configurable_base 和 configurable_default 这两个抽象接口，用于初始化过程中获取类类型和类的实现方法（即 IOLoop 中 poller 的实现方式）。在Tornado3.0+ 中针对不同平台，单独出 poller 相应的实现，EPollIOLoop、KQueueIOLoop、SelectIOLoop 均继承于 PollIOLoop。下边的代码是 configurable_default 方法根据平台选择相应的 epoll 实现。初始化 IOLoop 的过程中会自动根据平台选择合适的 poller 的实现方法。</p>
+
+<div class="highlight"><pre><code class="python"><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">configurable_default</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">select</span><span class="p">,</span> <span class="s">&quot;epoll&quot;</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">tornado.platform.epoll</span> <span class="kn">import</span> <span class="n">EPollIOLoop</span>
+        <span class="k">return</span> <span class="n">EPollIOLoop</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">select</span><span class="p">,</span> <span class="s">&quot;kqueue&quot;</span><span class="p">):</span>
+        <span class="c"># Python 2.6+ on BSD or Mac</span>
+        <span class="kn">from</span> <span class="nn">tornado.platform.kqueue</span> <span class="kn">import</span> <span class="n">KQueueIOLoop</span>
+        <span class="k">return</span> <span class="n">KQueueIOLoop</span>
+    <span class="kn">from</span> <span class="nn">tornado.platform.select</span> <span class="kn">import</span> <span class="n">SelectIOLoop</span>
+    <span class="k">return</span> <span class="n">SelectIOLoop</span>
+</code></pre>
+</div>
+
+
+<p>2. 其他有很多细节上的改动，详细可参见官方文档<a href="http://www.tornadoweb.org/en/stable/releases/v3.0.0.html#tornado-ioloop" target="_blank">What’s new in Tornado 3.0</a></p>
 
 <h3>参考</h3>
 
