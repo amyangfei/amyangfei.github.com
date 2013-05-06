@@ -66,8 +66,7 @@
 <span class="n">http_server</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="mi">8888</span><span class="p">)</span>
 <span class="n">http_server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 <span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>该http服务器主要使用到IOLoop, IOStream, HTTPServer, HTTPConnection几大模块，分别在代码ioloop.py, iostream.py, httpserver.py中实现。工作的流程如下图所示：</p>
@@ -183,8 +182,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">handle_stream</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Error in connection callback&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>这里分析HTTPServer通过listen函数启动监听，这种方法是单进程模式。另外可以通过先后调用bind和start(num_processes=1)函数启动监听同时创建多进程服务器实例，后文有关于此的详细描述。</p>
@@ -207,8 +205,7 @@
 <span class="k">def</span> <span class="nf">_on_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
     <span class="c"># some codes</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>多进程HTTPServer</h3>

@@ -63,8 +63,7 @@
 
 <div class="highlight"><pre><code class="bash">sudo apt-get install libboost-dev libboost-test-dev libboost-program-options-dev libevent-dev
  automake libtool flex bison pkg-config g++ libssl-dev 
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>根据服务器及客户端运行语言生成运行时</h3>
@@ -72,8 +71,7 @@
 <p>这一步在我看到的很多thrift使用介绍以及官方文档中都没有提及，但这一步是不可缺少的。简单说如果要在框架下使用java就要有thrift对应的java库引用，就是打好的jar包。生成的方法很简单，找到下载的thrift源码包，lib目录下不同语言的名字对应于生成不同语言运行时的源码，基本都有写好的自动脚本。比如python，进入到 /lib/py 目录输入下面的命令下就OK啦。</p>
 
 <div class="highlight"><pre><code class="bash">sudo python setup.py install
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>编写.thrift文件，生成client和server的代码</h3>
@@ -89,16 +87,14 @@
     <span class="n">User</span> <span class="n">ping</span><span class="p">(</span><span class="mi">1</span><span class="o">:</span> <span class="n">User</span> <span class="n">user</span><span class="p">),</span>
     <span class="n">string</span> <span class="n">say</span><span class="p">(</span><span class="mi">1</span><span class="o">:</span><span class="n">string</span> <span class="n">msg</span><span class="p">)</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>然后生成client和server要使用的代码</p>
 
 <div class="highlight"><pre><code class="bash">thrift --gen py helloworld.thrift
 thrift --gen java helloworld.thrift
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>编写server和client</h3>
@@ -143,8 +139,7 @@ thrift --gen java helloworld.thrift
 <span class="k">print</span> <span class="s">&quot;Starting thrift server in python...&quot;</span>
 <span class="n">server</span><span class="o">.</span><span class="n">serve</span><span class="p">()</span>
 <span class="k">print</span> <span class="s">&quot;done!&quot;</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>java client</h3>
@@ -174,8 +169,7 @@ thrift --gen java helloworld.thrift
         <span class="o">}</span>
     <span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>客户端的输出结果，xiaoming变成了xiaoming huang，uid加了1，没有问题。

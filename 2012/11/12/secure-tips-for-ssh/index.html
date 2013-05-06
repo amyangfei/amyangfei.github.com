@@ -61,8 +61,7 @@
 
 
 <div class="highlight"><pre><code class="bash">Port 4312
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <ul>
@@ -72,8 +71,7 @@
 
 <div class="highlight"><pre><code class="bash">ListenAddress 192.168.1.100
 ListenAddress 192.168.1.101
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <ul>
@@ -82,8 +80,7 @@ ListenAddress 192.168.1.101
 
 
 <div class="highlight"><pre><code class="bash">PermitRootLogin no
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <ul>
@@ -96,8 +93,7 @@ ListenAddress 192.168.1.101
 DenyGroups developers qa
 AllowUsers apple pear
 AllowGroups sysadmin dba
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <ul>
@@ -107,8 +103,7 @@ AllowGroups sysadmin dba
 
 <div class="highlight"><pre><code class="bash">ClientAliveInterval 150
 ClientAliveCountMax 3
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <ul>
@@ -117,8 +112,7 @@ ClientAliveCountMax 3
 
 
 <div class="highlight"><pre><code class="bash">MaxAuthTries 10
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>配置hosts.allow和hosts.deny文件</h3>
@@ -128,8 +122,7 @@ ClientAliveCountMax 3
 <div class="highlight"><pre><code class="bash">sshd:119.196.231.193
 sshd:125.136.130.18
 sshd:94.103.147.75
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>在网上看到了一种比较好的方法，就是每天利用crontab任务分析系统登录日志，将登陆失败次数达到一定范围的IP加入/etc/hosts.deny文件来拒绝这个IP登录。原文地址-><a href="http://www.pyshell.com/index.php/archives/225" target="_blank"> 利用shell拒绝ssh暴力破解 </a>实现脚本如下，注意，只修改hosts.allow和hosts.deny文件不需要重启networking服务。</p>
@@ -147,8 +140,7 @@ cat /var/log/auth.log | awk <span class="s1">&#39;/Failed/{print $(NF-3)}&#39;</
 <span class="k">        </span><span class="nb">echo</span> <span class="s2">&quot;sshd:$ip&quot;</span> &gt;&gt; /etc/hosts.deny
     <span class="k">fi</span>
 <span class="k">done</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 

@@ -81,8 +81,7 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">srclist</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
     <span class="k">print</span> <span class="n">FisherYateOldShullfe</span><span class="p">(</span><span class="n">srclist</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h2>Modern version of the Fisher–Yates shuffle</h2>
@@ -100,8 +99,7 @@
     <span class="n">srclist</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
     <span class="n">FisherYatesShuffle</span><span class="p">(</span><span class="n">srclist</span><span class="p">)</span>
     <span class="k">print</span> <span class="n">srclist</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>该算法同样可以理解成为这样的过程：从1到n个数字中依次随机抽取一个数字，并放到一个新序列的尾端（该算法通过互换数字实现），逐渐形成一个新的序列。计算一下概率：如果某个元素被放入第i（1≤i≤n）个位置，就必须是在前 i-1 次选取中都没有选到它，并且第 i 次恰好选中它。其概率为：</p>
@@ -128,8 +126,7 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">srclist</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
     <span class="k">print</span> <span class="n">insideout</span><span class="p">(</span><span class="n">srclist</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>对于这个算法，我们分析可以出现多少种不同的排列数，从$i=1$开始，每一次交换都可以衍生出$(i+1)$倍的排列数，因而总的排列方案数如下图。在随机函数完全随机的情况下每一种排列都是等概率出现的，因而这种算法得到的是一个随机排序。它的时间复杂度和空间复杂度都是O(N)。</p>
@@ -145,8 +142,7 @@
       <span class="k">else</span>
           <span class="n">a</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
           <span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;-</span> <span class="n">source</span><span class="p">.</span><span class="n">next</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h2>另一种想法</h2>

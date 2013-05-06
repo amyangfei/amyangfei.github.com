@@ -86,8 +86,7 @@
                 <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fname</span><span class="p">),</span> 
                     <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;_&#39;</span><span class="o">+</span><span class="n">fname</span><span class="p">))</span>
                 <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>后来使用os.rename和shutil的方法进行了一下对比，移动60张jpg文件共139MB从一个目录到另一个目录，os.rename平均时间是0.004508s，shutil.move的平均时间是0.005764s，耗时比os.rename多27.9%</p>

@@ -59,22 +59,19 @@
 sudo port install rb-rubygems
 sudo gem install rubygems-update
 sudo gem update --system
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>安装bundle</p>
 
 <div class="highlight"><pre><code class="bash">sudo gem install bundler
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>安装jeklly，rdiscount（支持markdown语法，<a href="https://github.com/rtomayko/rdiscount" target="_blank">rdiscount github</a>），liquid（支持jekyll模板渲染，<a href="https://github.com/mojombo/jekyll/wiki/liquid-extensions" target="_blank">Liquid Extensions</a>）。可以写到一个Gemfile文件中然后 bundle install。</p>
 
 <div class="highlight"><pre><code class="bash">bundle install
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>Gemfile文件内容</p>
@@ -85,8 +82,7 @@ gem <span class="s2">&quot;jekyll&quot;</span>, <span class="s2">&quot;0.10.0&qu
 gem <span class="s2">&quot;jekyll_ext&quot;</span>
 gem <span class="s2">&quot;liquid&quot;</span>, <span class="s2">&quot;2.2.2&quot;</span>
 gem <span class="s2">&quot;rdiscount&quot;</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>关于jekyll的一些扩展插件，可以参考 <a href="https://github.com/mojombo/jekyll/wiki/Plugins" target="_blank">jekyll plugins</a> 和 <a href="https://github.com/rfelix/my_jekyll_extensions" target="_blank">rfelix's jelyll extensions</a> 。</p>
@@ -94,8 +90,7 @@ gem <span class="s2">&quot;rdiscount&quot;</span>
 <p>生成静态页面，运行服务器</p>
 
 <div class="highlight"><pre><code class="bash">bundle <span class="nb">exec </span>ejekyll --server
-</code></pre>
-</div>
+</code></pre></div>
 
 
 

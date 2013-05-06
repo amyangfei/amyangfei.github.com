@@ -68,8 +68,7 @@
                 <span class="c"># New instance after double check</span>
                 <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>在上一篇文章中已经分析Tornado服务器启动时会创建监听socket，并将socket的file descriptor注册到IOLoop实例中，IOLoop添加对socket的IOLoop.READ事件监听并传入回调处理函数。当某个socket通过accept接受连接请求后调用注册的回调函数进行读写。接下来主要分析IOLoop对epoll的封装和I/O调度具体实现。</p>
@@ -81,8 +80,7 @@
 <div class="highlight"><pre><code class="python"><span class="n">READ</span> <span class="o">=</span> <span class="n">_EPOLLIN</span>
 <span class="n">WRITE</span> <span class="o">=</span> <span class="n">_EPOLLOUT</span>
 <span class="n">ERROR</span> <span class="o">=</span> <span class="n">_EPOLLERR</span> <span class="o">|</span> <span class="n">_EPOLLHUP</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>IOLoop的初始化</h3>
@@ -101,8 +99,7 @@
     <span class="sd">&quot;&quot;&quot;Registers the given handler to receive the given events for fd.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">]</span> <span class="o">=</span> <span class="n">stack_context</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">events</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>在IOLoop初始化的过程中创建了一个Waker对象，将Waker对象fd的读端注册到事件循环中并设定相应的回调函数（这样做的好处是当事件循环阻塞而没有响应描述符出现，需要在最大timeout时间之前返回，就可以向这个管道发送一个字符）。Waker的使用：一种是在其他线程向IOLoop添加callback时使用，唤醒IOLoop同时会将控制权转移给IOLoop线程并完成特定请求。唤醒的方法向管道中写入一个字符'x'。另外，在IOLoop的stop函数中会调用self._waker.wake()，通过向管道写入'x'停止事件循环。</p>
@@ -172,8 +169,7 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
             <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">](</span><span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="n">e</span><span class="p">:</span>
             <span class="c"># 异常处理，省略</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>至此IOLoop模块的分析基本完成。下一篇文章将会继续分析IOStream模块。</p>
@@ -195,8 +191,7 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
         <span class="k">return</span> <span class="n">KQueueIOLoop</span>
     <span class="kn">from</span> <span class="nn">tornado.platform.select</span> <span class="kn">import</span> <span class="n">SelectIOLoop</span>
     <span class="k">return</span> <span class="n">SelectIOLoop</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>2. 其他有很多细节上的改动，详细可参见官方文档<a href="http://www.tornadoweb.org/en/stable/releases/v3.0.0.html#tornado-ioloop" target="_blank">What’s new in Tornado 3.0</a></p>

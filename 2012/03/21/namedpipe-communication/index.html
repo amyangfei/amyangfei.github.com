@@ -90,16 +90,16 @@
    <span class="n">DWORD</span> <span class="n">cbBytesRead</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cbReplyBytes</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cbWritten</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> 
    <span class="n">BOOL</span> <span class="n">fSuccess</span> <span class="o">=</span> <span class="n">FALSE</span><span class="p">;</span>
    <span class="n">HANDLE</span> <span class="n">hPipe</span>  <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-   <span class="kt">bool</span> <span class="n">destoryThread</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+   <span class="kt">bool</span> <span class="n">destoryThread</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
 
    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;InstanceThread created, receiving and processing messages.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
 
    <span class="n">hPipe</span> <span class="o">=</span> <span class="p">(</span><span class="n">HANDLE</span><span class="p">)</span> <span class="n">lpvParam</span><span class="p">;</span> 
    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">destoryThread</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">while</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">while</span><span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
            <span class="n">fSuccess</span> <span class="o">=</span> <span class="n">ReadFile</span><span class="p">(</span><span class="n">hPipe</span><span class="p">,</span> <span class="n">pchRequest</span><span class="p">,</span> <span class="n">BUFSIZE</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">TCHAR</span><span class="p">),</span> <span class="o">&amp;</span><span class="n">cbBytesRead</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fSuccess</span> <span class="o">||</span> <span class="n">cbBytesRead</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-               <span class="n">destoryThread</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+               <span class="n">destoryThread</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
                <span class="k">break</span><span class="p">;</span>
            <span class="p">}</span>
            <span class="n">pchRequest</span><span class="p">[</span><span class="n">cbBytesRead</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
@@ -113,7 +113,7 @@
            
            <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Result after sql parse: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">pchReply</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fSuccess</span> <span class="o">||</span> <span class="n">cbReplyBytes</span> <span class="o">!=</span> <span class="n">cbWritten</span><span class="p">)</span> <span class="p">{</span>
-               <span class="n">destoryThread</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+               <span class="n">destoryThread</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
                <span class="k">break</span><span class="p">;</span>
            <span class="p">}</span>
        <span class="p">}</span>
@@ -122,8 +122,7 @@
    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;InstanceThread exitting.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>C# Client</h3>
@@ -152,8 +151,7 @@
     <span class="c1">// Give the client process some time to display results before exiting.</span>
     <span class="n">Thread</span><span class="p">.</span><span class="n">Sleep</span><span class="p">(</span><span class="mi">4000</span><span class="p">);</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>今天写代码时候遇到一个bug，就是在服务器接收pchRequest处理得到pchReply后向客户端发送总会发生阻塞，调了很久找到bug的出处是处理后的pchReply末尾没有换行符，导致在C#客户端使用ReadLine()接收一直处于阻塞状态。于是在代码中有了下面的一段。</p>
@@ -162,8 +160,7 @@
 <span class="n">pchReply</span><span class="p">[</span><span class="n">cbReplyBytes</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
 <span class="n">pchReply</span><span class="p">[</span><span class="n">cbReplyBytes</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
 <span class="n">cbReplyBytes</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 

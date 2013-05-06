@@ -73,8 +73,7 @@
     <span class="n">log</span><span class="o">.</span><span class="n">err</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;Obtaining request from start requests&#39;</span><span class="p">,</span> <span class="n">spider</span><span class="o">=</span><span class="n">spider</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">crawl</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">spider</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>爬虫爬取时会不断发现新的 url 要爬取，在scrapy中实现递归爬取的方法很简单，只需要将下面的代码加到 parse 函数中。这样 parse 会在 yield 处挂起，等待系统的调度。下一次调用 next()后返回挂起点继续执行。</p>
@@ -82,8 +81,7 @@
 <div class="highlight"><pre><code class="python"><span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_requests_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 <span class="c"># you can also use the following line</span>
 <span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_requests_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>需要注意的是递归调用 make_requests_from_url 的代码 <b>一定写在 parse 函数中</b>，否则如果像下边代码的结构，parse 调用 _handle_page ，当_handle_page 进入 yield 语句块时会挂起，等待 next 信号，但是 parse 函数会运行退出，于是 yield 后的 make_requests_from_url 将不再会被调用，爬取也无法递归的进行下去。我一开始写就遇到了这个问题，分析系统调度过程中使用 yield 之后发现了问题所在。</p>
@@ -100,8 +98,7 @@
     <span class="k">elif</span> <span class="n">page_type</span> <span class="o">==</span> <span class="s">&#39;review&#39;</span><span class="p">:</span>
         <span class="n">hxs</span> <span class="o">=</span> <span class="n">HtmlXPathSelector</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
         <span class="n">content</span> <span class="o">=</span> <span class="n">hxs</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s">&#39;//div[@id=&quot;link-report&quot;]/div&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s">&#39;text()&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>下边这个 demo 是上边错误的简化版本，调用 funcb 函数，funcc 函数挂起，funcb 内部的代码执行后 funcb 函数退出。</p>
@@ -121,8 +118,7 @@
 <span class="c">#output</span>
 <span class="n">fun</span><span class="o">-</span><span class="n">b</span> <span class="n">starts</span>
 <span class="n">fun</span><span class="o">-</span><span class="n">b</span> <span class="n">ends</span>    
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>Scrapy相关资源链接</h3>

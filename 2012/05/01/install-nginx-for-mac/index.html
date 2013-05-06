@@ -64,8 +64,7 @@
 <div class="highlight"><pre><code class="bash">Undefined symbols <span class="k">for </span>architecture x86_64:
     <span class="s2">&quot;_pcre_free_study&quot;</span>, referenced from:
         _ngx_pcre_free_studies in ngx_regex.o
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>在Nginx官方的问题列表里面有这个问题的具体描述，详细请看这里<a href="http://trac.nginx.org/nginx/ticket/94" target="_blank">compilation fails on Mac OS X 10.7.2</a>，其实就是库的位置没有找到。那篇文档中给出了两种解决方案，我使用了第一种，成功解决了问题：</p>
@@ -77,8 +76,7 @@
 <p>具体过程首先安装macports，然后利用port安装pcre。安装macports可以编译源码，也可以直接使用dmg安装。<a href="http://www.macports.org/install.php" target="_blank">Installing MacPorts</a>上有详细的安装说明。安装pcre就很简单了，一行命令。</p>
 
 <div class="highlight"><pre><code class="bash"><span class="nv">$ </span>port install pcre
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>安装Nginx</h3>
@@ -90,8 +88,7 @@
 <span class="nv">$ </span>sudo ./configure --prefix<span class="o">=</span>/usr/local/nginx --with-http_ssl_module
 <span class="nv">$ </span>sudo make
 <span class="nv">$ </span>sudo make install
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>开启Nginx</h3>
@@ -99,8 +96,7 @@
 <p>可以将/usr/local/nginx/sbin加入到环境变量里，那样可以直接使用sudo nginx开启Nginx。如果不加入的话使用绝对路径亦可。在使用Nginx的默认参数情况下，访问地址http://localhost/，看到“Welcome to nginx!”，说明Nginx正常工作。接下来就可以进一步学习Nginx的各种参数配置和相关使用了。</p>
 
 <div class="highlight"><pre><code class="bash"><span class="nv">$ </span>sudo /usr/local/nginx/sbin/nginx
-</code></pre>
-</div>
+</code></pre></div>
 
 
 

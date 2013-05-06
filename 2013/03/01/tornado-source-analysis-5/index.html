@@ -72,8 +72,7 @@
 <div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">_on_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
     <span class="c"># some codes...</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">request_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>__call__函数会遍历Application的handlers列表，匹配到相应的URL后通过handler._execute进行相应处理；如果没有匹配的URL，则会调用ErrorHandler。</p>
@@ -86,8 +85,7 @@
         <span class="n">_check_file</span><span class="p">(</span><span class="n">modify_times</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_watched_files</span><span class="p">:</span>
         <span class="n">_check_file</span><span class="p">(</span><span class="n">modify_times</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>Tornado的autoreload模块提供了一个对外的main接口，可以通过下边的方法实现运行test.py程序运行的auto-reload。但是测试了一下，功能有限，相比于django的autorelaod模块（具有较好的封装和较完善的功能）还是有一定的差距。最主要的原因是Tornado中的实现耦合了一些ioloop的功能，因而autoreload不是一个可独立的模块。</p>
@@ -98,8 +96,7 @@ python -m tornado.autoreload test.py <span class="o">[</span>args...<span class=
 <span class="c"># django</span>
 from django.utils import autoreload
 autoreload.main<span class="o">(</span>your-main-func<span class="o">)</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>asynchronous方法</h3>
@@ -112,8 +109,7 @@ autoreload.main<span class="o">(</span>your-main-func<span class="o">)</span>
 
 <div class="highlight"><pre><code class="bash"><span class="nv">http_server</span> <span class="o">=</span> httpserver.HTTPServer<span class="o">(</span>handle_request<span class="o">)</span>
 <span class="nv">http_server</span> <span class="o">=</span> httpserver.HTTPServer<span class="o">(</span>application<span class="o">)</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 

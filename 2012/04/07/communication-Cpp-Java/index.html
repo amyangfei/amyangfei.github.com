@@ -61,8 +61,7 @@
 
 <div class="highlight"><pre><code class="java"><span class="n">Process</span> <span class="n">p</span> <span class="o">=</span> <span class="n">Runtime</span><span class="o">.</span><span class="na">getRuntime</span><span class="o">().</span><span class="na">exec</span><span class="o">(</span><span class="n">command</span><span class="o">);</span>
 <span class="n">p</span><span class="o">.</span><span class="na">waitFor</span><span class="o">();</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>还要注意的是Runtime.getRuntime().exec方法需要自己处理stderr及stdout流，如果获取“标准输出流”总是堵塞，那很有可能是“错误输出流”的问题，可以为"错误输出流"单开一个线程读取处理。<a href="http://blog.csdn.net/dysj4099/article/details/5985596" target="_blank">“Runtime.getRuntime().exec执行阻塞问题解决”</a>这篇文章里有具体的实现。</p>

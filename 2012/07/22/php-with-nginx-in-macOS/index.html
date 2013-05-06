@@ -59,16 +59,14 @@
 
 <div class="highlight"><pre><code class="bash">sudo port install php5 +fastcgi fcgi php5-gd php5-mysql php5-sqlite 
         php5-eaccelerator php5-curl php5-iconv
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>安装结束后进入配置php.ini文件。</p>
 
 <div class="highlight"><pre><code class="bash"><span class="nb">cd</span> /opt/local/etc/php5
 sudo cp php.ini-development php.ini
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>然后打开配置文件php.ini，适当修改时区date.timezone，eaccelerator等配置信息。</p>
@@ -84,15 +82,13 @@ sudo cp php.ini-development php.ini
     fastcgi_param  SCRIPT_FILENAME  /scripts<span class="nv">$fastcgi_script_name</span>;
     include        fastcgi.conf;
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>此处注意，在nginx.conf最后一行的默认参数配置是include fastcgi_params，需要修改为include fastcgi.conf，fastcgi.conf为nginx.conf同目录下配置文件，其中有下面一行参数。如果不修改运行时会出现“No input file specified.”的错误。</p>
 
 <div class="highlight"><pre><code class="bash">fastcgi_param  SCRIPT_FILENAME    <span class="nv">$document_root$fastcgi_script_name</span>;
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>检查运行</h3>
@@ -103,8 +99,7 @@ sudo cp php.ini-development php.ini
 sudo /usr/local/nginx/sbin/nginx
 --启动php-cgi
 sudo /opt/local/bin/php-cgi -b 127.0.0.1:9000
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>创建index.php测试，典型内容&lt;?php phpinfo(); ?>,访问页面http://127.0.0.1/index.php，正常访问看到php相关的信息，可以清楚的看到Server API是CGI/FastCGI。</p>

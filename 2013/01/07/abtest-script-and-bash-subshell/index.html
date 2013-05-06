@@ -67,8 +67,7 @@ cat abtest_temp.log | <span class="k">while </span><span class="nb">read </span>
 <span class="nb">    </span><span class="k">fi</span>
 <span class="k">done</span>
 <span class="nb">echo</span> <span class="s2">&quot;result is &quot;</span><span class="k">${</span><span class="nv">result</span><span class="k">}</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <p>在读取abtest_temp.log文件内容后，result的值仍为空，这是因为bash遇到管道后会创建一个新的进程，于是result是subshell中的局域变量，subshell对变量的修改不会影响原shell中的变量。
@@ -91,8 +90,7 @@ cat abtest_temp.log | <span class="k">while </span><span class="nb">read </span>
 <span class="nb">    </span><span class="k">fi</span>
 <span class="k">done</span>
 <span class="nb">echo</span> <span class="s2">&quot;result is &quot;</span><span class="sb">`</span>cat .result_temp<span class="sb">`</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>使用命名管道</h3>
@@ -113,8 +111,7 @@ mkfifo pipetem
 <span class="nb">read </span>result &lt; pipetem
 rm pipetem
 <span class="nb">echo</span> <span class="s2">&quot;result is &quot;</span><span class="k">${</span><span class="nv">result</span><span class="k">}</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>对apache ab封装的测试脚本</h3>
@@ -191,8 +188,7 @@ rm pipetem
 <span class="nb">echo</span> <span class="s2">&quot;avg rps: &quot;</span><span class="sb">`</span>expr <span class="nv">$rps_sum</span> / <span class="nv">$times</span><span class="sb">`</span>
 <span class="nb">echo</span> <span class="s2">&quot;min rps: $min&quot;</span>
 <span class="nb">echo</span> <span class="s2">&quot;max rps: $max&quot;</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 
 <h3>参考文章</h3>
