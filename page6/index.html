@@ -2,11 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>How to move files fast with python | 数列卡索的魔法小屋</title>
+  <title>数列卡索的魔法小屋</title>
   <meta name="generator" content="Jekyll" />
   <meta name="author" content="amyangfei" />
-  <meta name="description" content="介绍一种利用Python简单快速在磁盘中移动文件的方法。 " />
-  <meta name="keywords" content="shutil, Python " />
+  <meta name="description" content="这是数列卡索的个人博客，我会在这里记录学习工作的点点滴滴，与大家一起交流分享。编程启迪智慧，技术改变世界。" />
+  <meta name="keywords" content="Algorithm, Python, C++, Bash, Mac, Linux, Ubuntu, Hadoop, Big Data, Web, Server, Nginx, Tornado " />
   <link rel="stylesheet" href="/css/style.css" type="text/css" />
   <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
@@ -35,76 +35,53 @@
   <section id="content">
     <article id="contenter">
       <section class="content">
-
 	<div class="content-cnt fn-clear">
-
-		<div class="v-section-tit fn-clear">
-	        <a href="/" rel="nofollow" >Home</a>
-	        <span>&#9830;</span>
-	        <a href="/archives.html" rel="nofollow" >Archives</a>
-	        <span>&#9830;</span>
-	        <h2>How to move files fast with python</h2>
-    	</div>
-
 		<div class="main fn-clear">
-			<article class="entry">
-				<h1 class="title">How to move files fast with python</h1>
-               	<p class="meta"><time class="date" pubdate="2012-11-05">05 Nov 2012</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
-               	<p class="description">介绍一种利用Python简单快速在磁盘中移动文件的方法。</p>
- 			 	<p>需求很简单，有一个目录下有很多子目录，每个子目录中都会有一些具有特定格式的文件，比如jpg图片。需要将这些文件移动到一个统一的文件夹中，按照指定格式统一命名。可以使用python提供的os.walk遍历子目录，使用os.rename更改文件属性实现移动。另外关于使用shutil.move，操作因其基于复制效率较低，查看Python的官方文档有这样的说明：</p>
-
-<table width="100%">
-    <tbody>
-        <tr>
-            <td>
-                <a href="http://docs.python.org/2/library/shutil.html#shutil.move" target="_blank"> shutil.move(src, dst) </a>
-            </td>
-        </tr>
-        <tr>
-            <td>If the destination is a directory or a symlink to a directory, then src is moved inside that directory.
-                <br>The destination directory must not already exist. If the destination already exists but is not a directory, it may be overwritten depending on os.rename() semantics.
-                <br>If the destination is on the current filesystem, then os.rename() is used. Otherwise, src is copied (using shutil.copy2()) to dst and then removed.
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-
-<p>不多说，直接贴代码：</p>
-
-<div class="highlight"><pre><code class="python"><span class="kn">import</span> <span class="nn">os</span>
-
-<span class="n">dst</span> <span class="o">=</span> <span class="s">&#39;./dst&#39;</span>
-<span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
-
-<span class="k">def</span> <span class="nf">movfiles</span><span class="p">(</span><span class="n">pathstr</span><span class="p">):</span>
-    <span class="k">global</span> <span class="n">count</span>
-    <span class="c">#os.walk yields a 3-tuple (dirpath, dirnames, filenames)</span>
-    <span class="k">for</span> <span class="n">ret</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">pathstr</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="s">&#39;.jpg&#39;</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
-                <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fname</span><span class="p">),</span> 
-                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;_&#39;</span><span class="o">+</span><span class="n">fname</span><span class="p">))</span>
-                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
-</code></pre></div>
-
-
-<p>后来使用os.rename和shutil的方法进行了一下对比，移动60张jpg文件共139MB从一个目录到另一个目录，os.rename平均时间是0.004508s，shutil.move的平均时间是0.005764s，耗时比os.rename多27.9%</p>
-
-                <nav class="pagination-link">
-                    
-                    <a class="prev" href="/2012/09/20/server-suffering-attack/" rel="bookmark">&laquo;&nbsp;An Experience of being Attacked...</a>
-                    
-                    
-                    <a class="next" href="/2012/11/12/secure-tips-for-ssh/" rel="bookmark">配置安全ssh的几个方法&nbsp;&raquo;</a>
-                    
-                 </nav>
-			</article><!-- .entry -->
-			<div class="violet-comment">
-	             <div id="disqus_thread"></div>
-	        </div><!-- //violet-comment -->
+			
+            	<article class="main-excerpt fn-clear">
+                    <h3 class="main-excerpt-title"><a href="/2012/03/20/hello-world/" title="Hello world" rel="bookmark">Hello world</a></h3>
+                    <p class="date"><time pubdate="Tue Mar 20 00:00:00 +0800 2012">20 Mar 2012</time></p>
+                    <p>这是 这个博客的第一篇文章，按照所有coder的惯例说一声，Hello World。</p>
+                   	<p class="more"><a href="/2012/03/20/hello-world/" title="Read More" rel="nofollow"><span>&#10149;</span>Read More</a></p>
+                </article>
+            
+            
+		        <nav id="pagination">
+		            <ul class="pagination">
+		                
+		                    
+		                        <li><a href="/">1</a></li>
+		                    
+		                
+		                    
+		                        <li><a href="/page2/">2</a></li>
+		                    
+		                
+		                    
+		                        <li><a href="/page3/">3</a></li>
+		                    
+		                
+		                    
+		                        <li><a href="/page4/">4</a></li>
+		                    
+		                
+		                    
+		                        <li><a href="/page5/">5</a></li>
+		                    
+		                
+		                    
+		                        <li class="current"><a href="javascript:void(0);">6</a></li>
+		                    
+		                
+		            </ul>
+		        </nav>
+		    			
 		</div>
 		<div class="aside fn-clear">
+			<div class="box fn-clear">
+	<h3 class="title">About Me</h3>
+	<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
+</div>
 			<div class="box fn-clear">
         <h3 class="title">Recent Posts</h3>
         <ul>
@@ -143,9 +120,18 @@
         
         </ul>  
 </div>
+			<div class="box fn-clear">
+	<h3 class="title">GitHub Project</h3>
+	<ul>
+		<li>&#8227;<a href="https://github.com/amyangfei/amyangfei.github.com" target="_blank">amyangfei.github.com</a></li>
+		<li>&#8227;<a href="https://github.com/amyangfei/ClusterAlgorithm" target="_blank">ClusterAlgorithm</a></li>
+		<li>&#8227;<a href="https://github.com/amyangfei/perblog" target="_blank">perblog</a></li>
+	</ul>
+</div>
 		</div>
 	</div>
 </section>
+
     </article>
   </section>
     <footer class="foot">
@@ -187,18 +173,6 @@
 	</div>
 </footer>
 
-    
-    <script type="text/javascript">
-        
-        //disqus
-        var disqus_shortname = 'amyangfei';
-        (function() {
-            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] ||
-                document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
     
 
     <script type="text/javascript">
