@@ -4,13 +4,135 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-05-10T20:03:54+08:00</updated>
+   <updated>2013-06-18T10:22:30+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
      <email>amyangfei@gmail.com</email>
    </author>
 
+   
+   <entry>
+     <title>使用Tornado进行异步编程</title>
+     <link href="http://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado/"/>
+     <updated>2013-06-17T00:00:00+08:00</updated>
+     <id>http://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado</id>
+     <content type="html">&lt;p&gt;翻译自：&lt;a href=&quot;http://lbolla.info/blog/2012/10/03/asynchronous-programming-with-tornado&quot; target=&quot;_blank&quot;&gt;Asynchronous programming with Tornado&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;对于初学者来说异步编程很令人迷惑，因此我觉得有必要介绍一些有用的基本概念来帮助初学者避免一些常见的陷阱。如果希望理解通用的异步编程模型，可以查看以下这些网络资源，&lt;a href=&quot;http://cs.brown.edu/courses/cs196-5/f12/handouts/async.pdf&quot; target=&quot;_blank&quot;&gt;Introduction to Asynchronous Programming&lt;/a&gt;，&lt;a href=&quot;http://krondo.com/?page_id=1327&quot; target=&quot;_blank&quot;&gt;Twisted Introduction&lt;/a&gt;。在这篇文章中我将会着眼于如何使用 Tornado 进行异步编程。&lt;/p&gt;
+
+&lt;p&gt;来自Tornado主页的一段话：&lt;/p&gt;
+
+&lt;table width=&quot;100%&quot;&gt;
+    &lt;tbody&gt;
+        &lt;tr&gt;
+            &lt;td&gt;FriendFeed's web server is a relatively simple, non-blocking web server written in Python. The FriendFeed application is written using a web framework that looks a bit like web.py or Google's webapp, but with additional tools and optimizations to take advantage of the non-blocking web server and tools. Tornado is an open source version of this web server and some of the tools we use most often at FriendFeed. The framework is distinct from most mainstream web server frameworks (and certainly most Python frameworks) because it is non-blocking and reasonably fast. Because it is non-blocking and uses epoll or kqueue, it can handle thousands of simultaneous standing connections, which means the framework is ideal for real-time web services. We built the web server specifically to handle FriendFeed's real-time features every active user of FriendFeed maintains an open connection to the FriendFeed servers. (For more information on scaling servers to support thousands of clients, see The C10K problem.)&lt;/td&gt;
+        &lt;/tr&gt;
+    &lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt;对于初学者首先需要认清的是自己是否真的需要异步操作。异步编程比同步编程复杂得多，因此有人说：异步编程是不适合人类大脑的。&lt;/p&gt;
+
+&lt;p&gt;如果你的应用需要监控一些资源并且当这些资源的状态发生变化时需要采取一定的操作，那么你需要使用异步编程。比如对于一个 web 服务器，如果没有请求到达，那么它处于空闲状态；当有请求通过 socket 到达 web 服务器它就需要对这条请求进行一定的处理。另外一种需要异步编程的情况比如一个应用需要定期的执行一些任务或者延迟一段时间再执行代码。可以使用多线程/进程来控制多个任务的并发执行，那样编程模型也会迅速变得复杂起来。&lt;/p&gt;
+
+&lt;p&gt;第二步是需要确认你想要的操作是否能够进行异步操作。不幸的是在 Tornado 中，并非所有的功能都可以异步执行。&lt;/p&gt;
+
+&lt;p&gt;Tornado是单线程运行的（尽管在实际应用中，它支持多线程模式），因此阻塞操作会阻塞整个服务器。这意味着一个阻塞操作将会阻止系统执行下一个等待执行的任务。任务的调度通过&lt;a href=&quot;http://www.tornadoweb.org/en/stable/ioloop.html&quot; target=&quot;_blank&quot;&gt; IOLoop &lt;/a&gt;完成，IOLoop运行在唯一的可用的线程中。&lt;/p&gt;
+
+&lt;p&gt;下边是一个错误使用 IOLoop 的例子（译者注：这段代码与原文不一样，是按照原文的描述修改的）：&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado.ioloop&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gen&lt;/span&gt;
+
+
+&lt;span class=&quot;nd&quot;&gt;@gen.engine&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;sleeping&amp;#39;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;awake!&amp;#39;&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;__main__&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# Note that now code is executed &amp;quot;concurrently&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;注意到 blocking_call（译者注：函数f，不知道为什么原文作者说这是blocking_call） 被正确地调用，但是由于它被 time.sleep 阻塞，会阻止接下来任务（第二次调用该函数）的执行。只有当第一次调用结束后，这个函数才会被IOLoop 调度第二次调用。因此输出是这样的一个序列（“sleeping”, “awake!”, “sleeping”, “awake!”）。&lt;/p&gt;
+
+&lt;p&gt;对比同样的代码，但是使用 time.sleep 的异步版本，例如 add_timeout：&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# Example of non-blocking sleep.&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado.ioloop&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gen&lt;/span&gt;
+ 
+ 
+&lt;span class=&quot;nd&quot;&gt;@gen.engine&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;sleeping&amp;#39;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;yield&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gen&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_timeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;awake!&amp;#39;&lt;/span&gt;
+ 
+ 
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;__main__&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# Note that now code is executed &amp;quot;concurrently&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;在这种情况下，函数 f 第一次被调用，会打印“sleeping”，然后它会在1秒之后向 IOLoop 请求继续执行。IOLoop 重获控制权，它会调度函数 f 的第二次调用，第二次调用首先打印“sleeping”，之后将控制权还给 IOLoop。1秒钟后 IOLoop 会在第一个函数挂起的位置继续执行并且打印“awake”。最后，第二次“awake”也会被打印。所以全部的打印序列为“sleeping”, “sleeping”, “awake!”, “awake!”。这两次函数调用是并发执行的（但不是&lt;a href=&quot;http://stackoverflow.com/questions/1897993/difference-between-concurrent-programming-and-parallel-programming&quot; target=&quot;_blank&quot;&gt;并行&lt;/a&gt;！）&lt;/p&gt;
+
+&lt;p&gt;现在我会听到你提问：“我如何创建一个函数并且异步地执行它？”在 Tornado 中，每一个有“callback”参数的函数都可以使用 “gen.engine.Task（译者注：应该是gen.Task）”进行异步操作。但是要注意：使用 Task 并不意味着就一定是异步执行！一个事实是函数会被调度获得控制权并执行，执行后任何传递给 callback 的值都会在 Task 中返回。看下边的代码：&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado.ioloop&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gen&lt;/span&gt;
+ 
+ 
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;my_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;do some work&amp;#39;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# Note: this line will block!&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;callback&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;123&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+ 
+ 
+&lt;span class=&quot;nd&quot;&gt;@gen.engine&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;start&amp;#39;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# Call my_function and return here as soon as &amp;quot;callback&amp;quot; is called.&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# &amp;quot;result&amp;quot; is whatever argument was passed to &amp;quot;callback&amp;quot; in &amp;quot;my_function&amp;quot;.&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;yield&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gen&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;my_function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;result is&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ 
+ 
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;__main__&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;绝大多数初学者可能会这样写：Task(my_func)，然后认为 my_func 会自动被异步执行。事实上这并不是 Tornado 工作的原理，这是&lt;a href=&quot;http://golang.org/&quot; target=&quot;_blank&quot;&gt; Go &lt;/a&gt;如何工作的！下边是我最后的建议(译者注：我觉得这是这篇文章最重要的建议)：&lt;/p&gt;
+
+&lt;table width=&quot;100%&quot;&gt;
+    &lt;tbody&gt;
+        &lt;tr&gt;
+            &lt;td&gt;In a function that is going to be used “asynchronously”, only asynchronous libraries should be used.&lt;/td&gt;
+        &lt;/tr&gt;
+    &lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;p&gt;就是说如果希望异步编程，那么一些阻塞的调用比如 time.sleep 或者 urllib2.urlopen 或者 db.query，它们需要替换成相应的异步版本。比如，IOLoop.add_timeout 是 time.sleep 的替换，AsyncHTTPClient.fetch 是 urllib2.urlopen 的替换等等。对于数据库查询，情况比较复杂，需要一些特定的异步查询驱动，比如对于 MongoDB 的&lt;a href=&quot;http://blog.mongodb.org/post/30927719826/motor-asynchronous-driver-for-mongodb-and-python&quot; target=&quot;_blank&quot;&gt; Motor &lt;/a&gt;。&lt;/p&gt;
+</content>
+   </entry>
    
    <entry>
      <title>线段合并求最长线段</title>
@@ -859,82 +981,6 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 &lt;h3&gt;参考&lt;/h3&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://kenby.iteye.com/blog/1159621&quot; target=&quot;_blank&quot;&gt;Tornado源码分析之http服务器篇&lt;/a&gt;， &lt;a href=&quot;http://www.cnblogs.com/Bozh/archive/2012/07/24/2606765.html&quot; target=&quot;_blank&quot;&gt;tornado源码分析系列&lt;/a&gt;， &lt;a href=&quot;http://golubenco.org/2009/09/19/understanding-the-code-inside-tornado-the-asynchronous-web-server-powering-friendfeed/&quot; target=&quot;_blank&quot;&gt;Understanding the code inside Tornado, the asynchronous web server&lt;/a&gt;&lt;/p&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>tornado源码分析1</title>
-     <link href="http://amyangfei.me/2013/01/27/tornado-source-analysis-1/"/>
-     <updated>2013-01-27T00:00:00+08:00</updated>
-     <id>http://amyangfei.me/2013/01/27/tornado-source-analysis-1</id>
-     <content type="html">&lt;h3&gt;引言&lt;/h3&gt;
-
-&lt;p&gt;Tornado是&lt;a href=&quot;http://friendfeed.com/&quot; target=&quot;_blank&quot;&gt;FriendFeed&lt;/a&gt;最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在&lt;a href=&quot;https://github.com/facebook/tornado&quot; target=&quot;_blank&quot;&gt;github&lt;/a&gt;。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量/数千的客户端连接，适用于实时的Web服务（详细可以参阅&lt;a href=&quot;http://www.kegel.com/c10k.html&quot; target=&quot;_blank&quot;&gt;The C10K problem&lt;/a&gt;）。&lt;/p&gt;
-
-&lt;p&gt;接下来几篇文章将会从Web服务器框架设计、代码实现细节等角度介绍我对Tornado源码的分析。这篇文章作为概述，首先介绍Tornado的模块按功能分类，同时提供后续文章的结构目录。&lt;/p&gt;
-
-&lt;h3&gt;Tornado模块分类&lt;/h3&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;&lt;strong&gt;Core web framework&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;tornado.web — 包含web框架的大部分主要功能，包含RequestHandler和Application两个重要的类&lt;/li&gt;
-&lt;li&gt;tornado.httpserver — 一个无阻塞HTTP服务器的实现&lt;/li&gt;
-&lt;li&gt;tornado.template — 模版系统&lt;/li&gt;
-&lt;li&gt;tornado.escape — HTML,JSON,URLs等的编码解码和一些字符串操作&lt;/li&gt;
-&lt;li&gt;tornado.locale — 国际化支持&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;&lt;strong&gt;Asynchronous networking 底层模块&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;tornado.ioloop — 核心的I/O循环&lt;/li&gt;
-&lt;li&gt;tornado.iostream — 对非阻塞式的 socket 的简单封装，以方便常用读写操作&lt;/li&gt;
-&lt;li&gt;tornado.httpclient — 一个无阻塞的HTTP服务器实现&lt;/li&gt;
-&lt;li&gt;tornado.netutil — 一些网络应用的实现，主要实现TCPServer类&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;&lt;strong&gt;Integration with other services&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;tornado.auth — 使用OpenId和OAuth进行第三方登录&lt;/li&gt;
-&lt;li&gt;tornado.database — 简单的MySQL服务端封装&lt;/li&gt;
-&lt;li&gt;tornado.platform.twisted — 在Tornado上运行为Twisted实现的代码&lt;/li&gt;
-&lt;li&gt;tornado.websocket — 实现和浏览器的双向通信&lt;/li&gt;
-&lt;li&gt;tornado.wsgi — 与其他python网络框架/服务器的相互操作&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;&lt;strong&gt;Utilities&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;tornado.autoreload — 生产环境中自动检查代码更新&lt;/li&gt;
-&lt;li&gt;tornado.gen — 一个基于生成器的接口，使用该模块保证代码异步运行&lt;/li&gt;
-&lt;li&gt;tornado.httputil — 分析HTTP请求内容&lt;/li&gt;
-&lt;li&gt;tornado.options — 解析终端参数&lt;/li&gt;
-&lt;li&gt;tornado.process — 多进程实现的封装&lt;/li&gt;
-&lt;li&gt;tornado.stack_context — 用于异步环境中对回调函数的上下文保存、异常处理&lt;/li&gt;
-&lt;li&gt;tornado.testing — 单元测试&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-
-
-&lt;h3&gt;系列文章结构&lt;/h3&gt;
-
-&lt;ol&gt;
-&lt;li&gt;概述&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;/2013/01/29/tornado-source-analysis-2/&quot; target=&quot;_blank&quot;&gt;Tornado HTTP服务器介绍&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;/2013/02/03/tornado-source-analysis-3/&quot; target=&quot;_blank&quot;&gt;I/O核心调度模块IOLoop&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;/2013/02/05/tornado-source-analysis-4/&quot; target=&quot;_blank&quot;&gt;读写缓冲模块IOStream&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;/2013/03/01/tornado-source-analysis-5/&quot; target=&quot;_blank&quot;&gt;核心web框架介绍&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;未完待续&lt;/li&gt;
-&lt;/ol&gt;
-
-
-&lt;h3&gt;参考&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://www.tornadoweb.org/documentation/index.html&quot; target=&quot;_blank&quot;&gt;Tornado Documentation&lt;/a&gt;, &lt;a href=&quot;http://www.tornadoweb.cn/documentation&quot; target=&quot;_blank&quot;&gt;Tornado Documentation CN&lt;/a&gt;&lt;/p&gt;
 </content>
    </entry>
    
