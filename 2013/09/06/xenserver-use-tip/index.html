@@ -2,11 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>tornado源码分析4 | 数列卡索的魔法小屋</title>
+  <title>xenserver 使用小结 | 数列卡索的魔法小屋</title>
   <meta name="generator" content="Jekyll" />
   <meta name="author" content="amyangfei" />
-  <meta name="description" content="介绍Tornado HTTP服务器读写缓冲模块IOStream " />
-  <meta name="keywords" content="Tornado, asynchronous I/O, python, http server, iostream " />
+  <meta name="description" content="记录在一台服务器上安装 XenServer 并进行相关配置的过程 " />
+  <meta name="keywords" content="Xen, XenServer, Virtualization, NAT " />
   <link rel="stylesheet" href="/css/style.css" type="text/css" />
   <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
@@ -43,88 +43,47 @@
 	        <span>&#9830;</span>
 	        <a href="/archives.html" rel="nofollow" >Archives</a>
 	        <span>&#9830;</span>
-	        <h2>tornado源码分析4</h2>
+	        <h2>xenserver 使用小结</h2>
     	</div>
 
 		<div class="main fn-clear">
 			<article class="entry">
-				<h1 class="title">tornado源码分析4</h1>
-               	<p class="meta"><time class="date" pubdate="2013-02-05">05 Feb 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
-               	<p class="description">介绍Tornado HTTP服务器读写缓冲模块IOStream</p>
- 			 	<p>IOStream对socket读写进行了封装，分别提供读、写缓冲区实现对socket的异步读写。当socket被accept之后HTTPServer的_handle_connection会被回调并初始化IOStream对象，进一步通过IOStream提供的功能接口完成socket的读写。文章接下来将关注IOStream实现读写的细节。</p>
+				<h1 class="title">xenserver 使用小结</h1>
+               	<p class="meta"><time class="date" pubdate="2013-09-06">06 Sep 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">记录在一台服务器上安装 XenServer 并进行相关配置的过程</p>
+ 			 	<p>手头四台服务器，准备搭建一个小的云平台，了解了几种不同的方案，包括Vmware Esxi，Xen，OpenStack 等。先把各种方法都试一试，然后确定一个具体实施。之前有使用过 Vmware ESXi，虽说 ESXi 可以免费使用，但是 Vmware 浓厚的商业气息让我有种道不同不相为谋的感觉。XenServer 最近有开源，于是昨天花了一个下午尝试了一下。</p>
 
-<h3>IOStream的初始化</h3>
+<h3>安装 XenServer 和 XenCenter</h3>
 
-<p>IOStream初始化过程中主要完成以下操作：</p>
+<p>首先去官网下载 XenServer 的镜像文件，我下载了 6.2.0 版本。XenServer 本身其实就是一个 Linux 操作系统，于是服务器直接通过启动 bios 引导安装 XenServer，安装过程中配置好 root 的密码以及网络信息，这样就可以通过管理工具管理 XenServer 了。</p>
 
-<ol>
-<li>绑定对应的socket</li>
-<li>绑定ioloop</li>
-<li>创建读缓冲区_read_buffer，一个python deque容器</li>
-<li>创建写缓冲区_write_buffer，同样也是一个python deque容器</li>
-</ol>
+<p>使用的管理工具是 Windows 版的，貌似有 Linux 版本的<a href="http://sourceforge.net/projects/openxenceter/" target="_blank">OpenXenCenter</a>，我没有试验。进入 XenCenter，服务器是四网卡，现在接了0，2号网卡。2号网卡连接外网，配有有一个 166.111.xx.yy的 ip。0号网卡接内部网络，ip 设为 192.168.10.254。配置如下图：</p>
 
+<p><img src="/images/post/20130906_server_network.png" style="width: 610px;"/></p>
 
-<h3>IOStream提供的主要功能接口</h3>
+<h3>安装一台虚拟机</h3>
 
-<p>主要的读写接口包括以下四个：</p>
+<p>接下来安装一台虚拟机。可以选择的操作系统比较多，比如选择 Ubuntu Server 12.04，需要注意的是加载虚拟镜像的方法，有两大类：一类是 Install from ISO library or DVD drive，另一类是 Boot from network。第二类我没有试验，第一类又分两种，一种是从光驱加载镜像，由于我在远程操作所以选择了另一种 ISO Library。建立 ISO Library 的方法是在左侧导航选择目标 xenserver 建立 New SR，然后选择 windwos 的文件共享或者是 NFS。选择好安装虚拟机时就可以找到镜像文件了。然后一步步配置好参数，开始运行，继续就是熟悉的 Ubuntu 安装过程。</p>
 
-<table width="100%">
-    <tbody>
-        <tr>
-            <td>
-                class IOStream(object):
-            </td>
-        </tr>
-        <tr>
-            <td>&nbsp;&nbsp;&nbsp;&nbsp;def read_until(self, delimiter, callback):
-            <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;def read_bytes(self, num_bytes, callback, streaming_callback=None):
-            <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;def read_until_regex(self, regex, callback):
-            <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;def read_until_close(self, callback, streaming_callback=None):
-            <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;def write(self, data, callback=None):
-            </td>
-        </tr>
-    </tbody>
-</table>
+<h3>通过 iptables 进行 NAT</h3>
+
+<p>安装好一台虚拟机后进行网络配置，首先在 XenCenter 中激活安装虚拟机的0号网卡，然后到 Console 界面配置 ip，比如设定 ip 为192.168.10.11，网关设为 192.168.10.254，OK。接下类需要到 XenServer 中配置 iptables 的 NAT 转发。<a href="http://blog.tangjianwei.com/2009/01/12/my-understanding-about-dnat-and-snat-in-iptables/" target="_blank"> iptables中DNAT与SNAT的理解 </a>这篇文章中作者对 iptables NAT 的原理解释比较清楚，其实无论是 NAT 穿透还是端口转发，本质都是在 iptables 处对 ip 数据包的源地址和目标地址的一定规则的转换。我配置了3条 iptables 规则，实现了内部虚拟机可以正常访问外网，同时外网的主机可以通过10022这个端口 ssh 访问内部虚拟机。其实第2条规则被第3条规则包含，可以去掉。</p>
+
+<div class="highlight"><pre><code class="bash"><span class="c"># 端口重定向 </span>
+<span class="nv">$ </span>iptables -t nat -A PREROUTING -d 166.111.xx.yy -p tcp --dport 10022 -j DNAT --to 192.168.10.11:22
+<span class="nv">$ </span>iptables -t nat -A POSTROUTING -d 192.168.10.11 -p tcp --dport 22 -j SNAT --to 166.111.xx.yy
+
+<span class="c"># NAT代理上网</span>
+<span class="nv">$ </span>iptables -t nat -A POSTROUTING -j SNAT --to 166.111.xx.yy
+</code></pre></div>
 
 
-<ul>
-<li>read_until和read_bytes是最常用的读接口，它们工作的过程都是先注册读事件结束时调用的回调函数，然后调用_try_inline_read方法。_try_inline_read首先尝试_read_from_buffer，即从上一次的读缓冲区中取数据，如果有数据直接调用 self._run_callback(callback, self._consume(data_length)) 执行回调函数，_consume消耗掉了_read_buffer中的数据；否则即_read_buffer之前没有未读数据，先通过_read_to_buffer将数据从socket读入_read_buffer，然后再执行_read_from_buffer操作。read_until和read_bytes的区别在于_read_from_buffer过程中截取数据的方法不同，read_until读取到delimiter终止，而read_bytes则读取num_bytes个字节终止。执行过程如下图所示：</li>
-</ul>
-
-
-<p><img src="/images/post/20130205iostream_read.png" style="margin-left:22px;"/></p>
-
-<ul>
-<li><p>read_until_regex相当于delimiter为某一正则表达式的read_until。</p></li>
-<li><p>read_until_close主要用于IOStream流关闭前后的读取：如果调用read_until_close时stream已经关闭，那么将会_consume掉_read_buffer中的所有数据；否则_read_until_close标志位设为True，注册_streaming_callback回调函数，调用_add_io_state添加io_loop.READ状态。</p></li>
-<li><p>write首先将data按照数据块大小WRITE_BUFFER_CHUNK_SIZE分块写入<em>write_buffer，然后调用</em>handle_write向socket发送数据。</p></li>
-</ul>
-
-
-<h3>其他内部功能接口</h3>
-
-<ul>
-<li><p>def _handle_events(self, fd, events): 通常为IOLoop对象add_handler方法传入的回调函数，由IOLoop的事件机制来进行调度。</p></li>
-<li><p>def _add_io_state(self, state): 为IOLoop对象的handler注册IOLoop.READ或IOLoop.WRITE状态，handler为IOStream对象的_handle_events方法。</p></li>
-<li><p>def _consume(self, loc): 合并读缓冲区loc个字节，从读缓冲区删除并返回这些数据</p></li>
-</ul>
-
-
-<h3>参考</h3>
-
-<p><a href="http://kenby.iteye.com/blog/1159621" target="_blank">Tornado源码分析之http服务器篇</a>， <a href="http://www.cnblogs.com/Bozh/archive/2012/07/22/2603976.html" target="_blank">tornado源码分析系列</a></p>
+<p>总体过程比较顺利，配置 iptables NAT 折腾了一小会儿。于是，have fun, enjoy it ~</p>
 
                 <nav class="pagination-link">
                     
-                    <a class="prev" href="/2013/02/03/tornado-source-analysis-3/" rel="bookmark">&laquo;&nbsp;tornado源码分析3</a>
+                    <a class="prev" href="/2013/06/17/asynchronous-programming-with-tornado/" rel="bookmark">&laquo;&nbsp;使用Tornado进行异步编程</a>
                     
-                    
-                    <a class="next" href="/2013/02/08/android-taskscheduler-and-scripting/" rel="bookmark">Android运行脚本与定时工具&nbsp;&raquo;</a>
                     
                  </nav>
 			</article><!-- .entry -->

@@ -4,13 +4,49 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-07-26T22:50:25+08:00</updated>
+   <updated>2013-09-06T20:20:03+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
      <email>amyangfei@gmail.com</email>
    </author>
 
+   
+   <entry>
+     <title>xenserver 使用小结</title>
+     <link href="http://amyangfei.me/2013/09/06/xenserver-use-tip/"/>
+     <updated>2013-09-06T00:00:00+08:00</updated>
+     <id>http://amyangfei.me/2013/09/06/xenserver-use-tip</id>
+     <content type="html">&lt;p&gt;手头四台服务器，准备搭建一个小的云平台，了解了几种不同的方案，包括Vmware Esxi，Xen，OpenStack 等。先把各种方法都试一试，然后确定一个具体实施。之前有使用过 Vmware ESXi，虽说 ESXi 可以免费使用，但是 Vmware 浓厚的商业气息让我有种道不同不相为谋的感觉。XenServer 最近有开源，于是昨天花了一个下午尝试了一下。&lt;/p&gt;
+
+&lt;h3&gt;安装 XenServer 和 XenCenter&lt;/h3&gt;
+
+&lt;p&gt;首先去官网下载 XenServer 的镜像文件，我下载了 6.2.0 版本。XenServer 本身其实就是一个 Linux 操作系统，于是服务器直接通过启动 bios 引导安装 XenServer，安装过程中配置好 root 的密码以及网络信息，这样就可以通过管理工具管理 XenServer 了。&lt;/p&gt;
+
+&lt;p&gt;使用的管理工具是 Windows 版的，貌似有 Linux 版本的&lt;a href=&quot;http://sourceforge.net/projects/openxenceter/&quot; target=&quot;_blank&quot;&gt;OpenXenCenter&lt;/a&gt;，我没有试验。进入 XenCenter，服务器是四网卡，现在接了0，2号网卡。2号网卡连接外网，配有有一个 166.111.xx.yy的 ip。0号网卡接内部网络，ip 设为 192.168.10.254。配置如下图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/post/20130906_server_network.png&quot; style=&quot;width: 610px;&quot;/&gt;&lt;/p&gt;
+
+&lt;h3&gt;安装一台虚拟机&lt;/h3&gt;
+
+&lt;p&gt;接下来安装一台虚拟机。可以选择的操作系统比较多，比如选择 Ubuntu Server 12.04，需要注意的是加载虚拟镜像的方法，有两大类：一类是 Install from ISO library or DVD drive，另一类是 Boot from network。第二类我没有试验，第一类又分两种，一种是从光驱加载镜像，由于我在远程操作所以选择了另一种 ISO Library。建立 ISO Library 的方法是在左侧导航选择目标 xenserver 建立 New SR，然后选择 windwos 的文件共享或者是 NFS。选择好安装虚拟机时就可以找到镜像文件了。然后一步步配置好参数，开始运行，继续就是熟悉的 Ubuntu 安装过程。&lt;/p&gt;
+
+&lt;h3&gt;通过 iptables 进行 NAT&lt;/h3&gt;
+
+&lt;p&gt;安装好一台虚拟机后进行网络配置，首先在 XenCenter 中激活安装虚拟机的0号网卡，然后到 Console 界面配置 ip，比如设定 ip 为192.168.10.11，网关设为 192.168.10.254，OK。接下类需要到 XenServer 中配置 iptables 的 NAT 转发。&lt;a href=&quot;http://blog.tangjianwei.com/2009/01/12/my-understanding-about-dnat-and-snat-in-iptables/&quot; target=&quot;_blank&quot;&gt; iptables中DNAT与SNAT的理解 &lt;/a&gt;这篇文章中作者对 iptables NAT 的原理解释比较清楚，其实无论是 NAT 穿透还是端口转发，本质都是在 iptables 处对 ip 数据包的源地址和目标地址的一定规则的转换。我配置了3条 iptables 规则，实现了内部虚拟机可以正常访问外网，同时外网的主机可以通过10022这个端口 ssh 访问内部虚拟机。其实第2条规则被第3条规则包含，可以去掉。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 端口重定向 &lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;iptables -t nat -A PREROUTING -d 166.111.xx.yy -p tcp --dport 10022 -j DNAT --to 192.168.10.11:22
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;iptables -t nat -A POSTROUTING -d 192.168.10.11 -p tcp --dport 22 -j SNAT --to 166.111.xx.yy
+
+&lt;span class=&quot;c&quot;&gt;# NAT代理上网&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;iptables -t nat -A POSTROUTING -j SNAT --to 166.111.xx.yy
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;总体过程比较顺利，配置 iptables NAT 折腾了一小会儿。于是，have fun, enjoy it ~&lt;/p&gt;
+</content>
+   </entry>
    
    <entry>
      <title>使用Tornado进行异步编程</title>
@@ -810,26 +846,8 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 </content>
    </entry>
    
-   <entry>
-     <title>tornado源码分析2</title>
-     <link href="http://amyangfei.me/2013/01/29/tornado-source-analysis-2/"/>
-     <updated>2013-01-29T00:00:00+08:00</updated>
-     <id>http://amyangfei.me/2013/01/29/tornado-source-analysis-2</id>
-     <content type="html">&lt;p&gt;httpserver.py中给出了一个简单的http服务器的demo，代码如下所示：&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;httpserver&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tornado&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ioloop&lt;/span&gt;
  
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;handle_request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;You requested &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%s&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uri&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;HTTP/1.1 200 OK&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Content-Length: &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%d&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n\r\n&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-                 &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;finish&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
- 
-&lt;span class=&quot;n&quot;&gt;http_server&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;httpserver&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HTTPServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handle_request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;http_server&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8888&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;http_server&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;ioloop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IOLoop&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+</feed>ot;&gt;()&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 
