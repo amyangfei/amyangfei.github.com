@@ -2,11 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>tornado源码分析1 | 数列卡索的魔法小屋</title>
+  <title>Making Ebooks of Pro Git | 数列卡索的魔法小屋</title>
   <meta name="generator" content="Jekyll" />
   <meta name="author" content="amyangfei" />
-  <meta name="description" content="阅读Tornado源码，对Tornado所使用的web服务器框架和源代码实现细节进行分析，这是第一篇，作为概述 " />
-  <meta name="keywords" content="Tornado, web server framework, python, non-blocking, asynchronous " />
+  <meta name="description" content="介绍在 Ubuntu 环境下手动生成 Pro Git 电子书的过程 " />
+  <meta name="keywords" content="Ubuntu, ebook, xelatex, ruby " />
   <link rel="stylesheet" href="/css/style.css" type="text/css" />
   <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
@@ -43,89 +43,97 @@
 	        <span>&#9830;</span>
 	        <a href="/archives.html" rel="nofollow" >Archives</a>
 	        <span>&#9830;</span>
-	        <h2>tornado源码分析1</h2>
+	        <h2>Making Ebooks of Pro Git</h2>
     	</div>
 
 		<div class="main fn-clear">
 			<article class="entry">
-				<h1 class="title">tornado源码分析1</h1>
-               	<p class="meta"><time class="date" pubdate="2013-01-27">27 Jan 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
-               	<p class="description">阅读Tornado源码，对Tornado所使用的web服务器框架和源代码实现细节进行分析，这是第一篇，作为概述</p>
- 			 	<h3>引言</h3>
+				<h1 class="title">Making Ebooks of Pro Git</h1>
+               	<p class="meta"><time class="date" pubdate="2014-01-10">10 Jan 2014</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
+               	<p class="description">介绍在 Ubuntu 环境下手动生成 Pro Git 电子书的过程</p>
+ 			 	<p>Pro Git 是一本用来学习 git 很好的书，从 <a href="https://github.com/progit/progit" target="_blank">progit</a> 这个开源项目可以获得这本书的全部内容，下边介绍在 Ubuntu Server 12.04 环境下制作电子书的过程。</p>
 
-<p>Tornado是<a href="http://friendfeed.com/" target="_blank">FriendFeed</a>最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在<a href="https://github.com/facebook/tornado" target="_blank">github</a>。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量/数千的客户端连接，适用于实时的Web服务（详细可以参阅<a href="http://www.kegel.com/c10k.html" target="_blank">The C10K problem</a>）。</p>
+<h2>安装依赖</h2>
 
-<p>接下来几篇文章将会从Web服务器框架设计、代码实现细节等角度介绍我对Tornado源码的分析。这篇文章作为概述，首先介绍Tornado的模块按功能分类，同时提供后续文章的结构目录。</p>
+<h3>1. ruby, rubygems</h3>
 
-<h3>Tornado模块分类</h3>
+<p>参考 Ruby-China 的 <a href="http://ruby-china.org/wiki/install-rails-on-ubuntu-12-04-server" target="_blank">wiki</a></p>
 
-<ul>
-<li><p><strong>Core web framework</strong></p>
+<h3>2. rdiscount</h3>
 
-<ul>
-<li>tornado.web — 包含web框架的大部分主要功能，包含RequestHandler和Application两个重要的类</li>
-<li>tornado.httpserver — 一个无阻塞HTTP服务器的实现</li>
-<li>tornado.template — 模版系统</li>
-<li>tornado.escape — HTML,JSON,URLs等的编码解码和一些字符串操作</li>
-<li>tornado.locale — 国际化支持</li>
-</ul>
-</li>
-<li><p><strong>Asynchronous networking 底层模块</strong></p>
+<p>markdown 使用的模板，通过 rubygems 安装</p>
 
-<ul>
-<li>tornado.ioloop — 核心的I/O循环</li>
-<li>tornado.iostream — 对非阻塞式的 socket 的简单封装，以方便常用读写操作</li>
-<li>tornado.httpclient — 一个无阻塞的HTTP服务器实现</li>
-<li>tornado.netutil — 一些网络应用的实现，主要实现TCPServer类</li>
-</ul>
-</li>
-<li><p><strong>Integration with other services</strong></p>
-
-<ul>
-<li>tornado.auth — 使用OpenId和OAuth进行第三方登录</li>
-<li>tornado.database — 简单的MySQL服务端封装</li>
-<li>tornado.platform.twisted — 在Tornado上运行为Twisted实现的代码</li>
-<li>tornado.websocket — 实现和浏览器的双向通信</li>
-<li>tornado.wsgi — 与其他python网络框架/服务器的相互操作</li>
-</ul>
-</li>
-<li><p><strong>Utilities</strong></p>
-
-<ul>
-<li>tornado.autoreload — 生产环境中自动检查代码更新</li>
-<li>tornado.gen — 一个基于生成器的接口，使用该模块保证代码异步运行</li>
-<li>tornado.httputil — 分析HTTP请求内容</li>
-<li>tornado.options — 解析终端参数</li>
-<li>tornado.process — 多进程实现的封装</li>
-<li>tornado.stack_context — 用于异步环境中对回调函数的上下文保存、异常处理</li>
-<li>tornado.testing — 单元测试</li>
-</ul>
-</li>
-</ul>
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>gem install rdiscount
+</code></pre></div>
 
 
-<h3>系列文章结构</h3>
+<h3>3. calibre</h3>
 
-<ol>
-<li>概述</li>
-<li><a href="/2013/01/29/tornado-source-analysis-2/" target="_blank">Tornado HTTP服务器介绍</a></li>
-<li><a href="/2013/02/03/tornado-source-analysis-3/" target="_blank">I/O核心调度模块IOLoop</a></li>
-<li><a href="/2013/02/05/tornado-source-analysis-4/" target="_blank">读写缓冲模块IOStream</a></li>
-<li><a href="/2013/03/01/tornado-source-analysis-5/" target="_blank">核心web框架介绍</a></li>
-<li>未完待续</li>
-</ol>
+<p><a href="http://en.wikipedia.org/wiki/Calibre_(software)" target="_blank">calibre</a> 是一款开源的电子书管理软件，生成 epub 或 mobi 格式需要安装。</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>sudo apt-get install calibre
+</code></pre></div>
 
 
-<h3>参考</h3>
+<h3>4. pandoc，xelatex</h3>
 
-<p><a href="http://www.tornadoweb.org/documentation/index.html" target="_blank">Tornado Documentation</a>, <a href="http://www.tornadoweb.cn/documentation" target="_blank">Tornado Documentation CN</a></p>
+<p>生成 pdf 格式需要安装这两个依赖，pandoc 安装比较简单，直接apt；安装 xelatex 则需要首先安装 texlive-xetex，然后打上 LaTeX::Driver 补丁（参考了这个网址 <a href="http://ledgersmb.org/faq/xelatex" target="_blank">Frequently Asked Questions - XeLaTeX</a> ）。</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>sudo apt-get install pandoc
+<span class="nv">$ </span>sudo apt-get install texlive-xetex texlive-latex-base texlive-latex-extra
+<span class="nv">$ </span>sudo apt-get install liblatex-<span class="o">{</span>driver,encode,table<span class="o">}</span>-perl
+</code></pre></div>
+
+
+<h3>5. install font</h3>
+
+<p>生成 pdf 时读取 latex/config.yml 中的配置，使用过程中可能会出现一些字体不存在的错误。比如：</p>
+
+<div class="highlight"><pre><code class="bash">./makepdf en
+en:
+        Parsing markdown... <span class="k">done</span>
+<span class="k">        </span>Creating main.tex <span class="k">for </span>en... <span class="k">done</span>
+<span class="k">        </span>Running XeTeX:
+                Pass 1... failed with:
+                        ! I can<span class="s1">&#39;t find file `Helvetica&#39;</span>.
+        Consider running this again with --debug.
+</code></pre></div>
+
+
+<p>这个错误的原因是 Ubuntu 系统中 Helvetica 字体名字为 Nimbus Sans L，修改 confi.yml 文件default 节点下的 font 值即可。</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span><span class="nb">fc</span>-match <span class="s2">&quot;Helvetica Neue&quot;</span>    
+DejaVuSans.ttf: <span class="s2">&quot;DejaVu Sans&quot;</span> <span class="s2">&quot;Book&quot;</span>     
+<span class="nv">$ </span><span class="nb">fc</span>-match <span class="s2">&quot;Helvetica&quot;</span>
+n019003l.pfb: <span class="s2">&quot;Nimbus Sans L&quot;</span> <span class="s2">&quot;Regular&quot;</span>
+</code></pre></div>
+
+
+<p>生成中文pdf时同样遇到了中文字体不存在的情况，默认的配置文件使用的是 AR PL UMing CN 和 AR PL UKai CN，直接安装即可。但是我个人感觉 AR PL UMing CN 字体太细瘦，换成了文泉驿微米黑字体，圆润多了。</p>
+
+<div class="highlight"><pre><code class="bash">sudo apt-get install ttf-arphic-ukai    <span class="c"># &quot;AR PL UKai&quot; 文鼎PL中楷</span>
+sudo apt-get install ttf-arphic-uming   <span class="c"># &quot;AR PL UMing&quot; 文鼎PL细上海宋</span>
+sudo apt-get install ttf-wqy-microhei   <span class="c"># &quot;WenQuanYi Micro Hei&quot; 文泉驿微米黑</span>
+</code></pre></div>
+
+
+<h2>make</h2>
+
+<p>最后一步，生成电子书，好书一本，细细品读，Enjoy！</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>./makeebooks en        <span class="c"># 默认生成mobi格式，en英文</span>
+<span class="nv">$ </span><span class="nb">export </span><span class="nv">FORMAT</span><span class="o">=</span>epub     <span class="c"># 设置FORMAT为epub，生成epub格式</span>
+<span class="nv">$ </span>./makeebooks zh       <span class="c"># 生成epub格式，zh中文</span>
+<span class="nv">$ </span>./makepdfs zh         <span class="c"># 生成pdf</span>
+</code></pre></div>
+
+
+
 
                 <nav class="pagination-link">
                     
-                    <a class="prev" href="/2013/01/07/abtest-script-and-bash-subshell/" rel="bookmark">&laquo;&nbsp;bash subshell变量作用域问题</a>
+                    <a class="prev" href="/2013/11/06/apscheduler-source-analyse/" rel="bookmark">&laquo;&nbsp;APScheduler 源码阅读笔记</a>
                     
-                    
-                    <a class="next" href="/2013/01/29/tornado-source-analysis-2/" rel="bookmark">tornado源码分析2&nbsp;&raquo;</a>
                     
                  </nav>
 			</article><!-- .entry -->

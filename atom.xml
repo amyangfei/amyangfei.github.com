@@ -4,13 +4,99 @@
    <title>数列卡索的魔法小屋</title>
    <link href="http://amyangfei.me/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://amyangfei.me" rel="alternate" type="text/html" />
-   <updated>2013-11-07T00:31:15+08:00</updated>
+   <updated>2014-01-10T14:01:49+08:00</updated>
    <id>http://amyangfei.me</id>
    <author>
      <name>amyangfei</name>
      <email>amyangfei@gmail.com</email>
    </author>
 
+   
+   <entry>
+     <title>Making Ebooks of Pro Git</title>
+     <link href="http://amyangfei.me/2014/01/10/making-progit-ebook/"/>
+     <updated>2014-01-10T00:00:00+08:00</updated>
+     <id>http://amyangfei.me/2014/01/10/making-progit-ebook</id>
+     <content type="html">&lt;p&gt;Pro Git 是一本用来学习 git 很好的书，从 &lt;a href=&quot;https://github.com/progit/progit&quot; target=&quot;_blank&quot;&gt;progit&lt;/a&gt; 这个开源项目可以获得这本书的全部内容，下边介绍在 Ubuntu Server 12.04 环境下制作电子书的过程。&lt;/p&gt;
+
+&lt;h2&gt;安装依赖&lt;/h2&gt;
+
+&lt;h3&gt;1. ruby, rubygems&lt;/h3&gt;
+
+&lt;p&gt;参考 Ruby-China 的 &lt;a href=&quot;http://ruby-china.org/wiki/install-rails-on-ubuntu-12-04-server&quot; target=&quot;_blank&quot;&gt;wiki&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3&gt;2. rdiscount&lt;/h3&gt;
+
+&lt;p&gt;markdown 使用的模板，通过 rubygems 安装&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;gem install rdiscount
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;3. calibre&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Calibre_(software)&quot; target=&quot;_blank&quot;&gt;calibre&lt;/a&gt; 是一款开源的电子书管理软件，生成 epub 或 mobi 格式需要安装。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;sudo apt-get install calibre
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;4. pandoc，xelatex&lt;/h3&gt;
+
+&lt;p&gt;生成 pdf 格式需要安装这两个依赖，pandoc 安装比较简单，直接apt；安装 xelatex 则需要首先安装 texlive-xetex，然后打上 LaTeX::Driver 补丁（参考了这个网址 &lt;a href=&quot;http://ledgersmb.org/faq/xelatex&quot; target=&quot;_blank&quot;&gt;Frequently Asked Questions - XeLaTeX&lt;/a&gt; ）。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;sudo apt-get install pandoc
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;sudo apt-get install texlive-xetex texlive-latex-base texlive-latex-extra
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;sudo apt-get install liblatex-&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;driver,encode,table&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;-perl
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;5. install font&lt;/h3&gt;
+
+&lt;p&gt;生成 pdf 时读取 latex/config.yml 中的配置，使用过程中可能会出现一些字体不存在的错误。比如：&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;./makepdf en
+en:
+        Parsing markdown... &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;        &lt;/span&gt;Creating main.tex &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;en... &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;        &lt;/span&gt;Running XeTeX:
+                Pass 1... failed with:
+                        ! I can&lt;span class=&quot;s1&quot;&gt;&amp;#39;t find file `Helvetica&amp;#39;&lt;/span&gt;.
+        Consider running this again with --debug.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个错误的原因是 Ubuntu 系统中 Helvetica 字体名字为 Nimbus Sans L，修改 confi.yml 文件default 节点下的 font 值即可。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;fc&lt;/span&gt;-match &lt;span class=&quot;s2&quot;&gt;&amp;quot;Helvetica Neue&amp;quot;&lt;/span&gt;    
+DejaVuSans.ttf: &lt;span class=&quot;s2&quot;&gt;&amp;quot;DejaVu Sans&amp;quot;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Book&amp;quot;&lt;/span&gt;     
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;fc&lt;/span&gt;-match &lt;span class=&quot;s2&quot;&gt;&amp;quot;Helvetica&amp;quot;&lt;/span&gt;
+n019003l.pfb: &lt;span class=&quot;s2&quot;&gt;&amp;quot;Nimbus Sans L&amp;quot;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Regular&amp;quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;生成中文pdf时同样遇到了中文字体不存在的情况，默认的配置文件使用的是 AR PL UMing CN 和 AR PL UKai CN，直接安装即可。但是我个人感觉 AR PL UMing CN 字体太细瘦，换成了文泉驿微米黑字体，圆润多了。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;sudo apt-get install ttf-arphic-ukai    &lt;span class=&quot;c&quot;&gt;# &amp;quot;AR PL UKai&amp;quot; 文鼎PL中楷&lt;/span&gt;
+sudo apt-get install ttf-arphic-uming   &lt;span class=&quot;c&quot;&gt;# &amp;quot;AR PL UMing&amp;quot; 文鼎PL细上海宋&lt;/span&gt;
+sudo apt-get install ttf-wqy-microhei   &lt;span class=&quot;c&quot;&gt;# &amp;quot;WenQuanYi Micro Hei&amp;quot; 文泉驿微米黑&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;make&lt;/h2&gt;
+
+&lt;p&gt;最后一步，生成电子书，好书一本，细细品读，Enjoy！&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;./makeebooks en        &lt;span class=&quot;c&quot;&gt;# 默认生成mobi格式，en英文&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;FORMAT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;epub     &lt;span class=&quot;c&quot;&gt;# 设置FORMAT为epub，生成epub格式&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;./makeebooks zh       &lt;span class=&quot;c&quot;&gt;# 生成epub格式，zh中文&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;./makepdfs zh         &lt;span class=&quot;c&quot;&gt;# 生成pdf&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+
+
+</content>
+   </entry>
    
    <entry>
      <title>APScheduler 源码阅读笔记</title>
@@ -110,7 +196,7 @@
 
 &lt;h3&gt;总结&lt;/h3&gt;
 
-&lt;p&gt;总体而言 APScheduler 以 &lt;a href=&quot;http://docs.python.org/2/library/threading.html#module-threading&quot; target=&quot;_blank&quot;&gt;threading&lt;/a&gt; 模块为基础实现，主要用到了 threading.Event 和 threading.Thread，用到的 ThreadPool 是对 threading.Thread 的一个简单的封装。真是因为此所以 APScheduler 有 &quot;No (hard) external dependencies&quot; 和 &quot;Thread-safe API&quot; 这两项优点。但同时存在一个问题，由于 &lt;a href=&quot;https://wiki.python.org/moin/GlobalInterpreterLock&quot; target=&quot;_blank&quot;&gt;GIL&lt;/a&gt; 的存在，任务的执行一定会阻塞主线程，所以如果任务执行时间较长、有更多异步调度的需求，那么可能就会用到另外一个更强大的框架：&lt;a href=&quot;http://www.celeryproject.org/&quot; target=&quot;_blank&quot;&gt;Celery&lt;/a&gt;。 Celery 毕竟是一个分布式的任务队列，相比而言 APScheduler 的特点是轻巧，一言以蔽之即: APScheduler is a light but powerful in-process task scheduler.&lt;/p&gt;
+&lt;p&gt;总体而言 APScheduler 以 &lt;a href=&quot;http://docs.python.org/2/library/threading.html#module-threading&quot; target=&quot;_blank&quot;&gt;threading&lt;/a&gt; 模块为基础实现，主要用到了 threading.Event 和 threading.Thread，用到的 ThreadPool 是对 threading.Thread 的简单封装。真是因为此所以 APScheduler 有 &quot;No (hard) external dependencies&quot; 和 &quot;Thread-safe API&quot; 这两项优点。但同时存在一个问题，由于 &lt;a href=&quot;https://wiki.python.org/moin/GlobalInterpreterLock&quot; target=&quot;_blank&quot;&gt;GIL&lt;/a&gt; 的存在，任务的执行一定会阻塞主线程，所以如果任务执行时间较长、有更多异步调度的需求，那么可能就会用到另外一个更强大的框架：&lt;a href=&quot;http://www.celeryproject.org/&quot; target=&quot;_blank&quot;&gt;Celery&lt;/a&gt;。 Celery 毕竟是一个分布式的任务队列，相比而言 APScheduler 的特点是轻巧，一言以蔽之即: APScheduler is a light but powerful in-process task scheduler.&lt;/p&gt;
 </content>
    </entry>
    
@@ -714,81 +800,6 @@ autoreload.main&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;your-main-func&lt;s
 &lt;h3&gt;参考&lt;/h3&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://i55m411.appspot.com/?p=594004&quot; target=&quot;_blank&quot;&gt;android应用实现定时打电话&lt;/a&gt;， &lt;a href=&quot;http://code.google.com/p/android-scripting/&quot; target=&quot;_blank&quot;&gt;google code SL4A&lt;/a&gt;&lt;/p&gt;
-</content>
-   </entry>
-   
-   <entry>
-     <title>tornado源码分析4</title>
-     <link href="http://amyangfei.me/2013/02/05/tornado-source-analysis-4/"/>
-     <updated>2013-02-05T00:00:00+08:00</updated>
-     <id>http://amyangfei.me/2013/02/05/tornado-source-analysis-4</id>
-     <content type="html">&lt;p&gt;IOStream对socket读写进行了封装，分别提供读、写缓冲区实现对socket的异步读写。当socket被accept之后HTTPServer的_handle_connection会被回调并初始化IOStream对象，进一步通过IOStream提供的功能接口完成socket的读写。文章接下来将关注IOStream实现读写的细节。&lt;/p&gt;
-
-&lt;h3&gt;IOStream的初始化&lt;/h3&gt;
-
-&lt;p&gt;IOStream初始化过程中主要完成以下操作：&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;绑定对应的socket&lt;/li&gt;
-&lt;li&gt;绑定ioloop&lt;/li&gt;
-&lt;li&gt;创建读缓冲区_read_buffer，一个python deque容器&lt;/li&gt;
-&lt;li&gt;创建写缓冲区_write_buffer，同样也是一个python deque容器&lt;/li&gt;
-&lt;/ol&gt;
-
-
-&lt;h3&gt;IOStream提供的主要功能接口&lt;/h3&gt;
-
-&lt;p&gt;主要的读写接口包括以下四个：&lt;/p&gt;
-
-&lt;table width=&quot;100%&quot;&gt;
-    &lt;tbody&gt;
-        &lt;tr&gt;
-            &lt;td&gt;
-                class IOStream(object):
-            &lt;/td&gt;
-        &lt;/tr&gt;
-        &lt;tr&gt;
-            &lt;td&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;def read_until(self, delimiter, callback):
-            &lt;br&gt;
-                &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;def read_bytes(self, num_bytes, callback, streaming_callback=None):
-            &lt;br&gt;
-                &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;def read_until_regex(self, regex, callback):
-            &lt;br&gt;
-                &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;def read_until_close(self, callback, streaming_callback=None):
-            &lt;br&gt;
-                &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;def write(self, data, callback=None):
-            &lt;/td&gt;
-        &lt;/tr&gt;
-    &lt;/tbody&gt;
-&lt;/table&gt;
-
-
-&lt;ul&gt;
-&lt;li&gt;read_until和read_bytes是最常用的读接口，它们工作的过程都是先注册读事件结束时调用的回调函数，然后调用_try_inline_read方法。_try_inline_read首先尝试_read_from_buffer，即从上一次的读缓冲区中取数据，如果有数据直接调用 self._run_callback(callback, self._consume(data_length)) 执行回调函数，_consume消耗掉了_read_buffer中的数据；否则即_read_buffer之前没有未读数据，先通过_read_to_buffer将数据从socket读入_read_buffer，然后再执行_read_from_buffer操作。read_until和read_bytes的区别在于_read_from_buffer过程中截取数据的方法不同，read_until读取到delimiter终止，而read_bytes则读取num_bytes个字节终止。执行过程如下图所示：&lt;/li&gt;
-&lt;/ul&gt;
-
-
-&lt;p&gt;&lt;img src=&quot;/images/post/20130205iostream_read.png&quot; style=&quot;margin-left:22px;&quot;/&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;read_until_regex相当于delimiter为某一正则表达式的read_until。&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;read_until_close主要用于IOStream流关闭前后的读取：如果调用read_until_close时stream已经关闭，那么将会_consume掉_read_buffer中的所有数据；否则_read_until_close标志位设为True，注册_streaming_callback回调函数，调用_add_io_state添加io_loop.READ状态。&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;write首先将data按照数据块大小WRITE_BUFFER_CHUNK_SIZE分块写入&lt;em&gt;write_buffer，然后调用&lt;/em&gt;handle_write向socket发送数据。&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-
-&lt;h3&gt;其他内部功能接口&lt;/h3&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;def _handle_events(self, fd, events): 通常为IOLoop对象add_handler方法传入的回调函数，由IOLoop的事件机制来进行调度。&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;def _add_io_state(self, state): 为IOLoop对象的handler注册IOLoop.READ或IOLoop.WRITE状态，handler为IOStream对象的_handle_events方法。&lt;/p&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;def _consume(self, loc): 合并读缓冲区loc个字节，从读缓冲区删除并返回这些数据&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-
-&lt;h3&gt;参考&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://kenby.iteye.com/blog/1159621&quot; target=&quot;_blank&quot;&gt;Tornado源码分析之http服务器篇&lt;/a&gt;， &lt;a href=&quot;http://www.cnblogs.com/Bozh/archive/2012/07/22/2603976.html&quot; target=&quot;_blank&quot;&gt;tornado源码分析系列&lt;/a&gt;&lt;/p&gt;
 </content>
    </entry>
    

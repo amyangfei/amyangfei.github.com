@@ -144,12 +144,14 @@
 
 <h3>总结</h3>
 
-<p>总体而言 APScheduler 以 <a href="http://docs.python.org/2/library/threading.html#module-threading" target="_blank">threading</a> 模块为基础实现，主要用到了 threading.Event 和 threading.Thread，用到的 ThreadPool 是对 threading.Thread 的一个简单的封装。真是因为此所以 APScheduler 有 "No (hard) external dependencies" 和 "Thread-safe API" 这两项优点。但同时存在一个问题，由于 <a href="https://wiki.python.org/moin/GlobalInterpreterLock" target="_blank">GIL</a> 的存在，任务的执行一定会阻塞主线程，所以如果任务执行时间较长、有更多异步调度的需求，那么可能就会用到另外一个更强大的框架：<a href="http://www.celeryproject.org/" target="_blank">Celery</a>。 Celery 毕竟是一个分布式的任务队列，相比而言 APScheduler 的特点是轻巧，一言以蔽之即: APScheduler is a light but powerful in-process task scheduler.</p>
+<p>总体而言 APScheduler 以 <a href="http://docs.python.org/2/library/threading.html#module-threading" target="_blank">threading</a> 模块为基础实现，主要用到了 threading.Event 和 threading.Thread，用到的 ThreadPool 是对 threading.Thread 的简单封装。真是因为此所以 APScheduler 有 "No (hard) external dependencies" 和 "Thread-safe API" 这两项优点。但同时存在一个问题，由于 <a href="https://wiki.python.org/moin/GlobalInterpreterLock" target="_blank">GIL</a> 的存在，任务的执行一定会阻塞主线程，所以如果任务执行时间较长、有更多异步调度的需求，那么可能就会用到另外一个更强大的框架：<a href="http://www.celeryproject.org/" target="_blank">Celery</a>。 Celery 毕竟是一个分布式的任务队列，相比而言 APScheduler 的特点是轻巧，一言以蔽之即: APScheduler is a light but powerful in-process task scheduler.</p>
 
                 <nav class="pagination-link">
                     
                     <a class="prev" href="/2013/09/06/xenserver-use-tip/" rel="bookmark">&laquo;&nbsp;xenserver 使用小结</a>
                     
+                    
+                    <a class="next" href="/2014/01/10/making-progit-ebook/" rel="bookmark">Making Ebooks of Pro Git...&nbsp;&raquo;</a>
                     
                  </nav>
 			</article><!-- .entry -->
@@ -161,6 +163,10 @@
 			<div class="box fn-clear">
         <h3 class="title">Recent Posts</h3>
         <ul>
+           
+                <li class="v-aside-li">
+                        <span class="v-span">&#8227;</span><a href="/2014/01/10/making-progit-ebook/" title="Making Ebooks of Pro Git" rel="bookmark">Making Ebooks of Pro Git</a>
+                </li>                                       
            
                 <li class="v-aside-li">
                         <span class="v-span">&#8227;</span><a href="/2013/11/06/apscheduler-source-analyse/" title="APScheduler 源码阅读笔记" rel="bookmark">APScheduler 源码阅读笔记</a>
@@ -188,10 +194,6 @@
            
                 <li class="v-aside-li">
                         <span class="v-span">&#8227;</span><a href="/2013/03/01/tornado-source-analysis-5/" title="tornado源码分析5" rel="bookmark">tornado源码分析5</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/02/28/access-vm-ssh-via-port-mapping/" title="通过端口映射访问虚拟机内部网络" rel="bookmark">通过端口映射访问虚拟机内部网络</a>
                 </li>                                       
         
         </ul>  
