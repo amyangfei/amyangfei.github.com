@@ -1,74 +1,128 @@
-<!DOCTYPE html>
+
+<!DOCTYPE HTML>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>tornado源码分析3 | 数列卡索的魔法小屋</title>
-  <meta name="generator" content="Jekyll" />
-  <meta name="author" content="amyangfei" />
-  <meta name="description" content="介绍Tornado HTTP服务器网络底层I/O核心调度模块IOLoop " />
-  <meta name="keywords" content="Tornado, asynchronous I/O, python, http server, ioloop " />
-  <link rel="stylesheet" href="/css/style.css" type="text/css" />
-  <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
-  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+	<meta charset="utf-8">
+	<title>tornado源码分析3 | Amyangfei's Blog</title>
+	<meta name="author" content="amyangfei">
+
+	
+		
+		<meta name="description" content="介绍Tornado HTTP服务器网络底层I/O核心调度模块IOLoop">
+		<meta name="keywords" content="Tornado, asynchronous I/O, python, http server, ioloop">
+	
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Amyangfei's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="/javascripts/jquery-1.7.2.min.js"></script>
+	
 </head>
+
+
 <body>
-    <header class="head">
-	<div class="header fn-clear">
-		<section class="header-cnt fn-clear">
-			<div class="logo">
-				<div class="logo-cnt">
-				 	<h1><a href="/">Amyangfei</a></h1>
-				 	<h2>Study, Geek & Share</h2>
-				</div>
-			</div>
-			<nav class="nav">
-				<ul>
-					<li><a href="/" >Home</a></li>
-					<li><a href="/archives.html" >Archives</a></li>
-					<li><a href="/contact.html" >About & Contact</a></li>
-					<li><a href="/atom.xml" target="_blank" >Rss</a></li>
-				</ul>
-			</nav>
-		</section>
+	<header id="header" class="inner"><h1><a href="/">Enjoy Programming</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/static/about">About</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/static/about">About</a></li>
+</ul>
+</div>
 	</div>
-</header> 
-  <section id="content">
-    <article id="contenter">
-      <section class="content">
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="http://amyangfei.me" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:amyangfei.me">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		<a class="twitter" href="http://twitter.com/amyangfei" title="Twitter">Twitter</a>
+		
+		
+		<a class="github" href="https://github.com/amyangfei" title="GitHub">GitHub</a>
+		
+    
+		
+		
+		
+		
+		
+		<a class="weibo" href="http://weibo.com/amyangfei" title="Weibo">Weibo</a>
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+    
+	</div>
+	<form class="search" action="http://amyangfei.me" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:amyangfei.me">
+	</form>
+</nav>
 
-	<div class="content-cnt fn-clear">
-
-		<div class="v-section-tit fn-clear">
-	        <a href="/" rel="nofollow" >Home</a>
-	        <span>&#9830;</span>
-	        <a href="/archives.html" rel="nofollow" >Archives</a>
-	        <span>&#9830;</span>
-	        <h2>tornado源码分析3</h2>
-    	</div>
-
-		<div class="main fn-clear">
-			<article class="entry">
-				<h1 class="title">tornado源码分析3</h1>
-               	<p class="meta"><time class="date" pubdate="2013-02-03">03 Feb 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
-               	<p class="description">介绍Tornado HTTP服务器网络底层I/O核心调度模块IOLoop</p>
- 			 	<p>注：在分割线之前是基于 Tornado2.4 的分析。在Tornado3.0+以后IOLoop发生了一些改动，分割线之后有相应的介绍。</p>
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">Tornado源码分析3</h2>
+	<div class="entry-content"><p>注：在分割线之前是基于 Tornado2.4 的分析。在Tornado3.0+以后IOLoop发生了一些改动，分割线之后有相应的介绍。</p>
 
 <p>IOLoop是基于epoll实现的底层网络I/O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例直接调用此方法即可。</p>
 
-<div class="highlight"><pre><code class="python"><span class="nd">@staticmethod</span>
-<span class="k">def</span> <span class="nf">instance</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    class MyClass(object):</span>
-<span class="sd">        def __init__(self, io_loop=None):</span>
-<span class="sd">            self.io_loop = io_loop or IOLoop.instance()</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">IOLoop</span><span class="p">,</span> <span class="s">&quot;_instance&quot;</span><span class="p">):</span>
-        <span class="k">with</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance_lock</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">IOLoop</span><span class="p">,</span> <span class="s">&quot;_instance&quot;</span><span class="p">):</span>
-                <span class="c"># New instance after double check</span>
-                <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance</span>
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="nd">@staticmethod</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">instance</span><span class="p">():</span>
+</span><span class='line'>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span class='line'><span class="sd">    class MyClass(object):</span>
+</span><span class='line'><span class="sd">        def __init__(self, io_loop=None):</span>
+</span><span class='line'><span class="sd">            self.io_loop = io_loop or IOLoop.instance()</span>
+</span><span class='line'><span class="sd">    &quot;&quot;&quot;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">IOLoop</span><span class="p">,</span> <span class="s">&quot;_instance&quot;</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">with</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance_lock</span><span class="p">:</span>
+</span><span class='line'>            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">IOLoop</span><span class="p">,</span> <span class="s">&quot;_instance&quot;</span><span class="p">):</span>
+</span><span class='line'>                <span class="c"># New instance after double check</span>
+</span><span class='line'>                <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="n">IOLoop</span><span class="p">()</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">IOLoop</span><span class="o">.</span><span class="n">_instance</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<!-- more -->
 
 
 <p>在上一篇文章中已经分析Tornado服务器启动时会创建监听socket，并将socket的file descriptor注册到IOLoop实例中，IOLoop添加对socket的IOLoop.READ事件监听并传入回调处理函数。当某个socket通过accept接受连接请求后调用注册的回调函数进行读写。接下来主要分析IOLoop对epoll的封装和I/O调度具体实现。</p>
@@ -77,32 +131,47 @@
 
 <p>IOLoop模块对网络事件类型的封装与epoll一致，分为READ，WRITE， ERROR三类，具体如下所示。</p>
 
-<div class="highlight"><pre><code class="python"><span class="n">READ</span> <span class="o">=</span> <span class="n">_EPOLLIN</span>
-<span class="n">WRITE</span> <span class="o">=</span> <span class="n">_EPOLLOUT</span>
-<span class="n">ERROR</span> <span class="o">=</span> <span class="n">_EPOLLERR</span> <span class="o">|</span> <span class="n">_EPOLLHUP</span>
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="n">READ</span> <span class="o">=</span> <span class="n">_EPOLLIN</span>
+</span><span class='line'><span class="n">WRITE</span> <span class="o">=</span> <span class="n">_EPOLLOUT</span>
+</span><span class='line'><span class="n">ERROR</span> <span class="o">=</span> <span class="n">_EPOLLERR</span> <span class="o">|</span> <span class="n">_EPOLLHUP</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>IOLoop的初始化</h3>
 
 <p>初始化过程中选择epoll的实现方式，Linux平台为epoll，BSD平台为kqueue，其他平台如果安装有C模块扩展的epoll则使用tornado对epoll的封装，否则退化为select。</p>
 
-<div class="highlight"><pre><code class="python"><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span> <span class="o">=</span> <span class="n">impl</span> <span class="ow">or</span> <span class="n">_poll</span><span class="p">()</span>
-    <span class="c">#省略部分代码</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_waker</span> <span class="o">=</span> <span class="n">Waker</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_waker</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span>
-                     <span class="k">lambda</span> <span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waker</span><span class="o">.</span><span class="n">consume</span><span class="p">(),</span>
-                     <span class="bp">self</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">impl</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span> <span class="o">=</span> <span class="n">impl</span> <span class="ow">or</span> <span class="n">_poll</span><span class="p">()</span>
+</span><span class='line'>    <span class="c">#省略部分代码</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">_waker</span> <span class="o">=</span> <span class="n">Waker</span><span class="p">()</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_waker</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span>
+</span><span class='line'>                     <span class="k">lambda</span> <span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waker</span><span class="o">.</span><span class="n">consume</span><span class="p">(),</span>
+</span><span class='line'>                     <span class="bp">self</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">add_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
+</span><span class='line'>    <span class="sd">&quot;&quot;&quot;Registers the given handler to receive the given events for fd.&quot;&quot;&quot;</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">]</span> <span class="o">=</span> <span class="n">stack_context</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">events</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
 
-<span class="k">def</span> <span class="nf">add_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Registers the given handler to receive the given events for fd.&quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">]</span> <span class="o">=</span> <span class="n">stack_context</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">events</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-</code></pre></div>
 
-
-<p>在IOLoop初始化的过程中创建了一个Waker对象，将Waker对象fd的读端注册到事件循环中并设定相应的回调函数（这样做的好处是当事件循环阻塞而没有响应描述符出现，需要在最大timeout时间之前返回，就可以向这个管道发送一个字符）。Waker的使用：一种是在其他线程向IOLoop添加callback时使用，唤醒IOLoop同时会将控制权转移给IOLoop线程并完成特定请求。唤醒的方法向管道中写入一个字符'x'。另外，在IOLoop的stop函数中会调用self._waker.wake()，通过向管道写入'x'停止事件循环。</p>
+<p>在IOLoop初始化的过程中创建了一个Waker对象，将Waker对象fd的读端注册到事件循环中并设定相应的回调函数（这样做的好处是当事件循环阻塞而没有响应描述符出现，需要在最大timeout时间之前返回，就可以向这个管道发送一个字符）。Waker的使用：一种是在其他线程向IOLoop添加callback时使用，唤醒IOLoop同时会将控制权转移给IOLoop线程并完成特定请求。唤醒的方法向管道中写入一个字符&#8217;x&#8217;。另外，在IOLoop的stop函数中会调用self._waker.wake()，通过向管道写入&#8217;x&#8217;停止事件循环。</p>
 
 <p>add_handler函数使用了stack_context提供的wrap方法。wrap返回了一个可以直接调用的对象并且保存了传入之前的堆栈信息，在执行时可以恢复，这样就保证了函数的异步调用时具有正确的运行环境。</p>
 
@@ -119,79 +188,140 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 </ul>
 
 
-<div class="highlight"><pre><code class="python"><span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
-    <span class="n">poll_timeout</span> <span class="o">=</span> <span class="mf">3600.0</span>
-
-    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callback_lock</span><span class="p">:</span>
-        <span class="n">callbacks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="n">callbacks</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-
-    <span class="c"># 超时处理</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">:</span>
-        <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="c"># the timeout was cancelled</span>
-                <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">deadline</span> <span class="o">&lt;=</span> <span class="n">now</span><span class="p">:</span>
-                <span class="n">timeout</span> <span class="o">=</span> <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">(</span><span class="n">timeout</span><span class="o">.</span><span class="n">callback</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">seconds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">deadline</span> <span class="o">-</span> <span class="n">now</span>
-                <span class="n">poll_timeout</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">seconds</span><span class="p">,</span> <span class="n">poll_timeout</span><span class="p">)</span>
-                <span class="k">break</span>
-
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">:</span>
-        <span class="c"># If any callbacks or timeouts called add_callback,</span>
-        <span class="c"># we don&#39;t want to wait in poll() before we run them.</span>
-        <span class="n">poll_timeout</span> <span class="o">=</span> <span class="mf">0.0</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span><span class="p">:</span>
-        <span class="k">break</span>
-
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blocking_signal_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># clear alarm so it doesn&#39;t fire while poll is waiting for events.</span>
-        <span class="n">signal</span><span class="o">.</span><span class="n">setitimer</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">ITIMER_REAL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-    <span class="c"># epoll阻塞，当有事件通知或超时返回event_pairs</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">event_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">poll</span><span class="p">(</span><span class="n">poll_timeout</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-        <span class="c"># 异常处理，省略</span>
-
-    <span class="c"># 对epoll返回event_pairs事件的处理</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">event_pairs</span><span class="p">)</span>
-    <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">:</span>
-        <span class="n">fd</span><span class="p">,</span> <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="o">.</span><span class="n">popitem</span><span class="p">()</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">](</span><span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="n">e</span><span class="p">:</span>
-            <span class="c"># 异常处理，省略</span>
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+</span><span class='line'>    <span class="n">poll_timeout</span> <span class="o">=</span> <span class="mf">3600.0</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callback_lock</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">callbacks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span class='line'>    <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="n">callbacks</span><span class="p">:</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># 超时处理</span>
+</span><span class='line'>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+</span><span class='line'>        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">:</span>
+</span><span class='line'>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+</span><span class='line'>                <span class="c"># the timeout was cancelled</span>
+</span><span class='line'>                <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">deadline</span> <span class="o">&lt;=</span> <span class="n">now</span><span class="p">:</span>
+</span><span class='line'>                <span class="n">timeout</span> <span class="o">=</span> <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">)</span>
+</span><span class='line'>                <span class="bp">self</span><span class="o">.</span><span class="n">_run_callback</span><span class="p">(</span><span class="n">timeout</span><span class="o">.</span><span class="n">callback</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">else</span><span class="p">:</span>
+</span><span class='line'>                <span class="n">seconds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">deadline</span> <span class="o">-</span> <span class="n">now</span>
+</span><span class='line'>                <span class="n">poll_timeout</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">seconds</span><span class="p">,</span> <span class="n">poll_timeout</span><span class="p">)</span>
+</span><span class='line'>                <span class="k">break</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_callbacks</span><span class="p">:</span>
+</span><span class='line'>        <span class="c"># If any callbacks or timeouts called add_callback,</span>
+</span><span class='line'>        <span class="c"># we don&#39;t want to wait in poll() before we run them.</span>
+</span><span class='line'>        <span class="n">poll_timeout</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">break</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blocking_signal_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+</span><span class='line'>        <span class="c"># clear alarm so it doesn&#39;t fire while poll is waiting for events.</span>
+</span><span class='line'>        <span class="n">signal</span><span class="o">.</span><span class="n">setitimer</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">ITIMER_REAL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># epoll阻塞，当有事件通知或超时返回event_pairs</span>
+</span><span class='line'>    <span class="k">try</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">event_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">poll</span><span class="p">(</span><span class="n">poll_timeout</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+</span><span class='line'>        <span class="c"># 异常处理，省略</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># 对epoll返回event_pairs事件的处理</span>
+</span><span class='line'>    <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">event_pairs</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="p">:</span>
+</span><span class='line'>        <span class="n">fd</span><span class="p">,</span> <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_events</span><span class="o">.</span><span class="n">popitem</span><span class="p">()</span>
+</span><span class='line'>        <span class="k">try</span><span class="p">:</span>
+</span><span class='line'>            <span class="bp">self</span><span class="o">.</span><span class="n">_handlers</span><span class="p">[</span><span class="n">fd</span><span class="p">](</span><span class="n">fd</span><span class="p">,</span> <span class="n">events</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">except</span> <span class="ne">Exception</span> <span class="n">e</span><span class="p">:</span>
+</span><span class='line'>            <span class="c"># 异常处理，省略</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>至此IOLoop模块的分析基本完成。下一篇文章将会继续分析IOStream模块。</p>
 
-<p>------------------------------------------------我是分割线---------------------------------------------------</p>
+<p>&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;我是分割线&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;</p>
 
 <p>补充于2013年4月30日，介绍Tornado3.0以后IOLoop模块的一些改动。</p>
 
 <p>1. IOLoop成为util.Configurable的子类，IOLoop 中绝大多数成员方法都作为抽象接口，具体实现由派生类 PollIOLoop 完成。IOLoop实现了 Configurable 中的 configurable_base 和 configurable_default 这两个抽象接口，用于初始化过程中获取类类型和类的实现方法（即 IOLoop 中 poller 的实现方式）。在Tornado3.0+ 中针对不同平台，单独出 poller 相应的实现，EPollIOLoop、KQueueIOLoop、SelectIOLoop 均继承于 PollIOLoop。下边的代码是 configurable_default 方法根据平台选择相应的 epoll 实现。初始化 IOLoop 的过程中会自动根据平台选择合适的 poller 的实现方法。</p>
 
-<div class="highlight"><pre><code class="python"><span class="nd">@classmethod</span>
-<span class="k">def</span> <span class="nf">configurable_default</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">select</span><span class="p">,</span> <span class="s">&quot;epoll&quot;</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">tornado.platform.epoll</span> <span class="kn">import</span> <span class="n">EPollIOLoop</span>
-        <span class="k">return</span> <span class="n">EPollIOLoop</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">select</span><span class="p">,</span> <span class="s">&quot;kqueue&quot;</span><span class="p">):</span>
-        <span class="c"># Python 2.6+ on BSD or Mac</span>
-        <span class="kn">from</span> <span class="nn">tornado.platform.kqueue</span> <span class="kn">import</span> <span class="n">KQueueIOLoop</span>
-        <span class="k">return</span> <span class="n">KQueueIOLoop</span>
-    <span class="kn">from</span> <span class="nn">tornado.platform.select</span> <span class="kn">import</span> <span class="n">SelectIOLoop</span>
-    <span class="k">return</span> <span class="n">SelectIOLoop</span>
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="nd">@classmethod</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">configurable_default</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+</span><span class='line'>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">select</span><span class="p">,</span> <span class="s">&quot;epoll&quot;</span><span class="p">):</span>
+</span><span class='line'>        <span class="kn">from</span> <span class="nn">tornado.platform.epoll</span> <span class="kn">import</span> <span class="n">EPollIOLoop</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">EPollIOLoop</span>
+</span><span class='line'>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">select</span><span class="p">,</span> <span class="s">&quot;kqueue&quot;</span><span class="p">):</span>
+</span><span class='line'>        <span class="c"># Python 2.6+ on BSD or Mac</span>
+</span><span class='line'>        <span class="kn">from</span> <span class="nn">tornado.platform.kqueue</span> <span class="kn">import</span> <span class="n">KQueueIOLoop</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">KQueueIOLoop</span>
+</span><span class='line'>    <span class="kn">from</span> <span class="nn">tornado.platform.select</span> <span class="kn">import</span> <span class="n">SelectIOLoop</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">SelectIOLoop</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>2. 其他有很多细节上的改动，详细可参见官方文档<a href="http://www.tornadoweb.org/en/stable/releases/v3.0.0.html#tornado-ioloop" target="_blank">What’s new in Tornado 3.0</a></p>
@@ -199,127 +329,113 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 <h3>参考</h3>
 
 <p><a href="http://kenby.iteye.com/blog/1159621" target="_blank">Tornado源码分析之http服务器篇</a>， <a href="http://www.cnblogs.com/Bozh/archive/2012/07/22/2603976.html" target="_blank">tornado源码分析系列</a></p>
-
-                <nav class="pagination-link">
-                    
-                    <a class="prev" href="/2013/01/29/tornado-source-analysis-2/" rel="bookmark">&laquo;&nbsp;tornado源码分析2</a>
-                    
-                    
-                    <a class="next" href="/2013/02/05/tornado-source-analysis-4/" rel="bookmark">tornado源码分析4&nbsp;&raquo;</a>
-                    
-                 </nav>
-			</article><!-- .entry -->
-			<div class="violet-comment">
-	             <div id="disqus_thread"></div>
-	        </div><!-- //violet-comment -->
-		</div>
-		<div class="aside fn-clear">
-			<div class="box fn-clear">
-        <h3 class="title">Recent Posts</h3>
-        <ul>
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2014/01/10/making-progit-ebook/" title="Making Ebooks of Pro Git" rel="bookmark">Making Ebooks of Pro Git</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/11/06/apscheduler-source-analyse/" title="APScheduler 源码阅读笔记" rel="bookmark">APScheduler 源码阅读笔记</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/09/06/xenserver-use-tip/" title="xenserver 使用小结" rel="bookmark">xenserver 使用小结</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/06/17/asynchronous-programming-with-tornado/" title="使用Tornado进行异步编程" rel="bookmark">使用Tornado进行异步编程</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/05/10/longest-segement-merge/" title="线段合并求最长线段" rel="bookmark">线段合并求最长线段</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/05/05/stl-heap-llvm-gcc/" title="stl make_heap在llvm和g++下的不同实现" rel="bookmark">stl make_heap在llvm和g++下的不同实现</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/03/16/tips-of-scrapy/" title="scrapy使用笔记" rel="bookmark">scrapy使用笔记</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/03/01/tornado-source-analysis-5/" title="tornado源码分析5" rel="bookmark">tornado源码分析5</a>
-                </li>                                       
-        
-        </ul>  
 </div>
-		</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-03T00:00:00+08:00" pubdate data-updated="true">Feb 3<span>rd</span>, 2013</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/asynchronous/'>Asynchronous</a>, <a class='category' href='/blog/categories/tornado/'>Tornado</a>
+
+
+</div>
+	
+	<div class="comments"><a href="#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+<nav id="pagenavi">
+     
+      <a class="prev" href="/2013/01/29/tornado-source-analysis-2/" title="Previous Post: tornado源码分析2"> tornado源码分析2</a>
+    
+     
+      <a class="next" href="/2013/02/05/tornado-source-analysis-4/" title="next Post: tornado源码分析4">tornado源码分析4 </a>
+    
+    <div class="center"><a href="/blog/archives">Blog Archives</a></div>
+</nav>
+
+<!-- 
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		
+		
+		
 	</div>
+	
+</div>
+
+ -->
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
 </section>
-    </article>
-  </section>
-    <footer class="foot">
-	<div class="foot-cnt fn-clear">
-		<div class="foot-cnt-det fn-clear">
-			
-			<article class="blogroll">
-				<h4 class="title">QR code</h4>
-				<ul>
-					<img src="/images/static/qrcode.png"></img>
-				</ul>
-			</article>
-			<article class="about">
-				<h4 class="title">About Me</h4>
-				<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
-			</article>
-			<article class="follow">
-				<h4 class="title">Follow Me</h4>
-				<ul>
-					<li><a href="https://github.com/amyangfei" class="ico-github" target="_blank">github</a></li>
-					<li><a href="/atom.xml" class="ico-rss" target="_blank">rss</a></li>
-					<li><a href="https://www.twitter.com/amyangfei" class="ico-twitter" target="_blank">twitter</a></li>
-					<li><a href="https://www.facebook.com/amyangfei" class="ico-facebook" target="_blank">facebook</a></li>
-					<li><a href="http://weibo.com/amyangfei" class="ico-weibo" target="_blank">weibo</a></li>
-					<li><a href="http://www.douban.com/people/amyangfei" class="ico-douban" target="_blank">douban</a></li>
-				</ul>
-			</article>
-		</div>
-	</div>
-	<div class="foot-btn">
-		<div class="foot-btn-det">
-			<p class="copyright">Copyright © 2012 amyangfei All rights reserved.</p>&nbsp&nbsp
-			<span class="v-tj">
-				<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
-				</script>
-			</span>
-			<p class="author">Powered by <a href="http://www.jekyllrb.com" target="_blank">Jekyll</a> and <a href="http://www.pizn.net" target="_blank">PIZn</a>.</p>
-		</div>
-	</div>
-</footer>
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2012-2014
 
-    
-    <script type="text/javascript">
+    amyangfei
+
+&nbsp;&nbsp;
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a> and <a href="https://github.com/tommy351/Octopress-Theme-Slash">Slash</a></span>
+&nbsp;<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_3939200'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s22.cnzz.com/stat.php%3Fid%3D3939200%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script></footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.scrollUp.min.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'amyangfei';
+      
         
-        //disqus
-        var disqus_shortname = 'amyangfei';
-        (function() {
-            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] ||
-                document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
-    
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://amyangfei.me/2013/02/03/tornado-source-analysis-3/';
+        var disqus_url = 'http://amyangfei.me/2013/02/03/tornado-source-analysis-3/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//go.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
-    <script type="text/javascript">
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-30252000-1']);
-        _gaq.push(['_trackPageview']);
-        (function() {
-          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-          var s = document.getElementsByTagName('script')[0];
-              s.parentNode.insertBefore(ga, s);
-        })();
-    </script>
+
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-30252000-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+
 </body>
 </html>

@@ -1,261 +1,345 @@
-<!DOCTYPE html>
+
+<!DOCTYPE HTML>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>stl make_heap在llvm和g++下的不同实现 | 数列卡索的魔法小屋</title>
-  <meta name="generator" content="Jekyll" />
-  <meta name="author" content="amyangfei" />
-  <meta name="description" content="使用stl的make_heap生成堆时在不同的编译器下发现有不同的结果，深入到源码发现是LLVM下和g++下使用了不同的stl库，而具体的make_heap则采用了不同的方法实现 " />
-  <meta name="keywords" content="c++, stl, llvm, g++ " />
-  <link rel="stylesheet" href="/css/style.css" type="text/css" />
-  <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
-  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+	<meta charset="utf-8">
+	<title>stl make_heap在llvm和g++下的不同实现 | Amyangfei's Blog</title>
+	<meta name="author" content="amyangfei">
+
+	
+		
+		<meta name="description" content="使用stl的make_heap生成堆时在不同的编译器下发现有不同的结果，深入到源码发现是LLVM下和g++下使用了不同的stl库，而具体的make_heap则采用了不同的方法实现">
+		<meta name="keywords" content="c++, stl, llvm, g++">
+	
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Amyangfei's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="/javascripts/jquery-1.7.2.min.js"></script>
+	
 </head>
+
+
 <body>
-    <header class="head">
-	<div class="header fn-clear">
-		<section class="header-cnt fn-clear">
-			<div class="logo">
-				<div class="logo-cnt">
-				 	<h1><a href="/">Amyangfei</a></h1>
-				 	<h2>Study, Geek & Share</h2>
-				</div>
-			</div>
-			<nav class="nav">
-				<ul>
-					<li><a href="/" >Home</a></li>
-					<li><a href="/archives.html" >Archives</a></li>
-					<li><a href="/contact.html" >About & Contact</a></li>
-					<li><a href="/atom.xml" target="_blank" >Rss</a></li>
-				</ul>
-			</nav>
-		</section>
+	<header id="header" class="inner"><h1><a href="/">Enjoy Programming</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/static/about">About</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/static/about">About</a></li>
+</ul>
+</div>
 	</div>
-</header> 
-  <section id="content">
-    <article id="contenter">
-      <section class="content">
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="http://amyangfei.me" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:amyangfei.me">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		<a class="twitter" href="http://twitter.com/amyangfei" title="Twitter">Twitter</a>
+		
+		
+		<a class="github" href="https://github.com/amyangfei" title="GitHub">GitHub</a>
+		
+    
+		
+		
+		
+		
+		
+		<a class="weibo" href="http://weibo.com/amyangfei" title="Weibo">Weibo</a>
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+    
+	</div>
+	<form class="search" action="http://amyangfei.me" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:amyangfei.me">
+	</form>
+</nav>
 
-	<div class="content-cnt fn-clear">
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">Stl Make_heap在llvm和g++下的不同实现</h2>
+	<div class="entry-content"><p>先来看一段十分简单的使用stl的c++代码，</p>
 
-		<div class="v-section-tit fn-clear">
-	        <a href="/" rel="nofollow" >Home</a>
-	        <span>&#9830;</span>
-	        <a href="/archives.html" rel="nofollow" >Archives</a>
-	        <span>&#9830;</span>
-	        <h2>stl make_heap在llvm和g++下的不同实现</h2>
-    	</div>
-
-		<div class="main fn-clear">
-			<article class="entry">
-				<h1 class="title">stl make_heap在llvm和g++下的不同实现</h1>
-               	<p class="meta"><time class="date" pubdate="2013-05-05">05 May 2013</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
-               	<p class="description">使用stl的make_heap生成堆时在不同的编译器下发现有不同的结果，深入到源码发现是LLVM下和g++下使用了不同的stl库，而具体的make_heap则采用了不同的方法实现</p>
- 			 	<p>先来看一段十分简单的使用stl的c++代码，</p>
-
-<div class="highlight"><pre><code class="cpp"><span class="cp">#include &lt;iostream&gt;</span>
-<span class="cp">#include &lt;vector&gt;</span>
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
-
-<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">vec</span> <span class="o">=</span> <span class="k">new</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">();</span>
-    <span class="kt">int</span> <span class="n">len</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">len</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> 
-        <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">push_back</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
-    <span class="n">make_heap</span><span class="p">((</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">begin</span><span class="p">(),</span> <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">end</span><span class="p">());</span>
-    <span class="k">for</span> <span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">iter</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">begin</span><span class="p">();</span> <span class="n">iter</span> <span class="o">!=</span> <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">end</span><span class="p">();</span> <span class="n">iter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="o">*</span><span class="n">iter</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="cp">#include &lt;iostream&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;vector&gt;</span>
+</span><span class='line'><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">vec</span> <span class="o">=</span> <span class="k">new</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">();</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">len</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">len</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span><span class='line'>        <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">push_back</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">make_heap</span><span class="p">((</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">begin</span><span class="p">(),</span> <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">end</span><span class="p">());</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">iter</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">begin</span><span class="p">();</span> <span class="n">iter</span> <span class="o">!=</span> <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">end</span><span class="p">();</span> <span class="n">iter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="o">*</span><span class="n">iter</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>发现在 xcode 中运行和在 mac terminal 中利用 g++ 编译运行结果不一样，分别为：</p>
 
-<div class="highlight"><pre><code class="bash">xcode-default : 5 4 2 1 3
-terminal-g++  : 5 4 3 1 2 
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">xcode</span><span class="o">-</span><span class="k">default</span> <span class="o">:</span> <span class="mi">5</span> <span class="mi">4</span> <span class="mi">2</span> <span class="mi">1</span> <span class="mi">3</span>
+</span><span class='line'><span class="n">terminal</span><span class="o">-</span><span class="n">g</span><span class="o">++</span>  <span class="o">:</span> <span class="mi">5</span> <span class="mi">4</span> <span class="mi">3</span> <span class="mi">1</span> <span class="mi">2</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-<p>建堆产生不同结果的原因很简单，即两次编译代码所使用的编译器不同，xcode中默认使用"Apple LLVM compiler"，在g++中使用的是"LLVM GCC"。而这两种不同编译器选择的STL实现方法是不一样的，LLVM默认选择"libc++(LLVM C++ standard library)"，而g++默认使用的是"libstdc++(GNU C++ standard library)"。</p>
+
+
+<!-- more -->
+
+
+<p>建堆产生不同结果的原因很简单，即两次编译代码所使用的编译器不同，xcode中默认使用&#8221;Apple LLVM compiler&#8221;，在g++中使用的是&#8221;LLVM GCC&#8221;。而这两种不同编译器选择的STL实现方法是不一样的，LLVM默认选择&#8221;libc++(LLVM C++ standard library)&ldquo;，而g++默认使用的是&#8221;libstdc++(GNU C++ standard library)&#8221;。</p>
 
 <h3>libc++中的实现</h3>
 
 <p>在libc++中make_heap的实现如下所示，从代码中可以看出，通过 __last 这个随机访问的迭代器，从前向后遍历，调用 __push_heap_back 将数据依次插入到堆中。__push_heap_back 的实现是将新插入元素放在堆尾，然后针对这个元素使用 shift up 策略调整至合适位置。</p>
 
-<div class="highlight"><pre><code class="cpp"><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">_Compare</span><span class="p">,</span> <span class="k">class</span> <span class="nc">_RandomAccessIterator</span><span class="o">&gt;</span>
-<span class="kt">void</span>
-<span class="n">__make_heap</span><span class="p">(</span><span class="n">_RandomAccessIterator</span> <span class="n">__first</span><span class="p">,</span> <span class="n">_RandomAccessIterator</span> <span class="n">__last</span><span class="p">,</span> <span class="n">_Compare</span> <span class="n">__comp</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">iterator_traits</span><span class="o">&lt;</span><span class="n">_RandomAccessIterator</span><span class="o">&gt;::</span><span class="n">difference_type</span> <span class="n">difference_type</span><span class="p">;</span>
-    <span class="n">difference_type</span> <span class="n">__n</span> <span class="o">=</span> <span class="n">__last</span> <span class="o">-</span> <span class="n">__first</span><span class="p">;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">__n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">__last</span> <span class="o">=</span> <span class="n">__first</span><span class="p">;</span>
-        <span class="o">++</span><span class="n">__last</span><span class="p">;</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">difference_type</span> <span class="n">__i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">__i</span> <span class="o">&lt;</span> <span class="n">__n</span><span class="p">;)</span>
-            <span class="n">__push_heap_back</span><span class="o">&lt;</span><span class="n">_Compare</span><span class="o">&gt;</span><span class="p">(</span><span class="n">__first</span><span class="p">,</span> <span class="o">++</span><span class="n">__last</span><span class="p">,</span> <span class="n">__comp</span><span class="p">,</span> <span class="o">++</span><span class="n">__i</span><span class="p">);</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">_Compare</span><span class="p">,</span> <span class="k">class</span> <span class="nc">_RandomAccessIterator</span><span class="o">&gt;</span>
+</span><span class='line'><span class="kt">void</span>
+</span><span class='line'><span class="n">__make_heap</span><span class="p">(</span><span class="n">_RandomAccessIterator</span> <span class="n">__first</span><span class="p">,</span> <span class="n">_RandomAccessIterator</span> <span class="n">__last</span><span class="p">,</span> <span class="n">_Compare</span> <span class="n">__comp</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">typename</span> <span class="n">iterator_traits</span><span class="o">&lt;</span><span class="n">_RandomAccessIterator</span><span class="o">&gt;::</span><span class="n">difference_type</span> <span class="n">difference_type</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">difference_type</span> <span class="n">__n</span> <span class="o">=</span> <span class="n">__last</span> <span class="o">-</span> <span class="n">__first</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">__n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="n">__last</span> <span class="o">=</span> <span class="n">__first</span><span class="p">;</span>
+</span><span class='line'>        <span class="o">++</span><span class="n">__last</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="n">difference_type</span> <span class="n">__i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">__i</span> <span class="o">&lt;</span> <span class="n">__n</span><span class="p">;)</span>
+</span><span class='line'>            <span class="n">__push_heap_back</span><span class="o">&lt;</span><span class="n">_Compare</span><span class="o">&gt;</span><span class="p">(</span><span class="n">__first</span><span class="p">,</span> <span class="o">++</span><span class="n">__last</span><span class="p">,</span> <span class="n">__comp</span><span class="p">,</span> <span class="o">++</span><span class="n">__i</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>libstdc++中的实现</h3>
 
 <p>在 libstdc++ 中 make_heap 首先将所有元素按照原顺序放入堆的存储结构，然后从最大的非叶子节点开始调整元素位置，即调用 __adjust_heap 操作，__adjust_heap 会自上向下依次选择每个子节点中较大的元素上升。</p>
 
-<div class="highlight"><pre><code class="cpp">  <span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">_RandomAccessIterator</span><span class="o">&gt;</span>
-    <span class="kt">void</span>
-    <span class="n">make_heap</span><span class="p">(</span><span class="n">_RandomAccessIterator</span> <span class="n">__first</span><span class="p">,</span> <span class="n">_RandomAccessIterator</span> <span class="n">__last</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="k">typedef</span> <span class="k">typename</span> <span class="n">iterator_traits</span><span class="o">&lt;</span><span class="n">_RandomAccessIterator</span><span class="o">&gt;::</span><span class="n">value_type</span> <span class="n">_ValueType</span><span class="p">;</span>
-      <span class="k">typedef</span> <span class="k">typename</span> <span class="n">iterator_traits</span><span class="o">&lt;</span><span class="n">_RandomAccessIterator</span><span class="o">&gt;::</span><span class="n">difference_type</span> <span class="n">_DistanceType</span><span class="p">;</span>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'>  <span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">_RandomAccessIterator</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="kt">void</span>
+</span><span class='line'>    <span class="n">make_heap</span><span class="p">(</span><span class="n">_RandomAccessIterator</span> <span class="n">__first</span><span class="p">,</span> <span class="n">_RandomAccessIterator</span> <span class="n">__last</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="k">typedef</span> <span class="k">typename</span> <span class="n">iterator_traits</span><span class="o">&lt;</span><span class="n">_RandomAccessIterator</span><span class="o">&gt;::</span><span class="n">value_type</span> <span class="n">_ValueType</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">typedef</span> <span class="k">typename</span> <span class="n">iterator_traits</span><span class="o">&lt;</span><span class="n">_RandomAccessIterator</span><span class="o">&gt;::</span><span class="n">difference_type</span> <span class="n">_DistanceType</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c1">// concept requirements</span>
+</span><span class='line'>      <span class="n">__glibcxx_function_requires</span><span class="p">(</span><span class="n">_Mutable_RandomAccessIteratorConcept</span><span class="o">&lt;</span><span class="n">_RandomAccessIterator</span><span class="o">&gt;</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">__glibcxx_function_requires</span><span class="p">(</span><span class="n">_LessThanComparableConcept</span><span class="o">&lt;</span><span class="n">_ValueType</span><span class="o">&gt;</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">__glibcxx_requires_valid_range</span><span class="p">(</span><span class="n">__first</span><span class="p">,</span> <span class="n">__last</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="n">__last</span> <span class="o">-</span> <span class="n">__first</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">const</span> <span class="n">_DistanceType</span> <span class="n">__len</span> <span class="o">=</span> <span class="n">__last</span> <span class="o">-</span> <span class="n">__first</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">_DistanceType</span> <span class="n">__parent</span> <span class="o">=</span> <span class="p">(</span><span class="n">__len</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">while</span> <span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="n">std</span><span class="o">::</span><span class="n">__adjust_heap</span><span class="p">(</span><span class="n">__first</span><span class="p">,</span> <span class="n">__parent</span><span class="p">,</span> <span class="n">__len</span><span class="p">,</span>
+</span><span class='line'>                 <span class="n">_ValueType</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">__first</span> <span class="o">+</span> <span class="n">__parent</span><span class="p">)));</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="n">__parent</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">__parent</span><span class="o">--</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
 
-      <span class="c1">// concept requirements</span>
-      <span class="n">__glibcxx_function_requires</span><span class="p">(</span><span class="n">_Mutable_RandomAccessIteratorConcept</span><span class="o">&lt;</span><span class="n">_RandomAccessIterator</span><span class="o">&gt;</span><span class="p">)</span>
-      <span class="n">__glibcxx_function_requires</span><span class="p">(</span><span class="n">_LessThanComparableConcept</span><span class="o">&lt;</span><span class="n">_ValueType</span><span class="o">&gt;</span><span class="p">)</span>
-      <span class="n">__glibcxx_requires_valid_range</span><span class="p">(</span><span class="n">__first</span><span class="p">,</span> <span class="n">__last</span><span class="p">);</span>
-
-      <span class="k">if</span> <span class="p">(</span><span class="n">__last</span> <span class="o">-</span> <span class="n">__first</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="k">return</span><span class="p">;</span>
-
-      <span class="k">const</span> <span class="n">_DistanceType</span> <span class="n">__len</span> <span class="o">=</span> <span class="n">__last</span> <span class="o">-</span> <span class="n">__first</span><span class="p">;</span>
-      <span class="n">_DistanceType</span> <span class="n">__parent</span> <span class="o">=</span> <span class="p">(</span><span class="n">__len</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
-      <span class="k">while</span> <span class="p">(</span><span class="nb">true</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="n">std</span><span class="o">::</span><span class="n">__adjust_heap</span><span class="p">(</span><span class="n">__first</span><span class="p">,</span> <span class="n">__parent</span><span class="p">,</span> <span class="n">__len</span><span class="p">,</span>
-                 <span class="n">_ValueType</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">__first</span> <span class="o">+</span> <span class="n">__parent</span><span class="p">)));</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">__parent</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span><span class="p">;</span>
-      <span class="n">__parent</span><span class="o">--</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="p">}</span>
-</code></pre></div>
 
 
-
-
-                <nav class="pagination-link">
-                    
-                    <a class="prev" href="/2013/03/16/tips-of-scrapy/" rel="bookmark">&laquo;&nbsp;scrapy使用笔记</a>
-                    
-                    
-                    <a class="next" href="/2013/05/10/longest-segement-merge/" rel="bookmark">线段合并求最长线段&nbsp;&raquo;</a>
-                    
-                 </nav>
-			</article><!-- .entry -->
-			<div class="violet-comment">
-	             <div id="disqus_thread"></div>
-	        </div><!-- //violet-comment -->
-		</div>
-		<div class="aside fn-clear">
-			<div class="box fn-clear">
-        <h3 class="title">Recent Posts</h3>
-        <ul>
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2014/01/10/making-progit-ebook/" title="Making Ebooks of Pro Git" rel="bookmark">Making Ebooks of Pro Git</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/11/06/apscheduler-source-analyse/" title="APScheduler 源码阅读笔记" rel="bookmark">APScheduler 源码阅读笔记</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/09/06/xenserver-use-tip/" title="xenserver 使用小结" rel="bookmark">xenserver 使用小结</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/06/17/asynchronous-programming-with-tornado/" title="使用Tornado进行异步编程" rel="bookmark">使用Tornado进行异步编程</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/05/10/longest-segement-merge/" title="线段合并求最长线段" rel="bookmark">线段合并求最长线段</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/05/05/stl-heap-llvm-gcc/" title="stl make_heap在llvm和g++下的不同实现" rel="bookmark">stl make_heap在llvm和g++下的不同实现</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/03/16/tips-of-scrapy/" title="scrapy使用笔记" rel="bookmark">scrapy使用笔记</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/03/01/tornado-source-analysis-5/" title="tornado源码分析5" rel="bookmark">tornado源码分析5</a>
-                </li>                                       
-        
-        </ul>  
 </div>
-		</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-05T00:00:00+08:00" pubdate data-updated="true">May 5<span>th</span>, 2013</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/c-plus-plus/'>C++</a>, <a class='category' href='/blog/categories/stl/'>STL</a>
+
+
+</div>
+	
+	<div class="comments"><a href="#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+<nav id="pagenavi">
+     
+      <a class="prev" href="/2013/03/16/tips-of-scrapy/" title="Previous Post: scrapy使用笔记"> scrapy使用笔记</a>
+    
+     
+      <a class="next" href="/2013/05/10/longest-segement-merge/" title="next Post: 线段合并求最长线段">线段合并求最长线段 </a>
+    
+    <div class="center"><a href="/blog/archives">Blog Archives</a></div>
+</nav>
+
+<!-- 
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		
+		
+		
 	</div>
+	
+</div>
+
+ -->
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
 </section>
-    </article>
-  </section>
-    <footer class="foot">
-	<div class="foot-cnt fn-clear">
-		<div class="foot-cnt-det fn-clear">
-			
-			<article class="blogroll">
-				<h4 class="title">QR code</h4>
-				<ul>
-					<img src="/images/static/qrcode.png"></img>
-				</ul>
-			</article>
-			<article class="about">
-				<h4 class="title">About Me</h4>
-				<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
-			</article>
-			<article class="follow">
-				<h4 class="title">Follow Me</h4>
-				<ul>
-					<li><a href="https://github.com/amyangfei" class="ico-github" target="_blank">github</a></li>
-					<li><a href="/atom.xml" class="ico-rss" target="_blank">rss</a></li>
-					<li><a href="https://www.twitter.com/amyangfei" class="ico-twitter" target="_blank">twitter</a></li>
-					<li><a href="https://www.facebook.com/amyangfei" class="ico-facebook" target="_blank">facebook</a></li>
-					<li><a href="http://weibo.com/amyangfei" class="ico-weibo" target="_blank">weibo</a></li>
-					<li><a href="http://www.douban.com/people/amyangfei" class="ico-douban" target="_blank">douban</a></li>
-				</ul>
-			</article>
-		</div>
-	</div>
-	<div class="foot-btn">
-		<div class="foot-btn-det">
-			<p class="copyright">Copyright © 2012 amyangfei All rights reserved.</p>&nbsp&nbsp
-			<span class="v-tj">
-				<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
-				</script>
-			</span>
-			<p class="author">Powered by <a href="http://www.jekyllrb.com" target="_blank">Jekyll</a> and <a href="http://www.pizn.net" target="_blank">PIZn</a>.</p>
-		</div>
-	</div>
-</footer>
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2012-2014
 
-    
-    <script type="text/javascript">
+    amyangfei
+
+&nbsp;&nbsp;
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a> and <a href="https://github.com/tommy351/Octopress-Theme-Slash">Slash</a></span>
+&nbsp;<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_3939200'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s22.cnzz.com/stat.php%3Fid%3D3939200%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script></footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.scrollUp.min.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'amyangfei';
+      
         
-        //disqus
-        var disqus_shortname = 'amyangfei';
-        (function() {
-            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] ||
-                document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
-    
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://amyangfei.me/2013/05/05/stl-heap-llvm-gcc/';
+        var disqus_url = 'http://amyangfei.me/2013/05/05/stl-heap-llvm-gcc/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//go.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
-    <script type="text/javascript">
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-30252000-1']);
-        _gaq.push(['_trackPageview']);
-        (function() {
-          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-          var s = document.getElementsByTagName('script')[0];
-              s.parentNode.insertBefore(ga, s);
-        })();
-    </script>
+
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-30252000-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+
 </body>
 </html>

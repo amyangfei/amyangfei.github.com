@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: STL | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/stl/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-01-20T16:40:46+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[stl make_heap在llvm和g++下的不同实现]]></title>
+    <link href="http://amyangfei.me/2013/05/05/stl-heap-llvm-gcc/"/>
+    <updated>2013-05-05T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2013/05/05/stl-heap-llvm-gcc</id>
+    <content type="html"><![CDATA[<p>先来看一段十分简单的使用stl的c++代码，</p>
+
+<p>``` c++</p>
+
+<h1>include <iostream></h1>
+
+<h1>include <vector></h1>
+
+<p>using namespace std;</p>
+
+<p>int main(void) {</p>
+
+<pre><code>vector&lt;int&gt; *vec = new vector&lt;int&gt;();
+int len = 5;
+for (int i = 1; i &lt;= len; ++i) 
+    (*vec).push_back(i);
+make_heap((*vec).begin(), (*vec).end());
+for (vector&lt;int&gt;::iterator iter = (*vec).begin(); iter != (*vec).end(); iter++) {
+    cout &lt;&lt; *iter &lt;&lt; " ";
+}
+return 0;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>发现在 xcode 中运行和在 mac terminal 中利用 g++ 编译运行结果不一样，分别为：</p>
+
+<p><code>
+xcode-default : 5 4 2 1 3
+terminal-g++  : 5 4 3 1 2
+</code></p>
+
+<!-- more -->
+
+
+<p>建堆产生不同结果的原因很简单，即两次编译代码所使用的编译器不同，xcode中默认使用"Apple LLVM compiler"，在g++中使用的是"LLVM GCC"。而这两种不同编译器选择的STL实现方法是不一样的，LLVM默认选择"libc++(LLVM C++ standard library)&ldquo;，而g++默认使用的是"libstdc++(GNU C++ standard library)"。</p>
+
+<h3>libc++中的实现</h3>
+
+<p>在libc++中make_heap的实现如下所示，从代码中可以看出，通过 __last 这个随机访问的迭代器，从前向后遍历，调用 __push_heap_back 将数据依次插入到堆中。__push_heap_back 的实现是将新插入元素放在堆尾，然后针对这个元素使用 shift up 策略调整至合适位置。</p>
+
+<p>``` c++
+template <class _Compare, class _RandomAccessIterator>
+void
+<strong>make_heap(_RandomAccessIterator </strong>first, <em>RandomAccessIterator __last, </em>Compare __comp)
+{</p>
+
+<pre><code>typedef typename iterator_traits&lt;_RandomAccessIterator&gt;::difference_type difference_type;
+difference_type __n = __last - __first;
+if (__n &gt; 1)
+{
+    __last = __first;
+    ++__last;
+    for (difference_type __i = 1; __i &lt; __n;)
+        __push_heap_back&lt;_Compare&gt;(__first, ++__last, __comp, ++__i);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>libstdc++中的实现</h3>
+
+<p>在 libstdc++ 中 make_heap 首先将所有元素按照原顺序放入堆的存储结构，然后从最大的非叶子节点开始调整元素位置，即调用 __adjust_heap 操作，__adjust_heap 会自上向下依次选择每个子节点中较大的元素上升。</p>
+
+<p>``` c++
+  template<typename _RandomAccessIterator></p>
+
+<pre><code>void
+make_heap(_RandomAccessIterator __first, _RandomAccessIterator __last)
+{
+  typedef typename iterator_traits&lt;_RandomAccessIterator&gt;::value_type _ValueType;
+  typedef typename iterator_traits&lt;_RandomAccessIterator&gt;::difference_type _DistanceType;
+
+  // concept requirements
+  __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept&lt;_RandomAccessIterator&gt;)
+  __glibcxx_function_requires(_LessThanComparableConcept&lt;_ValueType&gt;)
+  __glibcxx_requires_valid_range(__first, __last);
+
+  if (__last - __first &lt; 2)
+return;
+
+  const _DistanceType __len = __last - __first;
+  _DistanceType __parent = (__len - 2) / 2;
+  while (true)
+{
+  std::__adjust_heap(__first, __parent, __len,
+             _ValueType(*(__first + __parent)));
+  if (__parent == 0)
+    return;
+  __parent--;
+}
+}
+</code></pre>
+
+<p>```</p>
+]]></content>
+  </entry>
+  
+</feed>

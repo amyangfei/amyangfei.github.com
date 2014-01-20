@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Bash | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/bash/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-01-20T16:40:46+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[bash subshell变量作用域问题]]></title>
+    <link href="http://amyangfei.me/2013/01/07/abtest-script-and-bash-subshell/"/>
+    <updated>2013-01-07T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2013/01/07/abtest-script-and-bash-subshell</id>
+    <content type="html"><![CDATA[<p>今天研究apache ab这个测试工具，在网上看到<a href="http://blog.csdn.net/chosen0ne/article/details/7302991" target="_blank">压力测试shell脚本</a>一文介绍了一个封装的bash脚本，用于多次测试返回requests per second的平均值，对脚本进行了简单的改写，将所有的测试输出进行记录。改写脚本在文章的最后。</p>
+
+<p>改写过程中发现这样一个问题，比如写下面的脚本：</p>
+
+<p>``` bash</p>
+
+<h1>!/bin/bash</h1>
+
+<p>result=&ldquo;&rdquo;
+cat abtest_temp.log | while read LINE
+do</p>
+
+<pre><code>result=`echo $LINE | grep 'Requests per second:'`
+if [ "$result" != "" ]
+then
+    break
+fi
+</code></pre>
+
+<p>done
+echo &ldquo;result is &rdquo;${result}
+```</p>
+
+<!-- more -->
+
+
+<p>在读取abtest_temp.log文件内容后，result的值仍为空，这是因为bash遇到管道后会创建一个新的进程，于是result是subshell中的局域变量，subshell对变量的修改不会影响原shell中的变量。</p>
+
+<p>subshell可以export父shell中的变量，但export出来的变量只是父shell中变量的一个拷贝，进行修改并不能影响到父shell。但反过来，父shell再次更改此变量时，subshell 再去读时，读到的是新值，而不是原来的值。参考bash man page中的说明：<a href="http://www.gnu.org/software/bash/manual/bashref.html#Pipelines" target="_blank">Each command in a pipeline is executed in its own subshell</a>以及<a href="http://linux.die.net/man/1/bash" target="_blank">Each command in a pipeline is executed as a separate process (i.e., in a subshell).</a></p>
+
+<p>对于这种情形有一些解决方法，这里给出两种：第一种是将subshell外需要访问的变量输出到临时文件中。第二种是使用命名管道。本质都是进程间通信的实现。</p>
+
+<h3>使用临时文件</h3>
+
+<p>``` bash</p>
+
+<h1>!/bin/bash</h1>
+
+<p>result=&ldquo;&rdquo;
+cat abtest_temp.log | while read LINE
+do</p>
+
+<pre><code>result=`echo $LINE | grep 'Requests per second:'`
+if [ "$result" != "" ]
+then
+    echo $result &gt; .result_temp
+    break
+fi
+</code></pre>
+
+<p>done
+echo &ldquo;result is &rdquo;<code>cat .result_temp</code>
+```</p>
+
+<h3>使用命名管道</h3>
+
+<p>``` bash</p>
+
+<h1>!/bin/bash</h1>
+
+<p>result=&ldquo;&rdquo;
+mkfifo pipetem
+(cat abtest_temp.log | while read LINE
+do</p>
+
+<pre><code>result=`echo $LINE | grep 'Requests per second:'`
+if [ "$result" != "" ]
+then
+    echo $result &gt; pipetem &amp; 
+    break
+fi
+</code></pre>
+
+<p>done)
+read result &lt; pipetem
+rm pipetem
+echo &ldquo;result is &rdquo;${result}</p>
+
+<p>```</p>
+
+<h3>对apache ab封装的测试脚本</h3>
+
+<p>``` bash</p>
+
+<h1>!/bin/bash</h1>
+
+<p>total_request=1000
+concurrency=100
+times=1</p>
+
+<p>cmd_idx=1
+param_count=$#
+while [ $cmd_idx -lt $param_count ]
+do</p>
+
+<pre><code>cmd=$1
+shift 1 #remove $1
+case $cmd in
+    -n)
+        total_request=$1
+        shift 1;;
+    -c)
+        concurrency=$1
+        shift 1;;
+    -t)
+        times=$1
+        shift 1;;
+    *)
+        echo "$cmd, support parameter: -n, -c, -t";;
+esac
+cmd_idx=`expr $cmd_idx + 2` 
+</code></pre>
+
+<p>done</p>
+
+<p>url=$1
+if [ $url = &lsquo;&rsquo; ]; then</p>
+
+<pre><code>echo 'the test url must be provided...'
+exit 2
+</code></pre>
+
+<p>fi</p>
+
+<p>echo &ldquo;Total Request: $total_request, Concurrency: $concurrency, URL: $url, Times: $times&rdquo;</p>
+
+<p>ab_dir=/usr/bin
+ab_cmd=&ldquo;$ab_dir/ab -n $total_request -c $concurrency $url&rdquo;</p>
+
+<p>echo $ab_cmd
+idx=1
+rps_sum=0
+max=-1
+min=99999999
+while [ $idx -le $times ]
+do</p>
+
+<pre><code>echo "start loop $idx"
+$ab_cmd &gt;abtest_temp.log 2&gt;&amp;1
+cat abtest_temp.log | while read LINE 
+do
+    result=`echo $LINE | grep 'Requests per second:'`
+    if [ "$result" != "" ]
+    then
+        echo $result &gt; .result_temp
+        break
+    fi
+done
+result=`cat .result_temp`
+rm .result_temp
+result=`echo $result | awk -F ' ' '{ print $4 }' | awk -F '.' '{ print $1 }'`
+rps_sum=`expr $result + $rps_sum`
+if [ $result -gt $max ]; then
+    max=$result
+fi
+if [ $result -lt $min ]; then
+    min=$result
+fi
+idx=`expr $idx + 1`
+</code></pre>
+
+<p>done
+echo &ldquo;avg rps: &rdquo;<code>expr $rps_sum / $times</code>
+echo &ldquo;min rps: $min&rdquo;
+echo &ldquo;max rps: $max&rdquo;
+```</p>
+
+<h3>参考文章</h3>
+
+<p><a href="http://blog.csdn.net/chosen0ne/article/details/7302991" target="_blank">压力测试shell脚本</a>，<a href="http://blog.csdn.net/sosodream/article/details/5683515" target="_blank">实例解析shell子进程（subshell )</a>，<a href="http://lihdd.net/bash-pipe-pitfall" target="_blank">小心bash的管道</a></p>
+]]></content>
+  </entry>
+  
+</feed>

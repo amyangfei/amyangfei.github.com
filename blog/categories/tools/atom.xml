@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Tools | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/tools/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-01-20T16:40:46+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Android运行脚本与定时工具]]></title>
+    <link href="http://amyangfei.me/2013/02/08/android-taskscheduler-and-scripting/"/>
+    <updated>2013-02-08T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2013/02/08/android-taskscheduler-and-scripting</id>
+    <content type="html"><![CDATA[<p>用惯了crontab，实验室的机器因为某些原因连不上，于是希望在自己的Android手机上完成定时执行一些脚本的任务。google一下找到了 <a href="http://i55m411.appspot.com/?p=594004" target="_blank">android应用实现定时打电话</a> 这样一篇文章，正好满足我的需求。下面做一个简单的总结。</p>
+
+<h3>安装的软件</h3>
+
+<ul>
+<li><p><a href="http://code.google.com/p/android-scripting" target="_blank">SL4A(Scripting Layer for Android)</a>，Andriod系统下运行脚本的环境，可以在终端、后台或Locale中运行，现阶段支持Python, Perl, JRuby, Lua, BeanShell, JavaScript, Tcl和shell脚本。</p></li>
+<li><p><a href="http://code.google.com/p/android-scripting/downloads/detail?name=PythonForAndroid_r4.apk&can=2" target="_blank">Py4A</a>，SL4A的python插件，安装之后就可以运行python脚本。</p></li>
+<li><p><a href="https://play.google.com/store/apps/details?id=org.androidideas.taskbomb" target="_blank">TaskBomb task scheduler</a>，一个可以执行计划任务的app，类似于Unix中的crontab。</p></li>
+<li><p><a href="https://play.google.com/store/apps/details?id=org.androidideas.scriptlauncher" target="_blank">SL4A Script Launcher</a>，TaskBomb可以通过此app执行SL4A脚本。</p></li>
+</ul>
+
+
+<!-- more -->
+
+
+<h3>简单使用</h3>
+
+<ul>
+<li><p>安装Py4A后进入程序，点击最上边的Install会自动下载Python运行所需要的类库。</p></li>
+<li><p>进入SL4A会看到在SL4A程序Scripts目录下的脚本，可以在terminal或后台运行这些脚本；在SL4A中可以添加、修改、删除脚本程序，使用方法很简单，不详细说明。</p></li>
+<li><p>需要注意的是Py4A支持的是python2.6，最新的python-for-android的项目地址已经在 <a href="http://code.google.com/p/python-for-android/" target="_blank">这里</a> 。Py4A不仅支持python的原生API，同时可以很方便的调用Android的系统API，比如可以使用下边很简单的代码向目标手机发送短信。详细可参考 <a href="http://code.google.com/p/android-scripting/wiki/ApiReference" target="_blank">ApiReference</a>。</p></li>
+</ul>
+
+
+<p>``` python
+import android</p>
+
+<p>droid = android.Android()
+droid.smsSend(&lsquo;15120000xxx&rsquo;, &lsquo;this is an sms auto sent by Py4A.&rsquo;)
+```</p>
+
+<h3>其他</h3>
+
+<p>最后这部分就是与文章内容不相关了。是一个虾米音乐自动签到的程序。需要注意的就是登录时一定要将headers中的User-Agent修改为浏览器的User-Agent，签到的post请求需要修改headers中的User-Agent和Referer地址。其他就没有什么了（突然想到和某只喵喵的比赛是不是可以拿TaskBomb+SL4A作弊），各位看官求轻拍，捂面。</p>
+
+<p>``` python</p>
+
+<h1>&ndash;<em>&ndash; coding: utf-8 &ndash;</em>&ndash;</h1>
+
+<p>import urllib2, urllib</p>
+
+<p>def login(email, password):</p>
+
+<pre><code>try:
+    cookies = urllib2.HTTPCookieProcessor()
+    opener = urllib2.build_opener(cookies)
+    urllib2.install_opener(opener)
+    params = {'email':email, 'password':password, 'submit':'登 录'}
+    loginUrl = 'http://www.xiami.com/member/login'
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.57 Safari/537.17",
+        }
+    request = urllib2.Request(
+        url     = loginUrl,
+        headers = headers,
+        data    = urllib.urlencode(params)
+        )
+    login = urllib2.urlopen(request)
+    print 'login successfully...'
+    return login
+except Exception, e:
+    print 'login failed:', e
+    return None
+</code></pre>
+
+<p>def signin(email, password):</p>
+
+<pre><code>signurl = 'http://www.xiami.com/task/signin'
+if login(email, password) != None:
+    try:
+        headers = {
+            "Referer": "http://www.xiami.com/?register",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.57 Safari/537.17",
+        }
+        request = urllib2.Request(
+            url     = signurl,
+            headers = headers
+            )
+        response = urllib2.urlopen(request)
+        retcode = response.read()
+        if str.isdigit(retcode):
+            print 'sign in days:', retcode                   
+    except Exception, e:
+        print 'signin error:', e
+</code></pre>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
+
+<pre><code>email = 'xxx'
+password = 'xxx'   
+signin(email, password)
+</code></pre>
+
+<p>```</p>
+
+<h3>参考</h3>
+
+<p><a href="http://i55m411.appspot.com/?p=594004" target="_blank">android应用实现定时打电话</a>， <a href="http://code.google.com/p/android-scripting/" target="_blank">google code SL4A</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[六维空间free资源检索工具]]></title>
+    <link href="http://amyangfei.me/2012/04/29/sixv-detect-robot/"/>
+    <updated>2012-04-29T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2012/04/29/sixv-detect-robot</id>
+    <content type="html"><![CDATA[<p>最近自己对挂六维空间刷下载积分热情高涨，但是六维上挂出免费资源的时间是不确定的，于是写了一个自动检索免费资源的小工具：基本功能是自动登录六维空间并检索指定板块的下载资源，找到在指定时间内最新发布的资源，如果有新的免费资源发送一条飞信给自己的手机。代码没有太多技术含量，主要分为三个模块。</p>
+
+<h3>模拟登录模块</h3>
+
+<p>登录六维空间，以及后面发送飞信登录wap网站，使用的是同样的方法。python提供的urllib,urllib2库很强大，模拟登录，保存cookie非常简单，写法很固定。</p>
+
+<!-- more -->
+
+
+<h3>检索资源模块</h3>
+
+<p>没有用一些htmlParser类似相关的技术，只使用了正则表达式匹配。写代码时候遇到了正则匹配的贪婪模式和非贪婪模式，还是很有趣的。可以比较一下下面两行代码，前者为非贪婪匹配，后者为贪婪匹配。关于贪婪匹配与非贪婪匹配<a href="http://www.cnitblog.com/yemoo/archive/2006/06/22/12675.html" target="_blank">关于正则表达式的贪婪与非贪婪模式</a>这篇文章说的很详细。</p>
+
+<p><code>python
+ret = re.findall("&lt;tbody([\s\S]*?)&lt;/tbody&gt;", listpage)
+ret = re.findall("&lt;tbody([\s\S]*)&lt;/tbody&gt;", listpage)
+</code></p>
+
+<h3>发送飞信模块</h3>
+
+<p>我以前在新浪博客上的文章里有写过，移步这里<a href="http://blog.sina.com.cn/s/blog_59b8590c010123x4.html" target="_blank">Python 发送飞信 </a></p>
+
+<h3>使用</h3>
+
+<p>修改自己的六维帐号，飞信帐号信息，timegap是设置检索资源的发布时间区间，用crontab部署脚本，设定好执行间隔，定时执行就OK了！这样有新的下载资源就会及时发送到自己手机。</p>
+
+<h3>源码</h3>
+
+<p>``` python</p>
+
+<h1>&ndash;<em>&ndash; coding: utf-8 &ndash;</em>&ndash;</h1>
+
+<p>import re, json
+import time, datetime
+import cookielib, urllib2, urllib</p>
+
+<p>freelable = &ldquo;images/rates/dlp000.gif&rdquo;
+viewurl = &ldquo;<a href="http://bt.neu6.edu.cn/viewthread.php?tid=">http://bt.neu6.edu.cn/viewthread.php?tid=</a>&rdquo;
+movie = &ldquo;<a href="http://bt.neu6.edu.cn/forumdisplay.php?fid=13">http://bt.neu6.edu.cn/forumdisplay.php?fid=13</a>&rdquo;
+hdmov = &ldquo;<a href="http://bt.neu6.edu.cn/forumdisplay.php?fid=45">http://bt.neu6.edu.cn/forumdisplay.php?fid=45</a>&rdquo;
+game = &ldquo;<a href="http://bt.neu6.edu.cn/forumdisplay.php?fid=21">http://bt.neu6.edu.cn/forumdisplay.php?fid=21</a>&rdquo;
+hdtv = &ldquo;<a href="http://bt.neu6.edu.cn/forumdisplay.php?fid=48">http://bt.neu6.edu.cn/forumdisplay.php?fid=48</a>&rdquo;
+downlist = [movie, hdmov, game, hdtv]
+freedic = {}
+timegap = 28800</p>
+
+<p>def sendMsg(pnum, ppass, msg):</p>
+
+<pre><code>url_login = 'http://f.10086.cn/im5/login/loginHtml5.action'
+url_sendmsg = 'http://f.10086.cn/im5/chat/sendNewGroupShortMsg.action'
+parameter= { 'm':pnum, 'pass':ppass, 'loginstatus':4 }
+msg = {'msg':msg, 'touserid':''}
+
+cj = cookielib.LWPCookieJar()
+opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+urllib2.install_opener(opener)
+
+req = urllib2.Request(url_login, urllib.urlencode(parameter))
+jump = urllib2.urlopen(req)
+json_data = json.loads(jump.read())
+userid = json_data['idUser']
+msg['touserid'] = userid
+
+sendmsg = urllib2.Request(url_sendmsg, urllib.urlencode(msg))
+res = urllib2.urlopen(sendmsg)
+</code></pre>
+
+<p>def loginSixBt(uname, pwd):</p>
+
+<pre><code>try:
+    cookies = urllib2.HTTPCookieProcessor()
+    opener = urllib2.build_opener(cookies)
+    urllib2.install_opener(opener)
+    params = {"username":uname,"password":pwd}
+    loginUrl = "http://bt.neu6.edu.cn/logging.php?action=login&amp;loginsubmit=yes&amp;inajax=1&amp;loginfield=username"
+    login = urllib2.urlopen(loginUrl, urllib.urlencode(params))
+except Exception, e:
+    print(e)
+</code></pre>
+
+<p>def freeResDetect(type):</p>
+
+<pre><code>try:
+    listpage = urllib2.urlopen(type).read()
+    ret = re.findall("&lt;tbody([\s\S]*?)&lt;/tbody&gt;", listpage)
+    #ret = re.findall("&lt;tbody.*&lt;/tbody&gt;", listpage, re.S)
+    for item in ret:
+        item = "&lt;tbody" + item + "&lt;/tbody&gt;" 
+        if(item.find(freelable, 0, len(item)) &gt; 0):
+            itemid = re.findall("&lt;tbody id=\"stickthread_([0-9]*?)\"&gt;", item)
+            if(len(itemid) &lt;= 0):
+                itemid = re.findall("&lt;tbody id=\"normalthread_([0-9]*?)\"&gt;", item)
+                if(len(itemid) &lt;= 0):
+                    continue
+            fetchurl = viewurl + itemid[0]
+            content = urllib2.urlopen(fetchurl).read()
+            timelist = re.findall("&lt;span title=\"([\s\S]*?)\"&gt;", content)
+            if(len(timelist) &lt;= 0):
+                continue                
+            opentimestr = timelist[0]
+            format="%Y-%m-%d %H:%M"
+            opentime = datetime.datetime.strptime(opentimestr, format)
+            now = datetime.datetime.now()
+
+            if((now-opentime).seconds &lt; timegap):
+                freedic[itemid[0]] = (now-opentime).seconds/60
+except Exception, e:
+    print(e)
+</code></pre>
+
+<p>def listResDetect():</p>
+
+<pre><code>for res in downlist:
+    freeResDetect(res)
+</code></pre>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
+
+<pre><code>username = ""
+password = ""
+phonenum = ""
+phonepass = ""
+loginSixBt(username, password)
+listResDetect()
+if(freedic):
+    msg = "free resource in " + str(int(timegap)/60) + " minutes are " + str(freedic)
+    sendMsg(phonenum, phonepass, msg)
+</code></pre>
+
+<p>```</p>
+]]></content>
+  </entry>
+  
+</feed>

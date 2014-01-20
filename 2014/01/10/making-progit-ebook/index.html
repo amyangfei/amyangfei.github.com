@@ -1,57 +1,93 @@
-<!DOCTYPE html>
+
+<!DOCTYPE HTML>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>Making Ebooks of Pro Git | 数列卡索的魔法小屋</title>
-  <meta name="generator" content="Jekyll" />
-  <meta name="author" content="amyangfei" />
-  <meta name="description" content="介绍在 Ubuntu 环境下手动生成 Pro Git 电子书的过程 " />
-  <meta name="keywords" content="Ubuntu, ebook, xelatex, ruby " />
-  <link rel="stylesheet" href="/css/style.css" type="text/css" />
-  <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
-  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+	<meta charset="utf-8">
+	<title>Making Ebooks of Pro Git | Amyangfei's Blog</title>
+	<meta name="author" content="amyangfei">
+
+	
+		
+		<meta name="description" content="介绍在 Ubuntu 环境下手动生成 Pro Git 电子书的过程">
+		
+	
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Amyangfei's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="/javascripts/jquery-1.7.2.min.js"></script>
+	
 </head>
+
+
 <body>
-    <header class="head">
-	<div class="header fn-clear">
-		<section class="header-cnt fn-clear">
-			<div class="logo">
-				<div class="logo-cnt">
-				 	<h1><a href="/">Amyangfei</a></h1>
-				 	<h2>Study, Geek & Share</h2>
-				</div>
-			</div>
-			<nav class="nav">
-				<ul>
-					<li><a href="/" >Home</a></li>
-					<li><a href="/archives.html" >Archives</a></li>
-					<li><a href="/contact.html" >About & Contact</a></li>
-					<li><a href="/atom.xml" target="_blank" >Rss</a></li>
-				</ul>
-			</nav>
-		</section>
+	<header id="header" class="inner"><h1><a href="/">Enjoy Programming</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/static/about">About</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/static/about">About</a></li>
+</ul>
+</div>
 	</div>
-</header> 
-  <section id="content">
-    <article id="contenter">
-      <section class="content">
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="http://amyangfei.me" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:amyangfei.me">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		<a class="twitter" href="http://twitter.com/amyangfei" title="Twitter">Twitter</a>
+		
+		
+		<a class="github" href="https://github.com/amyangfei" title="GitHub">GitHub</a>
+		
+    
+		
+		
+		
+		
+		
+		<a class="weibo" href="http://weibo.com/amyangfei" title="Weibo">Weibo</a>
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+    
+	</div>
+	<form class="search" action="http://amyangfei.me" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:amyangfei.me">
+	</form>
+</nav>
 
-	<div class="content-cnt fn-clear">
-
-		<div class="v-section-tit fn-clear">
-	        <a href="/" rel="nofollow" >Home</a>
-	        <span>&#9830;</span>
-	        <a href="/archives.html" rel="nofollow" >Archives</a>
-	        <span>&#9830;</span>
-	        <h2>Making Ebooks of Pro Git</h2>
-    	</div>
-
-		<div class="main fn-clear">
-			<article class="entry">
-				<h1 class="title">Making Ebooks of Pro Git</h1>
-               	<p class="meta"><time class="date" pubdate="2014-01-10">10 Jan 2014</time> By <a href="/contact.html" class="author" title="author">amyangfei</a><g:plusone size="small"></g:plusone></p>
-               	<p class="description">介绍在 Ubuntu 环境下手动生成 Pro Git 电子书的过程</p>
- 			 	<p>Pro Git 是一本用来学习 git 很好的书，从 <a href="https://github.com/progit/progit" target="_blank">progit</a> 这个开源项目可以获得这本书的全部内容，下边介绍在 Ubuntu Server 12.04 环境下制作电子书的过程。</p>
+</header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">Making Ebooks of Pro Git</h2>
+	<div class="entry-content"><p>Pro Git 是一本用来学习 git 很好的书，从 <a href="https://github.com/progit/progit" target="_blank">progit</a> 这个开源项目可以获得这本书的全部内容，下边介绍在 Ubuntu Server 12.04 环境下制作电子书的过程。</p>
 
 <h2>安装依赖</h2>
 
@@ -63,191 +99,206 @@
 
 <p>markdown 使用的模板，通过 rubygems 安装</p>
 
-<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>gem install rdiscount
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>gem install rdiscount
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>3. calibre</h3>
 
 <p><a href="http://en.wikipedia.org/wiki/Calibre_(software)" target="_blank">calibre</a> 是一款开源的电子书管理软件，生成 epub 或 mobi 格式需要安装。</p>
 
-<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>sudo apt-get install calibre
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>sudo apt-get install calibre
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<!-- more -->
 
 
 <h3>4. pandoc，xelatex</h3>
 
-<p>生成 pdf 格式需要安装这两个依赖，pandoc 安装比较简单，直接apt；安装 xelatex 则需要首先安装 texlive-xetex，然后打上 LaTeX::Driver 补丁（参考了这个网址 <a href="http://ledgersmb.org/faq/xelatex" target="_blank">Frequently Asked Questions - XeLaTeX</a> ）。</p>
+<p>生成 pdf 格式需要安装这两个依赖，pandoc 安装比较简单，直接apt；安装 xelatex 则需要首先安装 texlive-xetex，然后打上 LaTeX::Driver 补丁（参考了这个网址 <a href="http://ledgersmb.org/faq/xelatex" target="_blank">Frequently Asked Questions &ndash; XeLaTeX</a> ）。</p>
 
-<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>sudo apt-get install pandoc
-<span class="nv">$ </span>sudo apt-get install texlive-xetex texlive-latex-base texlive-latex-extra
-<span class="nv">$ </span>sudo apt-get install liblatex-<span class="o">{</span>driver,encode,table<span class="o">}</span>-perl
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>sudo apt-get install pandoc
+</span><span class='line'><span class="nv">$ </span>sudo apt-get install texlive-xetex texlive-latex-base texlive-latex-extra
+</span><span class='line'><span class="nv">$ </span>sudo apt-get install liblatex-<span class="o">{</span>driver,encode,table<span class="o">}</span>-perl
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>5. install font</h3>
 
 <p>生成 pdf 时读取 latex/config.yml 中的配置，使用过程中可能会出现一些字体不存在的错误。比如：</p>
 
-<div class="highlight"><pre><code class="bash">./makepdf en
-en:
-        Parsing markdown... <span class="k">done</span>
-<span class="k">        </span>Creating main.tex <span class="k">for </span>en... <span class="k">done</span>
-<span class="k">        </span>Running XeTeX:
-                Pass 1... failed with:
-                        ! I can<span class="s1">&#39;t find file `Helvetica&#39;</span>.
-        Consider running this again with --debug.
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./makepdf en
+</span><span class='line'>en:
+</span><span class='line'>        Parsing markdown... <span class="k">done</span>
+</span><span class='line'><span class="k">        </span>Creating main.tex <span class="k">for </span>en... <span class="k">done</span>
+</span><span class='line'><span class="k">        </span>Running XeTeX:
+</span><span class='line'>                Pass 1... failed with:
+</span><span class='line'>                        ! I can<span class="s1">&#39;t find file `Helvetica&#39;</span>.
+</span><span class='line'>        Consider running this again with --debug.
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>这个错误的原因是 Ubuntu 系统中 Helvetica 字体名字为 Nimbus Sans L，修改 confi.yml 文件default 节点下的 font 值即可。</p>
 
-<div class="highlight"><pre><code class="bash"><span class="nv">$ </span><span class="nb">fc</span>-match <span class="s2">&quot;Helvetica Neue&quot;</span>    
-DejaVuSans.ttf: <span class="s2">&quot;DejaVu Sans&quot;</span> <span class="s2">&quot;Book&quot;</span>     
-<span class="nv">$ </span><span class="nb">fc</span>-match <span class="s2">&quot;Helvetica&quot;</span>
-n019003l.pfb: <span class="s2">&quot;Nimbus Sans L&quot;</span> <span class="s2">&quot;Regular&quot;</span>
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span><span class="nb">fc</span>-match <span class="s2">&quot;Helvetica Neue&quot;</span>
+</span><span class='line'>DejaVuSans.ttf: <span class="s2">&quot;DejaVu Sans&quot;</span> <span class="s2">&quot;Book&quot;</span>
+</span><span class='line'><span class="nv">$ </span><span class="nb">fc</span>-match <span class="s2">&quot;Helvetica&quot;</span>
+</span><span class='line'>n019003l.pfb: <span class="s2">&quot;Nimbus Sans L&quot;</span> <span class="s2">&quot;Regular&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>生成中文pdf时同样遇到了中文字体不存在的情况，默认的配置文件使用的是 AR PL UMing CN 和 AR PL UKai CN，直接安装即可。但是我个人感觉 AR PL UMing CN 字体太细瘦，换成了文泉驿微米黑字体，圆润多了。</p>
 
-<div class="highlight"><pre><code class="bash">sudo apt-get install ttf-arphic-ukai    <span class="c"># &quot;AR PL UKai&quot; 文鼎PL中楷</span>
-sudo apt-get install ttf-arphic-uming   <span class="c"># &quot;AR PL UMing&quot; 文鼎PL细上海宋</span>
-sudo apt-get install ttf-wqy-microhei   <span class="c"># &quot;WenQuanYi Micro Hei&quot; 文泉驿微米黑</span>
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo apt-get install ttf-arphic-ukai    <span class="c"># &quot;AR PL UKai&quot; 文鼎PL中楷</span>
+</span><span class='line'>sudo apt-get install ttf-arphic-uming <span class="c"># &quot;AR PL UMing&quot; 文鼎PL细上海宋</span>
+</span><span class='line'>sudo apt-get install ttf-wqy-microhei <span class="c"># &quot;WenQuanYi Micro Hei&quot; 文泉驿微米黑</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>make</h2>
 
 <p>最后一步，生成电子书，好书一本，细细品读，Enjoy！</p>
 
-<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>./makeebooks en        <span class="c"># 默认生成mobi格式，en英文</span>
-<span class="nv">$ </span><span class="nb">export </span><span class="nv">FORMAT</span><span class="o">=</span>epub     <span class="c"># 设置FORMAT为epub，生成epub格式</span>
-<span class="nv">$ </span>./makeebooks zh       <span class="c"># 生成epub格式，zh中文</span>
-<span class="nv">$ </span>./makepdfs zh         <span class="c"># 生成pdf</span>
-</code></pre></div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./makeebooks en        <span class="c"># 默认生成mobi格式，en英文</span>
+</span><span class='line'><span class="nv">$ </span><span class="nb">export </span><span class="nv">FORMAT</span><span class="o">=</span>epub       <span class="c"># 设置FORMAT为epub，生成epub格式</span>
+</span><span class='line'><span class="nv">$ </span>./makeebooks zh     <span class="c"># 生成epub格式，zh中文</span>
+</span><span class='line'><span class="nv">$ </span>./makepdfs zh           <span class="c"># 生成pdf</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 
-
-                <nav class="pagination-link">
-                    
-                    <a class="prev" href="/2013/11/06/apscheduler-source-analyse/" rel="bookmark">&laquo;&nbsp;APScheduler 源码阅读笔记</a>
-                    
-                    
-                 </nav>
-			</article><!-- .entry -->
-			<div class="violet-comment">
-	             <div id="disqus_thread"></div>
-	        </div><!-- //violet-comment -->
-		</div>
-		<div class="aside fn-clear">
-			<div class="box fn-clear">
-        <h3 class="title">Recent Posts</h3>
-        <ul>
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2014/01/10/making-progit-ebook/" title="Making Ebooks of Pro Git" rel="bookmark">Making Ebooks of Pro Git</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/11/06/apscheduler-source-analyse/" title="APScheduler 源码阅读笔记" rel="bookmark">APScheduler 源码阅读笔记</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/09/06/xenserver-use-tip/" title="xenserver 使用小结" rel="bookmark">xenserver 使用小结</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/06/17/asynchronous-programming-with-tornado/" title="使用Tornado进行异步编程" rel="bookmark">使用Tornado进行异步编程</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/05/10/longest-segement-merge/" title="线段合并求最长线段" rel="bookmark">线段合并求最长线段</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/05/05/stl-heap-llvm-gcc/" title="stl make_heap在llvm和g++下的不同实现" rel="bookmark">stl make_heap在llvm和g++下的不同实现</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/03/16/tips-of-scrapy/" title="scrapy使用笔记" rel="bookmark">scrapy使用笔记</a>
-                </li>                                       
-           
-                <li class="v-aside-li">
-                        <span class="v-span">&#8227;</span><a href="/2013/03/01/tornado-source-analysis-5/" title="tornado源码分析5" rel="bookmark">tornado源码分析5</a>
-                </li>                                       
-        
-        </ul>  
 </div>
-		</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-10T00:00:00+08:00" pubdate data-updated="true">Jan 10<span>th</span>, 2014</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/ubuntu/'>Ubuntu</a>, <a class='category' href='/blog/categories/ebook/'>ebook</a>, <a class='category' href='/blog/categories/ruby/'>ruby</a>, <a class='category' href='/blog/categories/xelatex/'>xelatex</a>
+
+
+</div>
+	
+	<div class="comments"><a href="#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+<nav id="pagenavi">
+     
+      <a class="prev" href="/2013/11/06/apscheduler-source-analyse/" title="Previous Post: APScheduler 源码阅读笔记"> APScheduler 源码阅读笔记</a>
+    
+    
+    <div class="center"><a href="/blog/archives">Blog Archives</a></div>
+</nav>
+
+<!-- 
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+		
+		
+		
+		
 	</div>
+	
+</div>
+
+ -->
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
 </section>
-    </article>
-  </section>
-    <footer class="foot">
-	<div class="foot-cnt fn-clear">
-		<div class="foot-cnt-det fn-clear">
-			
-			<article class="blogroll">
-				<h4 class="title">QR code</h4>
-				<ul>
-					<img src="/images/static/qrcode.png"></img>
-				</ul>
-			</article>
-			<article class="about">
-				<h4 class="title">About Me</h4>
-				<p>I am 数列卡索.<br> A coder and dream runner.<br> Life is ephemeral while working is endless.<br> No pain, no gain</p>
-			</article>
-			<article class="follow">
-				<h4 class="title">Follow Me</h4>
-				<ul>
-					<li><a href="https://github.com/amyangfei" class="ico-github" target="_blank">github</a></li>
-					<li><a href="/atom.xml" class="ico-rss" target="_blank">rss</a></li>
-					<li><a href="https://www.twitter.com/amyangfei" class="ico-twitter" target="_blank">twitter</a></li>
-					<li><a href="https://www.facebook.com/amyangfei" class="ico-facebook" target="_blank">facebook</a></li>
-					<li><a href="http://weibo.com/amyangfei" class="ico-weibo" target="_blank">weibo</a></li>
-					<li><a href="http://www.douban.com/people/amyangfei" class="ico-douban" target="_blank">douban</a></li>
-				</ul>
-			</article>
-		</div>
-	</div>
-	<div class="foot-btn">
-		<div class="foot-btn-det">
-			<p class="copyright">Copyright © 2012 amyangfei All rights reserved.</p>&nbsp&nbsp
-			<span class="v-tj">
-				<script src="http://s22.cnzz.com/stat.php?id=3939200&web_id=3939200&show=pic" language="JavaScript">	
-				</script>
-			</span>
-			<p class="author">Powered by <a href="http://www.jekyllrb.com" target="_blank">Jekyll</a> and <a href="http://www.pizn.net" target="_blank">PIZn</a>.</p>
-		</div>
-	</div>
-</footer>
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2012-2014
 
-    
-    <script type="text/javascript">
+    amyangfei
+
+&nbsp;&nbsp;
+<span class="credit">Powered by <a href="http://octopress.org">Octopress</a> and <a href="https://github.com/tommy351/Octopress-Theme-Slash">Slash</a></span>
+&nbsp;<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_3939200'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s22.cnzz.com/stat.php%3Fid%3D3939200%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script></footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.scrollUp.min.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'amyangfei';
+      
         
-        //disqus
-        var disqus_shortname = 'amyangfei';
-        (function() {
-            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] ||
-                document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
-    
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://amyangfei.me/2014/01/10/making-progit-ebook/';
+        var disqus_url = 'http://amyangfei.me/2014/01/10/making-progit-ebook/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//go.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
-    <script type="text/javascript">
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-30252000-1']);
-        _gaq.push(['_trackPageview']);
-        (function() {
-          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-          var s = document.getElementsByTagName('script')[0];
-              s.parentNode.insertBefore(ga, s);
-        })();
-    </script>
+
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-30252000-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+
+
 </body>
 </html>

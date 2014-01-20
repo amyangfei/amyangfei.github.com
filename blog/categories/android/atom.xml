@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Android | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/android/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-01-20T16:40:46+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Android运行脚本与定时工具]]></title>
+    <link href="http://amyangfei.me/2013/02/08/android-taskscheduler-and-scripting/"/>
+    <updated>2013-02-08T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2013/02/08/android-taskscheduler-and-scripting</id>
+    <content type="html"><![CDATA[<p>用惯了crontab，实验室的机器因为某些原因连不上，于是希望在自己的Android手机上完成定时执行一些脚本的任务。google一下找到了 <a href="http://i55m411.appspot.com/?p=594004" target="_blank">android应用实现定时打电话</a> 这样一篇文章，正好满足我的需求。下面做一个简单的总结。</p>
+
+<h3>安装的软件</h3>
+
+<ul>
+<li><p><a href="http://code.google.com/p/android-scripting" target="_blank">SL4A(Scripting Layer for Android)</a>，Andriod系统下运行脚本的环境，可以在终端、后台或Locale中运行，现阶段支持Python, Perl, JRuby, Lua, BeanShell, JavaScript, Tcl和shell脚本。</p></li>
+<li><p><a href="http://code.google.com/p/android-scripting/downloads/detail?name=PythonForAndroid_r4.apk&can=2" target="_blank">Py4A</a>，SL4A的python插件，安装之后就可以运行python脚本。</p></li>
+<li><p><a href="https://play.google.com/store/apps/details?id=org.androidideas.taskbomb" target="_blank">TaskBomb task scheduler</a>，一个可以执行计划任务的app，类似于Unix中的crontab。</p></li>
+<li><p><a href="https://play.google.com/store/apps/details?id=org.androidideas.scriptlauncher" target="_blank">SL4A Script Launcher</a>，TaskBomb可以通过此app执行SL4A脚本。</p></li>
+</ul>
+
+
+<!-- more -->
+
+
+<h3>简单使用</h3>
+
+<ul>
+<li><p>安装Py4A后进入程序，点击最上边的Install会自动下载Python运行所需要的类库。</p></li>
+<li><p>进入SL4A会看到在SL4A程序Scripts目录下的脚本，可以在terminal或后台运行这些脚本；在SL4A中可以添加、修改、删除脚本程序，使用方法很简单，不详细说明。</p></li>
+<li><p>需要注意的是Py4A支持的是python2.6，最新的python-for-android的项目地址已经在 <a href="http://code.google.com/p/python-for-android/" target="_blank">这里</a> 。Py4A不仅支持python的原生API，同时可以很方便的调用Android的系统API，比如可以使用下边很简单的代码向目标手机发送短信。详细可参考 <a href="http://code.google.com/p/android-scripting/wiki/ApiReference" target="_blank">ApiReference</a>。</p></li>
+</ul>
+
+
+<p>``` python
+import android</p>
+
+<p>droid = android.Android()
+droid.smsSend(&lsquo;15120000xxx&rsquo;, &lsquo;this is an sms auto sent by Py4A.&rsquo;)
+```</p>
+
+<h3>其他</h3>
+
+<p>最后这部分就是与文章内容不相关了。是一个虾米音乐自动签到的程序。需要注意的就是登录时一定要将headers中的User-Agent修改为浏览器的User-Agent，签到的post请求需要修改headers中的User-Agent和Referer地址。其他就没有什么了（突然想到和某只喵喵的比赛是不是可以拿TaskBomb+SL4A作弊），各位看官求轻拍，捂面。</p>
+
+<p>``` python</p>
+
+<h1>&ndash;<em>&ndash; coding: utf-8 &ndash;</em>&ndash;</h1>
+
+<p>import urllib2, urllib</p>
+
+<p>def login(email, password):</p>
+
+<pre><code>try:
+    cookies = urllib2.HTTPCookieProcessor()
+    opener = urllib2.build_opener(cookies)
+    urllib2.install_opener(opener)
+    params = {'email':email, 'password':password, 'submit':'登 录'}
+    loginUrl = 'http://www.xiami.com/member/login'
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.57 Safari/537.17",
+        }
+    request = urllib2.Request(
+        url     = loginUrl,
+        headers = headers,
+        data    = urllib.urlencode(params)
+        )
+    login = urllib2.urlopen(request)
+    print 'login successfully...'
+    return login
+except Exception, e:
+    print 'login failed:', e
+    return None
+</code></pre>
+
+<p>def signin(email, password):</p>
+
+<pre><code>signurl = 'http://www.xiami.com/task/signin'
+if login(email, password) != None:
+    try:
+        headers = {
+            "Referer": "http://www.xiami.com/?register",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.57 Safari/537.17",
+        }
+        request = urllib2.Request(
+            url     = signurl,
+            headers = headers
+            )
+        response = urllib2.urlopen(request)
+        retcode = response.read()
+        if str.isdigit(retcode):
+            print 'sign in days:', retcode                   
+    except Exception, e:
+        print 'signin error:', e
+</code></pre>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
+
+<pre><code>email = 'xxx'
+password = 'xxx'   
+signin(email, password)
+</code></pre>
+
+<p>```</p>
+
+<h3>参考</h3>
+
+<p><a href="http://i55m411.appspot.com/?p=594004" target="_blank">android应用实现定时打电话</a>， <a href="http://code.google.com/p/android-scripting/" target="_blank">google code SL4A</a></p>
+]]></content>
+  </entry>
+  
+</feed>

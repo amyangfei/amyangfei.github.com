@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Jekyll | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/jekyll/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-01-20T16:40:46+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[how to build this blog]]></title>
+    <link href="http://amyangfei.me/2012/12/30/how-to-build-this-blog/"/>
+    <updated>2012-12-30T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2012/12/30/how-to-build-this-blog</id>
+    <content type="html"><![CDATA[<p>系统环境Mac OS X 10.8.2，这个博客主要通过jekyll生成静态页面，使用ruby提供的一些扩展插件，比如按月份进行归档等，配置环境的过程如下。</p>
+
+<p>安装ruby，rubygems</p>
+
+<p><code>bash
+sudo port ruby
+sudo port install rb-rubygems
+sudo gem install rubygems-update
+sudo gem update --system
+</code></p>
+
+<p>安装bundle</p>
+
+<p><code>bash
+sudo gem install bundler
+</code></p>
+
+<!-- more -->
+
+
+<p>安装jeklly，rdiscount（支持markdown语法，<a href="https://github.com/rtomayko/rdiscount" target="_blank">rdiscount github</a>），liquid（支持jekyll模板渲染，<a href="https://github.com/mojombo/jekyll/wiki/liquid-extensions" target="_blank">Liquid Extensions</a>）。可以写到一个Gemfile文件中然后 bundle install。</p>
+
+<p><code>bash
+bundle install
+</code></p>
+
+<p>Gemfile文件内容</p>
+
+<p>``` bash
+source &ldquo;<a href="http://rubygems.org">http://rubygems.org</a>&rdquo;</p>
+
+<p>gem &ldquo;jekyll&rdquo;, &ldquo;0.10.0&rdquo;
+gem &ldquo;jekyll_ext&rdquo;
+gem &ldquo;liquid&rdquo;, &ldquo;2.2.2&rdquo;
+gem &ldquo;rdiscount&rdquo;
+```</p>
+
+<p>关于jekyll的一些扩展插件，可以参考 <a href="https://github.com/mojombo/jekyll/wiki/Plugins" target="_blank">jekyll plugins</a> 和 <a href="https://github.com/rfelix/my_jekyll_extensions" target="_blank">rfelix&rsquo;s jelyll extensions</a> 。</p>
+
+<p>生成静态页面，运行服务器</p>
+
+<p><code>bash
+bundle exec ejekyll --server
+</code></p>
+]]></content>
+  </entry>
+  
+</feed>

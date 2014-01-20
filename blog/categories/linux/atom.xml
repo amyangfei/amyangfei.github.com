@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Linux | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/linux/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-01-20T16:40:46+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[配置安全ssh的几个方法]]></title>
+    <link href="http://amyangfei.me/2012/11/12/secure-tips-for-ssh/"/>
+    <updated>2012-11-12T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2012/11/12/secure-tips-for-ssh</id>
+    <content type="html"><![CDATA[<p>最近一直通过ssh连接到机房的电脑，昨天把ssh端口改回了默认的22，结果今天早上收到Logwatch的报告时发现来自3个不同ip的100多条登陆失败的记录，于是总结一些配置安全ssh的方法。本文实验环境为unbutu12.10。</p>
+
+<h3>SSH服务配置，合理配置/etc/ssh/sshd_config文件</h3>
+
+<ul>
+<li><p>1.修改默认端口：ssh默认登录端口为22，修改后可以增加入侵者探测系统是否运行有sshd守护进程的难度。如：
+<code>bash
+Port 4312
+</code></p></li>
+<li><p>2.限定监听ip：通常如果配置ListenAddress 0.0.0.0，那么任意ip都可以通过ssh访问。如果指定了ListenAddress为特定IP，那么仅有这些限定的IP可以访问。</p></li>
+</ul>
+
+
+<p><code>bash
+ListenAddress 192.168.1.100
+ListenAddress 192.168.1.101
+</code></p>
+
+<!-- more -->
+
+
+<ul>
+<li>3.禁止root登录</li>
+</ul>
+
+
+<p><code>bash
+PermitRootLogin no
+</code></p>
+
+<ul>
+<li>4.禁止/允许特定用户和用户组登录:
+以下分别对应禁止用户登录、禁止用户组登录、允许用户登录、允许用户组登录。处理顺序是：DenyUsers, AllowUsers, DenyGroups, AllowGroups。</li>
+</ul>
+
+
+<p><code>bash
+DenyUsers apache jame
+DenyGroups developers qa
+AllowUsers apple pear
+AllowGroups sysadmin dba
+</code></p>
+
+<ul>
+<li>5.设置超时断开:可以通过修改ClientAliveInterval和ClientAliveCountMax参数断开一定时间内没有活动的连接用户。ClientAliveCountMax参数表示ssh-server向client发送活动检测的次数，例如ClientAliveInterval=150，ClientAliveCountMax=3，那么大约在450s后会断开没有响应的连接。</li>
+</ul>
+
+
+<p><code>bash
+ClientAliveInterval 150
+ClientAliveCountMax 3
+</code></p>
+
+<ul>
+<li>6.限制密码尝试次数</li>
+</ul>
+
+
+<p><code>bash
+MaxAuthTries 10
+</code></p>
+
+<h3>配置hosts.allow和hosts.deny文件</h3>
+
+<p>/etc/hosts.allow控制可以访问本机的IP地址，/etc/hosts.deny控制禁止访问本机的IP。如果两个文件的配置有冲突，/etc/hosts.allow优先级较高，即同时出现在.allow和.deny中的IP是可以访问本机的。比如限定禁止访问的IP直接加到/etc/hosts.deny文件中即可</p>
+
+<p><code>bash
+sshd:119.196.231.193
+sshd:125.136.130.18
+sshd:94.103.147.75
+</code></p>
+
+<p>在网上看到了一种比较好的方法，就是每天利用crontab任务分析系统登录日志，将登陆失败次数达到一定范围的IP加入/etc/hosts.deny文件来拒绝这个IP登录。原文地址-><a href="http://www.pyshell.com/index.php/archives/225" target="_blank"> 利用shell拒绝ssh暴力破解 </a>实现脚本如下，注意，只修改hosts.allow和hosts.deny文件不需要重启networking服务。</p>
+
+<p>``` bash</p>
+
+<h1>!/bin/bash</h1>
+
+<p>blackip=&lsquo;/var/myscript/blackip.txt&rsquo;
+cat /var/log/auth.log | awk &lsquo;/Failed/{print $(NF-3)}&rsquo; | sort | uniq -c | awk &lsquo;{if ($1 >= 9) {print $2"=&ldquo;$1}}&rsquo; > $blackip
+for i in $(cat $blackip)
+do</p>
+
+<pre><code>ip=$(echo $i | awk -F= '{print $1}')
+grep $ip /etc/hosts.deny
+if [ $? -gt 0 ];
+then
+    echo "sshd:$ip" &gt;&gt; /etc/hosts.deny
+fi
+</code></pre>
+
+<p>done
+```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[An Experience of being Attacked]]></title>
+    <link href="http://amyangfei.me/2012/09/20/server-suffering-attack/"/>
+    <updated>2012-09-20T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2012/09/20/server-suffering-attack</id>
+    <content type="html"><![CDATA[<p>在9月16日导师交给我一台小型服务器，用作测试环境，服务器运行以Linux 2.6.18内核的Asianux 3.0操作系统。我在服务器上面配置了Oracle服务、国产神通数据库服务，并开启了sshd，在sshd_config配置文件中开启了root登录的权限即配置有PermitRootLogin yes，监听地址直接写为了0.0.0.0，这是我犯的第一个错误，就是对ssh的访问限制过于宽松，没有对访问ip进行限制。我犯的第二个严重错误是老师交给我服务器时的root口令较弱，我并没有进行更改。然后9月16日晚上我竟然把服务器连接上外网然后就放在一边置之不理。</p>
+
+<p>第二天即9月17日晚我尝试使用ssh登录服务器，意外的发现root账户无法登录，给出的错误信息是Permission denied, please try again.使用其他普通账户可以登录，登录查看sshd进程信息发现下面的结果：</p>
+
+<p><img src="http://amyangfei.me/images/post/ps-info.png"/></p>
+
+<!-- more -->
+
+
+<p>我查了一些相关资料，notty意思是no tty，很多博客都有说出现这样的进程不一定意味着被黑客攻击，通过sftp建立的连接或者使用scp复制文件都会出现notty的情形。但我当时还是比较困惑，就去直接操作服务器，在服务器上root账户依然无法登录，于是基本断定可能有人进入服务器修改了root密码。非常囧的是其他账户都没有查看系统日志的权限，这也是之前没有做过多的系统用户设定，于是我进行了root密码找回的操作。</p>
+
+<h3>找回root密码</h3>
+
+<p>网上关于root密码丢失找回的方法很多，最主要的是在系统引到时以单用户方式进入系统，修改root密码。该操作系统通过grub引导，具体操作流程是先在在引导装载程序过程中键入“e”来进入编辑模式，这时会发现用于启动加载的一些指令，其中有一条指令类似于kernel/boot/vmlinuz-2.4.18-14 ro root=LABEL=/，需要将这一条指令修改为kernel/boot/vmlinuz-2.4.18-14 single ro root=LABEL=/或者kernel/boot/vmlinuz-2.4.18-14 ro root=LABEL=/ 1 。然后按“b”即可进入单用户启动模式，启动完成后会进入一个bash终端，利用passwd root修改root密码，然后reboot即可。</p>
+
+<h3>查看服务器日志</h3>
+
+<p>查看9.16～9.17两天之内/var/log/secure中的系统安全日志，发现了来自三处不同ip通过ssh对服务器的几百次访问，访问的形式主要有两种，一种是对root用户的不断密码猜测，另外一种是更换不通名称用户的访问试探。9月17日16:21:21服务器通过sftp连接第一次被侵入。可以断定修改密码的行为来自5.12.152.77这一ip，这个ip指向了RIPE，明显是经过了代理服务器。</p>
+
+<p>``` bash
+Sep 16 18:12:19 localhost sshd[9397]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=121.37.60.157  user=root
+Sep 16 18:12:21 localhost sshd[9397]: Failed password for root from 121.37.60.157 port 35035 ssh2
+Sep 16 18:12:21 localhost sshd[9398]: Received disconnect from 121.37.60.157: 11: Bye Bye</p>
+
+<p>Sep 17 06:32:36 localhost sshd[13249]: Invalid user download from 183.60.143.108
+Sep 17 06:32:36 localhost sshd[13250]: input_userauth_request: invalid user download
+Sep 17 06:32:36 localhost sshd[13249]: pam_unix(sshd:auth): check pass; user unknown
+Sep 17 06:32:36 localhost sshd[13249]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=183.60.143.108
+Sep 17 06:32:36 localhost sshd[13249]: pam_succeed_if(sshd:auth): error retrieving information about user download
+Sep 17 06:32:38 localhost sshd[13249]: Failed password for invalid user download from 183.60.143.108 port 59145 ssh2
+Sep 17 06:32:38 localhost sshd[13250]: Received disconnect from 183.60.143.108: 11: Bye Bye</p>
+
+<p>Sep 17 16:21:21 localhost sshd[15800]: Accepted password for root from 5.12.152.77 port 2271 ssh2
+Sep 17 16:21:21 localhost sshd[15800]: pam_unix(sshd:session): session opened for user root by (uid=0)
+Sep 17 16:21:22 localhost sshd[15800]: subsystem request for sftp</p>
+
+<p>Sep 17 18:29:53 localhost sshd[16349]: Accepted password for root from 5.12.152.77 port 2560 ssh2
+Sep 17 18:29:53 localhost sshd[16349]: pam_unix(sshd:session): session opened for user root by (uid=0)
+```</p>
+
+<h3>总结</h3>
+
+<p>总结一下这次经历中我曾留下的安全漏洞：</p>
+
+<p>1. 服务器root用户弱口令</p>
+
+<p>2. ssh允许root登录，没有进行ip访问限制</p>
+
+<p>3. 没有任何服务器安全保证措施（如防火墙、访问限制等）的基础上将服务器与外网相连</p>
+
+<p>4. 服务器用户管理不完善</p>
+
+<p>这次被攻击发现得及时，攻击者也没有做过多其他的事情，不过还是惊出了一身冷汗，初步的体验到了服务器运维的一些辛苦。</p>
+]]></content>
+  </entry>
+  
+</feed>

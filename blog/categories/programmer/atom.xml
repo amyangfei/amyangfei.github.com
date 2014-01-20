@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: programmer | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/programmer/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-01-20T16:40:46+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Hello world]]></title>
+    <link href="http://amyangfei.me/2012/03/20/hello-world/"/>
+    <updated>2012-03-20T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2012/03/20/hello-world</id>
+    <content type="html"><![CDATA[<p>有一天，我来到一所学校，开始一段程序员的生涯，有过迷茫，有过忧伤，但一路走来，我不能自拔地喜欢上这种生活</p>
+
+<p>有一天，我遇到一个新鲜的词汇，叫geek。虽然不知其深意，却对其充满景仰。</p>
+
+<p>有一天，我遇到一个开源者的乐园，叫GitHub，发现了Jkeyll，发现了一连串好玩的东西，发现了一位位身怀绝技的高手，我看到了自己的浅薄，也兴奋地认识到自己有好多可以学习的地方。</p>
+
+<p>这是一个新的开始，路漫漫兮。</p>
+]]></content>
+  </entry>
+  
+</feed>

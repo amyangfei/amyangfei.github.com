@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Ubuntu | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/ubuntu/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-01-20T16:40:46+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Making Ebooks of Pro Git]]></title>
+    <link href="http://amyangfei.me/2014/01/10/making-progit-ebook/"/>
+    <updated>2014-01-10T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2014/01/10/making-progit-ebook</id>
+    <content type="html"><![CDATA[<p>Pro Git 是一本用来学习 git 很好的书，从 <a href="https://github.com/progit/progit" target="_blank">progit</a> 这个开源项目可以获得这本书的全部内容，下边介绍在 Ubuntu Server 12.04 环境下制作电子书的过程。</p>
+
+<h2>安装依赖</h2>
+
+<h3>1. ruby, rubygems</h3>
+
+<p>参考 Ruby-China 的 <a href="http://ruby-china.org/wiki/install-rails-on-ubuntu-12-04-server" target="_blank">wiki</a></p>
+
+<h3>2. rdiscount</h3>
+
+<p>markdown 使用的模板，通过 rubygems 安装</p>
+
+<p>```bash</p>
+
+<p>$ gem install rdiscount</p>
+
+<p>```</p>
+
+<h3>3. calibre</h3>
+
+<p><a href="http://en.wikipedia.org/wiki/Calibre_(software)" target="_blank">calibre</a> 是一款开源的电子书管理软件，生成 epub 或 mobi 格式需要安装。</p>
+
+<p>``` bash</p>
+
+<p>$ sudo apt-get install calibre</p>
+
+<p>```</p>
+
+<!-- more -->
+
+
+<h3>4. pandoc，xelatex</h3>
+
+<p>生成 pdf 格式需要安装这两个依赖，pandoc 安装比较简单，直接apt；安装 xelatex 则需要首先安装 texlive-xetex，然后打上 LaTeX::Driver 补丁（参考了这个网址 <a href="http://ledgersmb.org/faq/xelatex" target="_blank">Frequently Asked Questions &ndash; XeLaTeX</a> ）。</p>
+
+<p>```bash</p>
+
+<p>$ sudo apt-get install pandoc
+$ sudo apt-get install texlive-xetex texlive-latex-base texlive-latex-extra
+$ sudo apt-get install liblatex-{driver,encode,table}-perl</p>
+
+<p>```</p>
+
+<h3>5. install font</h3>
+
+<p>生成 pdf 时读取 latex/config.yml 中的配置，使用过程中可能会出现一些字体不存在的错误。比如：</p>
+
+<p>``` bash
+./makepdf en
+en:</p>
+
+<pre><code>    Parsing markdown... done
+    Creating main.tex for en... done
+    Running XeTeX:
+            Pass 1... failed with:
+                    ! I can't find file `Helvetica'.
+    Consider running this again with --debug.
+</code></pre>
+
+<p>```</p>
+
+<p>这个错误的原因是 Ubuntu 系统中 Helvetica 字体名字为 Nimbus Sans L，修改 confi.yml 文件default 节点下的 font 值即可。</p>
+
+<p><code>bash
+$ fc-match "Helvetica Neue"    
+DejaVuSans.ttf: "DejaVu Sans" "Book"     
+$ fc-match "Helvetica"
+n019003l.pfb: "Nimbus Sans L" "Regular"
+</code></p>
+
+<p>生成中文pdf时同样遇到了中文字体不存在的情况，默认的配置文件使用的是 AR PL UMing CN 和 AR PL UKai CN，直接安装即可。但是我个人感觉 AR PL UMing CN 字体太细瘦，换成了文泉驿微米黑字体，圆润多了。</p>
+
+<p><code>bash
+sudo apt-get install ttf-arphic-ukai    # "AR PL UKai" 文鼎PL中楷
+sudo apt-get install ttf-arphic-uming   # "AR PL UMing" 文鼎PL细上海宋
+sudo apt-get install ttf-wqy-microhei   # "WenQuanYi Micro Hei" 文泉驿微米黑
+</code></p>
+
+<h2>make</h2>
+
+<p>最后一步，生成电子书，好书一本，细细品读，Enjoy！</p>
+
+<p><code>bash
+$ ./makeebooks en       # 默认生成mobi格式，en英文
+$ export FORMAT=epub        # 设置FORMAT为epub，生成epub格式
+$ ./makeebooks zh       # 生成epub格式，zh中文
+$ ./makepdfs zh         # 生成pdf
+</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[配置安全ssh的几个方法]]></title>
+    <link href="http://amyangfei.me/2012/11/12/secure-tips-for-ssh/"/>
+    <updated>2012-11-12T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2012/11/12/secure-tips-for-ssh</id>
+    <content type="html"><![CDATA[<p>最近一直通过ssh连接到机房的电脑，昨天把ssh端口改回了默认的22，结果今天早上收到Logwatch的报告时发现来自3个不同ip的100多条登陆失败的记录，于是总结一些配置安全ssh的方法。本文实验环境为unbutu12.10。</p>
+
+<h3>SSH服务配置，合理配置/etc/ssh/sshd_config文件</h3>
+
+<ul>
+<li><p>1.修改默认端口：ssh默认登录端口为22，修改后可以增加入侵者探测系统是否运行有sshd守护进程的难度。如：
+<code>bash
+Port 4312
+</code></p></li>
+<li><p>2.限定监听ip：通常如果配置ListenAddress 0.0.0.0，那么任意ip都可以通过ssh访问。如果指定了ListenAddress为特定IP，那么仅有这些限定的IP可以访问。</p></li>
+</ul>
+
+
+<p><code>bash
+ListenAddress 192.168.1.100
+ListenAddress 192.168.1.101
+</code></p>
+
+<!-- more -->
+
+
+<ul>
+<li>3.禁止root登录</li>
+</ul>
+
+
+<p><code>bash
+PermitRootLogin no
+</code></p>
+
+<ul>
+<li>4.禁止/允许特定用户和用户组登录:
+以下分别对应禁止用户登录、禁止用户组登录、允许用户登录、允许用户组登录。处理顺序是：DenyUsers, AllowUsers, DenyGroups, AllowGroups。</li>
+</ul>
+
+
+<p><code>bash
+DenyUsers apache jame
+DenyGroups developers qa
+AllowUsers apple pear
+AllowGroups sysadmin dba
+</code></p>
+
+<ul>
+<li>5.设置超时断开:可以通过修改ClientAliveInterval和ClientAliveCountMax参数断开一定时间内没有活动的连接用户。ClientAliveCountMax参数表示ssh-server向client发送活动检测的次数，例如ClientAliveInterval=150，ClientAliveCountMax=3，那么大约在450s后会断开没有响应的连接。</li>
+</ul>
+
+
+<p><code>bash
+ClientAliveInterval 150
+ClientAliveCountMax 3
+</code></p>
+
+<ul>
+<li>6.限制密码尝试次数</li>
+</ul>
+
+
+<p><code>bash
+MaxAuthTries 10
+</code></p>
+
+<h3>配置hosts.allow和hosts.deny文件</h3>
+
+<p>/etc/hosts.allow控制可以访问本机的IP地址，/etc/hosts.deny控制禁止访问本机的IP。如果两个文件的配置有冲突，/etc/hosts.allow优先级较高，即同时出现在.allow和.deny中的IP是可以访问本机的。比如限定禁止访问的IP直接加到/etc/hosts.deny文件中即可</p>
+
+<p><code>bash
+sshd:119.196.231.193
+sshd:125.136.130.18
+sshd:94.103.147.75
+</code></p>
+
+<p>在网上看到了一种比较好的方法，就是每天利用crontab任务分析系统登录日志，将登陆失败次数达到一定范围的IP加入/etc/hosts.deny文件来拒绝这个IP登录。原文地址-><a href="http://www.pyshell.com/index.php/archives/225" target="_blank"> 利用shell拒绝ssh暴力破解 </a>实现脚本如下，注意，只修改hosts.allow和hosts.deny文件不需要重启networking服务。</p>
+
+<p>``` bash</p>
+
+<h1>!/bin/bash</h1>
+
+<p>blackip=&lsquo;/var/myscript/blackip.txt&rsquo;
+cat /var/log/auth.log | awk &lsquo;/Failed/{print $(NF-3)}&rsquo; | sort | uniq -c | awk &lsquo;{if ($1 >= 9) {print $2"=&ldquo;$1}}&rsquo; > $blackip
+for i in $(cat $blackip)
+do</p>
+
+<pre><code>ip=$(echo $i | awk -F= '{print $1}')
+grep $ip /etc/hosts.deny
+if [ $? -gt 0 ];
+then
+    echo "sshd:$ip" &gt;&gt; /etc/hosts.deny
+fi
+</code></pre>
+
+<p>done
+```</p>
+]]></content>
+  </entry>
+  
+</feed>

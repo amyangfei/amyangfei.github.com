@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Algorithm | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/algorithm/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-01-20T16:40:46+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[线段合并求最长线段]]></title>
+    <link href="http://amyangfei.me/2013/05/10/longest-segement-merge/"/>
+    <updated>2013-05-10T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2013/05/10/longest-segement-merge</id>
+    <content type="html"><![CDATA[<p>原始题目来自于雅虎北研黑客日初赛试题，大概的描述是“在一维空间有n条线段，将每两条具有交集的线段（如[a,b],[c,d],b>a,d>c）合并为一条线段，合并后的线段为 [min(a,c),max(b,d)]”，求经过合并操作后最长的线段长度。</p>
+
+<p>在acm timus找到一道几乎一样的题目<a href="http://acm.timus.ru/problem.aspx?space=1&num=1019" target="_blank"> timus 1019 </a>。用<a href="https://en.wikipedia.org/wiki/Segment_tree" target="_blank">线段树</a>求解这两道题十分简单，例如 <a href="http://www.cnblogs.com/scau20110726/archive/2013/04/03/2998742.html" target="_blank">ural(Timus) 1019 Line Painting</a> 中的解法。</p>
+
+<p>我答题的时候没有使用线段树，而是通过一个有序列表记录实际线段的起止坐标，对于题目1019，将画白线对应于加入线段，画黑线对应于擦除线段。那么每次画线的起止点分别有4种情况：起点在线段上；起点在线段外；终点在线段上；终点在线段外。根据情况修改有序列表记录的坐标值，有序列表中 [i,i+1]（i=0,2,4&hellip;）始终表示不相交的线段。最后遍历有序列表即可得到最长的线段。</p>
+
+<!-- more -->
+
+
+<p>实现代码:</p>
+
+<p>``` c++
+import sys
+import bisect</p>
+
+<p>MAX = 1000000000
+joined_lines = [0, MAX]</p>
+
+<p>def insert_node(line, first, second, ptype, remove_val):</p>
+
+<pre><code>global joined_lines
+flag = 0 if ptype == 'w' else 1
+if second == first:
+    if first &amp; 1 == flag:
+        if first &gt; 0 and joined_lines[first-1] == line[0]:
+            remove_val.append(line[0])
+        if second &lt; len(joined_lines) and joined_lines[second] == line[1]:
+            remove_val.append(line[1])
+        bisect.insort(joined_lines, line[0])
+        bisect.insort(joined_lines, line[1])
+else:
+    if first &amp; 1 == flag:
+        if first &gt; 0 and joined_lines[first-1] == line[0]:
+            remove_val.append(line[0])
+        joined_lines[first] = line[0]
+    if second &amp; 1 == flag:
+        if second &lt; len(joined_lines) and joined_lines[second] == line[1]:
+            remove_val.append(line[1])
+        joined_lines[second-1] = line[1]
+    del_pos = first+1 if joined_lines[first] == line[0] else first
+    while del_pos &lt; len(joined_lines) and joined_lines[del_pos] &lt; line[1]:
+        joined_lines.remove(joined_lines[del_pos])
+</code></pre>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
+
+<pre><code>data = sys.stdin.readlines()
+number = int(data[0])
+
+for i in range(1,number+1):
+    start, end, ptype = data[i].split()
+    line = [int(start), int(end)]
+    first = bisect.bisect(joined_lines, line[0])
+    second = bisect.bisect(joined_lines, line[1])
+    remove_val = []
+
+    insert_node(line, first, second, ptype, remove_val)
+    for rv in remove_val:
+        joined_lines.remove(rv)
+        joined_lines.remove(rv)
+
+max, left, right = -1, -1, -1
+for i in range(len(joined_lines)/2):
+    if joined_lines[2*i+1]-joined_lines[2*i] &gt; max:
+        max = joined_lines[2*i+1]-joined_lines[2*i]
+        left, right = joined_lines[2*i], joined_lines[2*i+1] 
+print str(left)+' '+str(right)
+</code></pre>
+
+<p>```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[baidu-star算法题-地铁]]></title>
+    <link href="http://amyangfei.me/2013/01/02/baidustar-code-digraph/"/>
+    <updated>2013-01-02T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2013/01/02/baidustar-code-digraph</id>
+    <content type="html"><![CDATA[<p>题目来源：<a href="http://astar.baidu.com/index.php?r=home/detail&id=8" target="_blank">百度之星-2012年12月23号竞赛题目三-地铁</a></p>
+
+<p>思路：地图是一个有向图，需要从M条边中删除M-K条有向边。下面将一个点的出度与入度差的绝对值记为该点的“度”。由于只删边不增加边，那么如果希望降低系统的最大度，那么具有最大度的顶点一定需要删除与其相关的边。考虑使用贪心算法，每次选择删除边的规则如下：</p>
+
+<ol>
+<li>选出具有最大度的所有顶点，定义一个待删除相关节点最大度lastdegmax。对应每一个顶点u，如果u的出度大于入度，那么对应每一条(u,v),若删除(u,v)后会降低v的度，并且v的度大于lastdegmax，那么将(u,v)设置为将要删除的缓冲区(待删除缓冲区长度为1)。如果u的入度大于出度，操作类似。</li>
+<li>如果1中删除任何一条(u,v)或(v,u)都会增加v的度，那么选择选择具有最小度的v，将(u,v)或(v,u)加入待删除缓冲区。</li>
+<li>缓冲区中的边即为该轮迭代中将要删除的边。</li>
+</ol>
+
+
+<!-- more -->
+
+
+<p>实现代码如下：</p>
+
+<p>``` c++</p>
+
+<h1>include <iostream></h1>
+
+<h1>include <vector></h1>
+
+<h1>include <map></h1>
+
+<h1>include <cmath></h1>
+
+<p>using namespace::std;</p>
+
+<p>bool SortByDeg(const pair&lt;int,int> &amp;v1, const pair&lt;int,int> &amp;v2) {</p>
+
+<pre><code>return abs(v1.second) &gt; abs(v2.second); //desc sort
+</code></pre>
+
+<p>}</p>
+
+<p>void SortWrap(vector&lt;pair&lt;int,int> > &amp;deg, map&lt;int, int> &amp;degmap) {</p>
+
+<pre><code>sort(deg.begin(), deg.end(), SortByDeg);
+for (int i = 0; i &lt; deg.size(); i++) {
+    degmap[deg[i].first] = i;
+}
+</code></pre>
+
+<p>}</p>
+
+<p>void deldeg(vector<int> &amp;deldeg, int u) {</p>
+
+<pre><code>for (vector&lt;int&gt;::iterator uiter = deldeg.begin(); uiter != deldeg.end(); uiter++) {
+    if (*uiter == u) {
+        deldeg.erase(uiter);
+        break;
+    }
+}
+</code></pre>
+
+<p>}</p>
+
+<p>void update(vector<int> &amp;outdeg, vector<int> &amp;indeg, vector&lt;pair&lt;int,int> > &amp;deg, map&lt;int, int> &amp;degmap, int u, int v) {</p>
+
+<pre><code>deldeg(outdeg, v);
+deldeg(indeg, u);
+int ret = 0;
+for (vector&lt;pair&lt;int, int&gt; &gt;::iterator iter = deg.begin(); iter != deg.end(); iter++) {
+    if (ret == 2)
+        break;
+    if ((*iter).first == u) {
+        (*iter).second -= 1;
+        ret += 1;
+    }
+    else if ((*iter).first == v) {
+        (*iter).second += 1;
+        ret += 1;
+    }
+}
+SortWrap(deg, degmap);
+</code></pre>
+
+<p>}</p>
+
+<p>void setdelbuf(pair&lt;int,int> &amp;delbuf, int u, int v, int handleOut) {</p>
+
+<pre><code>delbuf.first = handleOut&gt;0 ? u : v;
+delbuf.second = handleOut&gt;0 ? v : u;
+</code></pre>
+
+<p>}</p>
+
+<p>void oneSelect(vector<int> &amp;outdeg, vector<int> &amp;indeg, vector&lt;pair&lt;int,int> > &amp;deg, map&lt;int, int> &amp;degmap, pair&lt;int,int> &amp;delbuf, int u, int <em>lastdegmax, int </em>lastdegmin, bool *minusmax, int handleOut) {</p>
+
+<pre><code>vector&lt;int&gt; handleDeg;
+if (handleOut == 1)
+    handleDeg = outdeg;
+else
+    handleDeg = indeg;
+for (vector&lt;int&gt;::iterator viter = handleDeg.begin(); viter != handleDeg.end(); viter++) {
+    if(deg.at(degmap[*viter]).second * handleOut &lt; 0) {
+        if (abs(deg.at(degmap[*viter]).second) &gt; *lastdegmax) {
+            *lastdegmax = abs(deg.at(degmap[*viter]).second);
+            setdelbuf(delbuf, u, *viter, handleOut);
+            *minusmax = true;
+        }
+    }
+    else if (!(*minusmax) ){
+        if( abs(deg.at(degmap[*viter]).second) &lt; *lastdegmin ) {
+            setdelbuf(delbuf, u, *viter, handleOut);
+            *lastdegmin = abs(deg.at(degmap[*viter]).second);
+        }
+    }
+}
+</code></pre>
+
+<p>}</p>
+
+<p>void cutSelect(vector<int> <em>outdeg, vector<int> </em>indeg, vector&lt;pair&lt;int,int> > &amp;deg, map&lt;int, int> &amp;degmap, pair&lt;int,int> &amp;delbuf) {</p>
+
+<pre><code>int degmax = abs(deg.at(0).second);
+int lastdegmax = -1;
+int lastdegmin = degmax;
+bool minusmax = false;
+for (int j = 0; j&lt;deg.size() &amp;&amp; abs(deg.at(j).second)==degmax; j++) {
+    int handleOut = deg.at(j).second&gt;0 ? 1 : -1;
+    oneSelect(outdeg[deg.at(j).first], indeg[deg.at(j).first], deg, degmap, delbuf, deg.at(j).first, &amp;lastdegmax, &amp;lastdegmin, &amp;minusmax, handleOut);
+}
+</code></pre>
+
+<p>}</p>
+
+<p>int solve(int n, int m, int k, vector&lt;pair&lt;int,int> > &amp;way) {</p>
+
+<pre><code>vector&lt;int&gt; *outdeg = new vector&lt;int&gt;[n];
+vector&lt;int&gt; *indeg = new vector&lt;int&gt;[n];
+for (vector&lt;pair&lt;int, int&gt; &gt;::iterator iter = way.begin(); iter != way.end(); iter++) {
+    outdeg[(*iter).first].push_back((*iter).second);
+    indeg[(*iter).second].push_back((*iter).first);
+}
+vector&lt;pair&lt;int,int&gt; &gt; deg;
+map&lt;int, int&gt; degmap;
+for (int i = 0; i &lt; n; i++) {
+    deg.push_back(make_pair(i, outdeg[i].size()-indeg[i].size()));
+}
+SortWrap(deg, degmap);
+
+for (int i = 0; i &lt; m-k; i++) {
+    pair&lt;int, int&gt; delbuf = make_pair(-1, -1);
+    cutSelect(outdeg, indeg, deg, degmap, delbuf);
+    update(outdeg[delbuf.first], indeg[delbuf.second], deg, degmap, delbuf.first, delbuf.second);
+}
+
+return abs(deg.at(0).second);
+</code></pre>
+
+<p>}</p>
+
+<p>int main(int argc, const char * argv[]) {</p>
+
+<pre><code>int T;
+cin &gt;&gt; T;
+vector&lt;pair&lt;int, int&gt; &gt; *way =new vector&lt;pair&lt;int, int&gt; &gt;[T];
+int *n = new int[T];
+int *m = new int[T];
+int *k = new int[T];
+for (int i = 0; i &lt; T; i++) {
+    cin &gt;&gt; n[i] &gt;&gt; m[i] &gt;&gt; k[i];
+    for (int j = 0; j &lt; m[i]; j++) {
+        int a, b;
+        cin &gt;&gt; a &gt;&gt; b;
+        way[i].push_back(make_pair(a-1, b-1));
+    }
+}
+for (int i = 0; i &lt; T; i++) {
+    cout &lt;&lt; "Case " &lt;&lt; (i+1) &lt;&lt; ": " &lt;&lt; solve(n[i], m[i], k[i], way[i]) &lt;&lt; endl;
+}
+return 0;
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<h3>测试数据</h3>
+
+<p>`` bash
+6
+2 1 1
+1 2
+2 1 0
+1 2
+4 4 3
+1 2 1 3 2 4 4 3
+9 8 4
+1 2 1 3 2 4 2 5 2 6 3 7 3 8 3 9
+9 8 7
+1 2 1 3 2 4 2 5 2 6 3 7 3 8 3 9
+5 4 3
+1 2 1 3 2 5 4 3
+```</p>
+
+<h3>输出</h3>
+
+<p><code>
+Case 1: 1
+Case 2: 0
+Case 3: 1
+Case 4: 1
+Case 5: 2
+Case 6: 1
+</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[baidu-star算法题-du熊学斐波那契I]]></title>
+    <link href="http://amyangfei.me/2012/12/31/baidustar-code-fibonacci/"/>
+    <updated>2012-12-31T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2012/12/31/baidustar-code-fibonacci</id>
+    <content type="html"><![CDATA[<p>题目来源：<a href="http://astar.baidu.com/index.php?r=home/detail&id=2" target="_blank">百度之星-du熊学斐波那契I</a></p>
+
+<p>题目其实很简单，如果不考虑时间和内存可以按照fibonacci的生成方式暴力进行下去。注意到每次增长只针对最后两位数字，所以每次增长的两位数字组合最多有100种：[0,0]~[9,9]，所以增长一定次数之后会出现一个内嵌的循环。</p>
+
+<p>在oschina上看到一篇帖子，给出了两种很漂亮的python实现，<a href="http://www.oschina.net/code/snippet_103482_16641" target="_blank">原文</a>。下面来分析一下：</p>
+
+<h3>实现一简洁版</h3>
+
+<p>``` python
+def f1(a,b,n):</p>
+
+<pre><code>intDigits=lambda n: map(int, str(n))
+return reduce(lambda x,y: x+intDigits(sum(x[-2:])), range(n-2), [a,b])[n-1]
+</code></pre>
+
+<p>test=[[1,1,2],[1,1,8],[1,4,8]]
+print [f1(*i) for i in test]
+```</p>
+
+<p>这个版本就是暴力计算了，一直增长n-2次</p>
+
+<!-- more -->
+
+
+<h3>实现二高效版</h3>
+
+<p>``` python
+partition=lambda L: [L[i:i+2] for i in range(len(L)-1)]
+intDigits=lambda n: map(int, str(n))</p>
+
+<p>def f2(a,b,n):</p>
+
+<pre><code>r=[a,b]
+while r[-2:] not in partition(r[:-2]):
+    r=r+intDigits(r[-2]+r[-1])
+pos= partition(r).index(r[-2:])
+return r[n-1 if n&lt;pos else (n-1-pos)%(len(r)-pos-2) + pos]
+</code></pre>
+
+<p>test=[[1,1,2],[1,1,8],[1,4,8],[2,4,100],[1,5,10<strong>8-1],[1,7,10</strong>8]]
+print [f2(*i) for i in test]
+```</p>
+
+<p>这种方法通过lambda表达式拆分每次增长后的序列，得到没两位组成的加法模式，出现循环后停止增长，可以很容易返回第n位的值。但是这种算法有一个bug，比如初始值[9, 1, 7]，那么增长出的序列应该是9110112……由于第一次出现的11并不是得到它们的增长过程中的最后两位，因而在出现了110的模式而不是112。</p>
+
+<h3>我的实现</h3>
+
+<p>``` python
+iniDigets = lambda n: map(int, str(n))</p>
+
+<p>def fun(a,b,n):</p>
+
+<pre><code>turplemap = {}
+r = [a,b]
+while (r[-2],r[-1]) not in turplemap:
+    turplemap[(r[-2],r[-1])] = len(r)-2
+    r += iniDigets(r[-2] + r[-1])
+pos = turplemap[(r[-2],r[-1])]
+return r[n-1 if n&lt;pos else (n-1-pos)%(len(r)-2-pos) + pos]
+</code></pre>
+
+<p>test=[[1,1,2], [1,1,8], [1,4,8], [2,4,100], [1,5,10<strong>8-1], [1,7,10</strong>8], [9,1,7]]
+print [fun(*i) for i in test]</p>
+
+<p>```</p>
+
+<p>参考实现二的方法，我利用一个字典记录每次增长后序列<strong><em>最后两位</em></strong>的位置，每次在字典中查找是否已出现模式循环。</p>
+
+<h3>c++实现</h3>
+
+<p>最后附上一个C++版，思路和上面的实现三一致。</p>
+
+<p>``` c++</p>
+
+<h1>include <iostream></h1>
+
+<h1>include <sstream></h1>
+
+<h1>include <map></h1>
+
+<p>using namespace std;</p>
+
+<p>int func(int a, int b, int n) {</p>
+
+<pre><code>stringstream ss;
+string res;
+ss &lt;&lt; a &lt;&lt; b;
+ss &gt;&gt; res;
+map&lt;pair&lt;char, char&gt;, int&gt; tuplemap;
+while(true) {
+    int len = res.length();
+    map&lt;pair&lt;char, char&gt;, int&gt;::iterator miter = tuplemap.find(make_pair(res[len-2], res[len-1]));
+    if(miter != tuplemap.end())
+        break;
+    tuplemap[make_pair(res[len-2], res[len-1])] = len-2;
+    ss.clear();
+    ss &lt;&lt; (res[len-2]-'0')+(res[len-1]-'0');
+    string temp;
+    ss &gt;&gt; temp;
+    res += temp;
+}
+int pos = tuplemap[make_pair(res[res.length()-2], res[res.length()-1])];
+if (n &lt; pos) {
+    return res[n-1] - '0';
+}
+else {
+    return res[(n-1-pos)%(res.length()-2-pos)+pos] - '0';
+}
+</code></pre>
+
+<p>}</p>
+
+<p>int main(int argc, const char * argv[]) {</p>
+
+<pre><code>int test[][3] = { {1,1,2},{1,1,8},{1,4,8},{2,4,100},{9,1,7} };
+int len = sizeof(test) / sizeof(int[3]);
+for(int i = 0; i &lt; len; i++) {
+    cout &lt;&lt; func(test[i][0], test[i][1], test[i][2]) &lt;&lt; endl;
+}
+return 0;
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[随机排序算法简介]]></title>
+    <link href="http://amyangfei.me/2012/11/29/shuffle-algorithm/"/>
+    <updated>2012-11-29T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2012/11/29/shuffle-algorithm</id>
+    <content type="html"><![CDATA[<p>前几天看了酷壳上的一篇文章<a href="http://coolshell.cn/articles/8593.html" target="_blank">如何测试洗牌程序</a>，之后仔细看了Wikipedia对<a href="http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle" target="_blank">Fisher–Yates shuffle</a>算法的介绍，这里简单的总结一下，基本是翻译Wikipedia。</p>
+
+<h2>Fisher and Yates' original method</h2>
+
+<p>该算法最初是1938年由Ronald A. Fisher和Frank Yates在《Statistical tables for biological, agricultural and medical research》一书中描述，算法生成1-N个数的随机排列的过程如下：</p>
+
+<ol>
+<li>原始数组中有数字1到N</li>
+<li>设原始数组未被标记的数字个数为k，生成一个1到k之间的随机数</li>
+<li>取出原始数组未被标记数字中的第k个，将其标记并插入到新的排列数组尾端。</li>
+<li>重复过程2直到原始数组中没有未被标记的数字</li>
+<li>过程3中生成的新数组就是一个对原始数组的随机排列</li>
+</ol>
+
+
+<p>该算法可以理解为已知有n个元素，先从n个元素中任选一个，放入新空间的第一个位置，然后再从剩下的n-1个元素中任选一个，放入第二个位置，依此类推。算法在过程3查找未被标记的第k个数字有很多重复操作，导致算法效率并不高，总的时间复杂度为O(N<sup>2</sup> )，空间复杂度为O(N)。算法的python实现如下所示：</p>
+
+<!-- more -->
+
+
+<p>``` python
+from random import random</p>
+
+<p>def FisherYateOldShullfe(items):</p>
+
+<pre><code>ret = [None] * len(items)
+for i in reversed(range(0, len(items))):
+    j = int(random() * (i+1))
+    ret[i] = items[j]
+    del items[j]
+return ret
+</code></pre>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
+
+<pre><code>srclist = [n for n in range(10)]
+print FisherYateOldShullfe(srclist)
+</code></pre>
+
+<p>```</p>
+
+<h2>Modern version of the Fisher–Yates shuffle</h2>
+
+<p>改进版的Fisher–Yates shuffle算法是1964年Richard Durstenfeld在 Communications of the ACM volume 7, issue 7中首次提出，相比于原始Fisher-Yates shuffle最大的改进是不需要在步骤3中重复的数未被标记的数字，该算法不再将标记过的数字移动到一个新数组的尾端，而是将随机数选出的数字与排在最后位置的未标记数字进行交换。算法在python下的实现如下所示：</p>
+
+<p><div>
+  <pre><code class='python'>from random import random&lt;/p&gt;
+
+&lt;p&gt;def FisherYatesShuffle(items):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;for i in reversed(range(1, len(items))):
+    j = int(random() * (i+1))
+    items[i], items[j] = items[j], items[i]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;if &lt;strong&gt;name&lt;/strong&gt; == &amp;lsquo;&lt;strong&gt;main&lt;/strong&gt;&amp;rsquo;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;srclist = [n for n in range(10)]
+FisherYatesShuffle(srclist)
+print srclist
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;</code></pre>
+</div>
+</p>
+
+<p>该算法同样可以理解成为这样的过程：从1到n个数字中依次随机抽取一个数字，并放到一个新序列的尾端（该算法通过互换数字实现），逐渐形成一个新的序列。计算一下概率：如果某个元素被放入第i（1≤i≤n）个位置，就必须是在前 i-1 次选取中都没有选到它，并且第 i 次恰好选中它。其概率为：</p>
+
+<p><img src="http://amyangfei.me/images/post/20121129probability.png" style=""/></p>
+
+<p>算法中只有一个从1到N-1的循环，循环内操作为常数步，因而算法总的时间复杂度为O(N)，空间复杂度为O(1)。</p>
+
+<h2>Inside-out algorithm</h2>
+
+<p>Fisher-Yates shuffle是一种在原地交换的生成过程，即给定一个序列，算法在这个序列本身的存储空间进行操作。与这种in-place的方式不同，inside-out针对给定序列，会生成该序列随机排列的一个副本。这种方法有利于对长度较大的序列进行随机排列。 Inside-out算法的基本思想是从前向后扫描，依次增加i，每一步操作中将新数组位置i的数字更新为原始数组位置i的数字，然后在新数组中将位置i和随机选出的位置j（0≤j≤i）交换数字。算法亦可以理解为现将原始数组完全复制到新数组，然后新数组位置i(i from 1 to n-1)依次和随机位置j交换数字。算法的python实现如下：</p>
+
+<p>``` python
+from random import random</p>
+
+<p>def insideout(source):</p>
+
+<pre><code>ret = [None] * len(source)
+ret[0] = source[0]
+for i in range(1, len(source)):
+    j = int(random() * (i+1)) 
+    ret[i] = ret[j]
+    ret[j] = source[i]
+return ret
+</code></pre>
+
+<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
+
+<pre><code>srclist = [n for n in range(10)]
+print insideout(srclist)
+</code></pre>
+
+<p>```</p>
+
+<p>对于这个算法，我们分析可以出现多少种不同的排列数，从$i=1$开始，每一次交换都可以衍生出$(i+1)$倍的排列数，因而总的排列方案数如下图。在随机函数完全随机的情况下每一种排列都是等概率出现的，因而这种算法得到的是一个随机排序。它的时间复杂度和空间复杂度都是O(N)。</p>
+
+<p><img src="http://amyangfei.me/images/post/20121129sum.png" style=""/></p>
+
+<p>该算法有一个优点就是可以通过不断读取原始数组的下一个元素同时使新的排列数组长度加一，进而生成一个随机排列，即可以对长度未知的序列进行随机排列。实现的伪代码如下：</p>
+
+<p>``` c++
+while source.moreDataAvailable</p>
+
+<pre><code>  j &lt;- random integer with 0 &lt;= j &lt;= a.length
+  if j = a.length
+      a.append(source.next)
+  else
+      a.append(a[j])
+      a[j] &lt;- source.next
+</code></pre>
+
+<p>```</p>
+
+<h2>另一种想法</h2>
+
+<p>对n个元素的随机排序对应于这n个元素全排列中的一种，所以有这样一种方法求随机排序：求n个元素的随机排列，给定一个随机数k（1≤k≤n!），取出n!个全排列中的第k个即是一种随机排序。于是需要解决2个问题：一是在一个足够大的范围内求随机数；另外是实现一种是在n!个全排列中求第k个全排列的方法。第一个问题很古老，有人说随机数的最大范围决定于随即种子的大小，我有一种想法是对分段求随机数，比如需要求最大范围为N的随机数，那么可以对N进行M进制分解，分别求M进制下的每一位的随机数，最后合成一个大的随机数；而第二个问题就比较容易了，有很多全排列生成算法，通过“原排列”->“原中介数”->“新中介数”->“新排列”的过程，可以很方便的求出第k个全排列。</p>
+
+<h2>参考文章</h2>
+
+<p><a href="http://blog.csdn.net/huagong_adu/article/details/7621603" target="_blank">洗牌程序</a>，<a href="http://www.gocalf.com/blog/shuffle-algo.html" target="_blank">等概率随机排列数组（洗牌算法）</a></p>
+]]></content>
+  </entry>
+  
+</feed>

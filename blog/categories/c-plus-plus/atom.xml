@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: C++ | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/c-plus-plus/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-01-20T16:40:46+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[stl make_heap在llvm和g++下的不同实现]]></title>
+    <link href="http://amyangfei.me/2013/05/05/stl-heap-llvm-gcc/"/>
+    <updated>2013-05-05T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2013/05/05/stl-heap-llvm-gcc</id>
+    <content type="html"><![CDATA[<p>先来看一段十分简单的使用stl的c++代码，</p>
+
+<p>``` c++</p>
+
+<h1>include <iostream></h1>
+
+<h1>include <vector></h1>
+
+<p>using namespace std;</p>
+
+<p>int main(void) {</p>
+
+<pre><code>vector&lt;int&gt; *vec = new vector&lt;int&gt;();
+int len = 5;
+for (int i = 1; i &lt;= len; ++i) 
+    (*vec).push_back(i);
+make_heap((*vec).begin(), (*vec).end());
+for (vector&lt;int&gt;::iterator iter = (*vec).begin(); iter != (*vec).end(); iter++) {
+    cout &lt;&lt; *iter &lt;&lt; " ";
+}
+return 0;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>发现在 xcode 中运行和在 mac terminal 中利用 g++ 编译运行结果不一样，分别为：</p>
+
+<p><code>
+xcode-default : 5 4 2 1 3
+terminal-g++  : 5 4 3 1 2
+</code></p>
+
+<!-- more -->
+
+
+<p>建堆产生不同结果的原因很简单，即两次编译代码所使用的编译器不同，xcode中默认使用"Apple LLVM compiler"，在g++中使用的是"LLVM GCC"。而这两种不同编译器选择的STL实现方法是不一样的，LLVM默认选择"libc++(LLVM C++ standard library)&ldquo;，而g++默认使用的是"libstdc++(GNU C++ standard library)"。</p>
+
+<h3>libc++中的实现</h3>
+
+<p>在libc++中make_heap的实现如下所示，从代码中可以看出，通过 __last 这个随机访问的迭代器，从前向后遍历，调用 __push_heap_back 将数据依次插入到堆中。__push_heap_back 的实现是将新插入元素放在堆尾，然后针对这个元素使用 shift up 策略调整至合适位置。</p>
+
+<p>``` c++
+template <class _Compare, class _RandomAccessIterator>
+void
+<strong>make_heap(_RandomAccessIterator </strong>first, <em>RandomAccessIterator __last, </em>Compare __comp)
+{</p>
+
+<pre><code>typedef typename iterator_traits&lt;_RandomAccessIterator&gt;::difference_type difference_type;
+difference_type __n = __last - __first;
+if (__n &gt; 1)
+{
+    __last = __first;
+    ++__last;
+    for (difference_type __i = 1; __i &lt; __n;)
+        __push_heap_back&lt;_Compare&gt;(__first, ++__last, __comp, ++__i);
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>libstdc++中的实现</h3>
+
+<p>在 libstdc++ 中 make_heap 首先将所有元素按照原顺序放入堆的存储结构，然后从最大的非叶子节点开始调整元素位置，即调用 __adjust_heap 操作，__adjust_heap 会自上向下依次选择每个子节点中较大的元素上升。</p>
+
+<p>``` c++
+  template<typename _RandomAccessIterator></p>
+
+<pre><code>void
+make_heap(_RandomAccessIterator __first, _RandomAccessIterator __last)
+{
+  typedef typename iterator_traits&lt;_RandomAccessIterator&gt;::value_type _ValueType;
+  typedef typename iterator_traits&lt;_RandomAccessIterator&gt;::difference_type _DistanceType;
+
+  // concept requirements
+  __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept&lt;_RandomAccessIterator&gt;)
+  __glibcxx_function_requires(_LessThanComparableConcept&lt;_ValueType&gt;)
+  __glibcxx_requires_valid_range(__first, __last);
+
+  if (__last - __first &lt; 2)
+return;
+
+  const _DistanceType __len = __last - __first;
+  _DistanceType __parent = (__len - 2) / 2;
+  while (true)
+{
+  std::__adjust_heap(__first, __parent, __len,
+             _ValueType(*(__first + __parent)));
+  if (__parent == 0)
+    return;
+  __parent--;
+}
+}
+</code></pre>
+
+<p>```</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Use Named Pipes to Communicate Between Processes]]></title>
+    <link href="http://amyangfei.me/2012/03/21/namedpipe-communication/"/>
+    <updated>2012-03-21T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2012/03/21/namedpipe-communication</id>
+    <content type="html"><![CDATA[<p>最近几天生活突然变得异常纠结，许多乱乱的事情搅在了一起，真希望可以快到斩乱麻似的解决问题，可到头来每一件事情都还是要小心翼翼地处理。</p>
+
+<p>犹豫了好久终于决定向创新工场辞职，实习毕设兼顾的日子有些让我心力交瘁。昨天搭博客还出了问题，虽是粗心大意，可确实做了不正确的事，满心愧疚。毕设要和研究生学长合作完成，学长在没和我有过任何商量的情况下选择了.NET的开发平台，一来我对微软的产品不感兴趣，没有过什么写C#的经验，二来需要继续使用的原有系统是C++开发的，就不得不考虑在C#中调用C++的方法和类。百味俱陈，无限纠结，心情一落千丈。</p>
+
+<p>虽说如此，毕设还要做。现有的需求是将一个由C++实现的SQL语法，语义解析器迁移到C#工程中进一步进行开发。网上查了一些，有利用DllImport，有托管C++包装现有的DLL供C#调用的方法，还有一些包装C++的方法，简单看了一下一头雾水，考虑到项目的特殊性，最后没有选择C#调用C++的方式，而是采取了进程间通信的方法。</p>
+
+<!-- more -->
+
+
+<p>具体实现是在C++的SQL语义解析器端开启一个服务进程，等待客户端的连接请求。每次C#端发起连接，在C++端开启一个线程，进行相应的语法，语义解析最后按定义好的数据结构给客户端返回结果。进程间通信使用了Named Pipe。我在<a href="http://msdn.microsoft.com/en-us/library/bb762927.aspx" target="_blank">MSDN</a>官方文档上看到了一个很详细的使用方法，基本是按照官方文档实现的。</p>
+
+<p>这里列出我觉得比较重要的部分，在这里有一份MSDN>提供的完整的<a href="http://msdn.microsoft.com/en-us/library/aa365588(VS.85).aspx" target="_blank">C++ Server</a>的代码</p>
+
+<h3>C++ Server</h3>
+
+<p>``` c++
+hPipe = CreateNamedPipe(lpszPipename, PIPE_ACCESS_DUPLEX,</p>
+
+<pre><code>PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
+PIPE_UNLIMITED_INSTANCES, BUFSIZE, BUFSIZE, 0, NULL);
+</code></pre>
+
+<p>fConnected = ConnectNamedPipe(hPipe, NULL) ? TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);</p>
+
+<p>if (fConnected) {</p>
+
+<pre><code>printf("Client connected, creating a processing thread.\n"); 
+// Create a thread for this client. 
+hThread = CreateThread(NULL, 0, InstanceThread, (LPVOID) hPipe, 0, &amp;dwThreadId);
+if (hThread == NULL) {
+    _tprintf(TEXT("CreateThread failed, GLE=%d.\n"), GetLastError()); 
+    return -1;
+}
+else CloseHandle(hThread); 
+</code></pre>
+
+<p>}
+else</p>
+
+<pre><code>CloseHandle(hPipe); 
+</code></pre>
+
+<p>}</p>
+
+<p>DWORD WINAPI InstanceThread(LPVOID lpvParam) {
+   HANDLE hHeap      = GetProcessHeap();
+   TCHAR<em> pchRequest = (TCHAR</em>)HeapAlloc(hHeap, 0, BUFSIZE<em>sizeof(TCHAR));
+   TCHAR</em> pchReply   = (TCHAR<em>)HeapAlloc(hHeap, 0, BUFSIZE</em>sizeof(TCHAR));
+   DWORD cbBytesRead = 0, cbReplyBytes = 0, cbWritten = 0;
+   BOOL fSuccess = FALSE;
+   HANDLE hPipe  = NULL;
+   bool destoryThread = false;</p>
+
+<p>   printf(&ldquo;InstanceThread created, receiving and processing messages.\n&rdquo;);</p>
+
+<p>   hPipe = (HANDLE) lpvParam;
+   while (!destoryThread) {</p>
+
+<pre><code>    while(true) {
+       fSuccess = ReadFile(hPipe, pchRequest, BUFSIZE * sizeof(TCHAR), &amp;cbBytesRead, NULL);
+       if (!fSuccess || cbBytesRead == 0) {
+           destoryThread = true;
+           break;
+       }
+       pchRequest[cbBytesRead] = '\0';
+       strcpy(pchReply, getParsedSql(pchRequest)); //getParsedSql是调用的接口函数
+       cbReplyBytes = (lstrlen(pchReply))*sizeof(TCHAR);
+       pchReply[cbReplyBytes] = '\n';
+       pchReply[cbReplyBytes+1] = '\0';
+       cbReplyBytes += 1;
+
+       fSuccess = WriteFile(hPipe, pchReply, cbReplyBytes, &amp;cbWritten, NULL);//send back to client
+
+       cout &lt;&lt; "Result after sql parse: " &lt;&lt; pchReply &lt;&lt; endl;
+       if (!fSuccess || cbReplyBytes != cbWritten) {
+           destoryThread = true;
+           break;
+       }
+   }
+</code></pre>
+
+<p>  }</p>
+
+<pre><code>//do some clean work
+</code></pre>
+
+<p>   printf(&ldquo;InstanceThread exitting.\n&rdquo;);
+   return 1;
+}
+```</p>
+
+<h3>C# Client</h3>
+
+<p>``` c#
+static void Main(string[] args) {</p>
+
+<pre><code>NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "testpipe", 
+    PipeDirection.InOut, PipeOptions.None, TokenImpersonationLevel.Impersonation);
+
+Console.WriteLine("Connecting to server...\n");
+pipeClient.Connect(2000);
+
+StreamWriter sw = new StreamWriter(pipeClient);
+StreamReader sr = new StreamReader(pipeClient);
+sw.AutoFlush = true;
+while (true) {
+    string outStr = Console.ReadLine();
+    sw.WriteLine(outStr);
+    if (outStr.Equals("quit")) {
+        break;
+    }
+    Console.WriteLine("get back from server:" + sr.ReadLine());
+}
+sw.Close();
+sr.Close();
+pipeClient.Close();
+// Give the client process some time to display results before exiting.
+Thread.Sleep(4000);
+</code></pre>
+
+<p>}
+```</p>
+
+<p>今天写代码时候遇到一个bug，就是在服务器接收pchRequest处理得到pchReply后向客户端发送总会发生阻塞，调了很久找到bug的出处是处理后的pchReply末尾没有换行符，导致在C#客户端使用ReadLine()接收一直处于阻塞状态。于是在代码中有了下面的一段。</p>
+
+<p><code>c++
+cbReplyBytes = (lstrlen(pchReply))*sizeof(TCHAR);
+pchReply[cbReplyBytes] = '\n';
+pchReply[cbReplyBytes+1] = '\0';
+cbReplyBytes += 1;
+</code></p>
+]]></content>
+  </entry>
+  
+</feed>
