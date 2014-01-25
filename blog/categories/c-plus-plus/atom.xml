@@ -4,7 +4,7 @@
   <title><![CDATA[Category: C++ | Amyangfei's Blog]]></title>
   <link href="http://amyangfei.me/blog/categories/c-plus-plus/atom.xml" rel="self"/>
   <link href="http://amyangfei.me/"/>
-  <updated>2014-01-20T16:40:46+08:00</updated>
+  <updated>2014-01-25T14:27:25+08:00</updated>
   <id>http://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
@@ -30,14 +30,15 @@
 
 <p>int main(void) {</p>
 
-<pre><code>vector&lt;int&gt; *vec = new vector&lt;int&gt;();
+<pre><code>vector&lt;int&gt; vec;
 int len = 5;
-for (int i = 1; i &lt;= len; ++i) 
-    (*vec).push_back(i);
-make_heap((*vec).begin(), (*vec).end());
-for (vector&lt;int&gt;::iterator iter = (*vec).begin(); iter != (*vec).end(); iter++) {
+for (int i = 1; i &lt;= len; ++i)
+    vec.push_back(i);
+make_heap(vec.begin(), vec.end());
+for (vector&lt;int&gt;::iterator iter = vec.begin(); iter != vec.end(); iter++) {
     cout &lt;&lt; *iter &lt;&lt; " ";
 }
+cout &lt;&lt; endl;
 return 0;
 </code></pre>
 
@@ -115,6 +116,8 @@ return;
 </code></pre>
 
 <p>```</p>
+
+<p>注：以上结果是在 OS X 10.8.4，Xcode4 下的测试结果。不同版本编译器结果会有不同。</p>
 ]]></content>
   </entry>
   

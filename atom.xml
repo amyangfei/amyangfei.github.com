@@ -4,7 +4,7 @@
   <title><![CDATA[Amyangfei's Blog]]></title>
   <link href="http://amyangfei.me/atom.xml" rel="self"/>
   <link href="http://amyangfei.me/"/>
-  <updated>2014-01-20T16:40:46+08:00</updated>
+  <updated>2014-01-25T14:27:25+08:00</updated>
   <id>http://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
@@ -656,19 +656,21 @@
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
+<span class='line-number'>16</span>
 </pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="cp">#include &lt;iostream&gt;</span>
 </span><span class='line'><span class="cp">#include &lt;vector&gt;</span>
 </span><span class='line'><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'><span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">vec</span> <span class="o">=</span> <span class="k">new</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">vec</span><span class="p">;</span>
 </span><span class='line'>    <span class="kt">int</span> <span class="n">len</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
 </span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">len</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
-</span><span class='line'>        <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">push_back</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
-</span><span class='line'>    <span class="n">make_heap</span><span class="p">((</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">begin</span><span class="p">(),</span> <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">end</span><span class="p">());</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">iter</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">begin</span><span class="p">();</span> <span class="n">iter</span> <span class="o">!=</span> <span class="p">(</span><span class="o">*</span><span class="n">vec</span><span class="p">).</span><span class="n">end</span><span class="p">();</span> <span class="n">iter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">vec</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">make_heap</span><span class="p">(</span><span class="n">vec</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">vec</span><span class="p">.</span><span class="n">end</span><span class="p">());</span>
+</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">vec</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">iter</span> <span class="o">!=</span> <span class="n">vec</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="n">iter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
 </span><span class='line'>        <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="o">*</span><span class="n">iter</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span><span class="p">;</span>
 </span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
 </span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 </span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
@@ -784,7 +786,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-
+<p>注：以上结果是在 OS X 10.8.4，Xcode4 下的测试结果。不同版本编译器结果会有不同。</p>
 ]]></content>
   </entry>
   
@@ -1041,7 +1043,7 @@
 
 <p><img src="http://amyangfei.me/images/post/20130228portmapping.png" style=""/></p>
 
-<p>之后就可以在外网直接通过ssh连接虚拟机： ssh <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#x75;&#115;&#101;&#x72;&#110;&#97;&#109;&#x65;&#x40;&#x31;&#x36;&#x36;&#46;&#49;&#x31;&#49;&#46;&#x78;&#46;&#120;">&#x75;&#115;&#101;&#114;&#x6e;&#97;&#x6d;&#x65;&#x40;&#x31;&#54;&#x36;&#x2e;&#49;&#49;&#49;&#46;&#120;&#x2e;&#x78;</a> -p10000</p>
+<p>之后就可以在外网直接通过ssh连接虚拟机： ssh <a href="&#109;&#97;&#105;&#x6c;&#x74;&#111;&#x3a;&#x75;&#x73;&#101;&#x72;&#110;&#x61;&#x6d;&#101;&#64;&#x31;&#x36;&#x36;&#x2e;&#49;&#49;&#x31;&#x2e;&#120;&#x2e;&#120;">&#x75;&#x73;&#x65;&#114;&#110;&#x61;&#109;&#x65;&#x40;&#49;&#54;&#54;&#x2e;&#x31;&#x31;&#x31;&#46;&#x78;&#x2e;&#120;</a> -p10000</p>
 ]]></content>
   </entry>
   
