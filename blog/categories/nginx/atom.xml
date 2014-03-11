@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Nginx | Amyangfei's Blog]]></title>
   <link href="http://amyangfei.me/blog/categories/nginx/atom.xml" rel="self"/>
   <link href="http://amyangfei.me/"/>
-  <updated>2014-03-04T21:28:28+08:00</updated>
+  <updated>2014-03-11T19:30:50+08:00</updated>
   <id>http://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
@@ -78,70 +78,9 @@ sudo /usr/local/nginx/sbin/nginx
 sudo /opt/local/bin/php-cgi -b 127.0.0.1:9000
 </code></p>
 
-<p>创建index.php测试，典型内容&lt;?php phpinfo(); ?>,访问页面<a href="http://127.0.0.1/index.php%EF%BC%8C%E6%AD%A3%E5%B8%B8%E8%AE%BF%E9%97%AE%E7%9C%8B%E5%88%B0php%E7%9B%B8%E5%85%B3%E7%9A%84%E4%BF%A1%E6%81%AF%EF%BC%8C%E5%8F%AF%E4%BB%A5%E6%B8%85%E6%A5%9A%E7%9A%84%E7%9C%8B%E5%88%B0Server">http://127.0.0.1/index.php%EF%BC%8C%E6%AD%A3%E5%B8%B8%E8%AE%BF%E9%97%AE%E7%9C%8B%E5%88%B0php%E7%9B%B8%E5%85%B3%E7%9A%84%E4%BF%A1%E6%81%AF%EF%BC%8C%E5%8F%AF%E4%BB%A5%E6%B8%85%E6%A5%9A%E7%9A%84%E7%9C%8B%E5%88%B0Server</a> API是CGI/FastCGI。</p>
+<p>创建index.php测试，典型内容&lt;?php phpinfo(); ?>,访问页面 <a href="http://127.0.0.1/index.php">http://127.0.0.1/index.php</a> ，正常访问看到php相关的信息，可以清楚的看到Server API是CGI/FastCGI。</p>
 
 <p>至此，nginx-php基本配置完毕。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[在mac上安装nginx]]></title>
-    <link href="http://amyangfei.me/2012/05/01/install-nginx-for-mac/"/>
-    <updated>2012-05-01T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2012/05/01/install-nginx-for-mac</id>
-    <content type="html"><![CDATA[<p>大名鼎鼎的Nginx听说过很久，它有着高性能、高稳定性等优点，国内的很多大型门户也都部署了Nginx，还有淘宝开源的<a href="http://tengine.taobao.org/" target="_blank">Tengine</a>也是根据Nginx改写。不过自己一直没有使用过，今天白天在新买来的mac上配置了Nginx，这里记录一下配置的过程和遇到的一些问题。配置过程参考了<a href="http://www.kevinworthington.com/nginx-for-mac-os-x-lion-in-2-minutes/" target="_blank">Nginx for Mac OS X Lion in 2 minutes</a>这篇文章。</p>
-
-<h3>概述</h3>
-
-<p>这篇文章介绍了在Mac OS X 10.7.3 Lion下编译Nginx 1.2.0源码并安装的过程。由于在Lion下默认bash没有gcc的一系列命令，比如make，而我们需要编译Nginx的C源码，一个比较简单的解决方案是安装最新版本的XCode，AppStore里可以免费下载，安装结束后启动XCode，然后到XCode->Preferences->Downloads里，选择component，安装“Command Line Tools”就可以了。这样以后就可以方便地在Terminal里make了。</p>
-
-<!-- more -->
-
-
-<h3>安装PCRE</h3>
-
-<p>Nginx需要PCRE（Perl Compatible Regular Expressions）的支持，需要先进行安装。一开始我按照<a href="http://www.kevinworthington.com/nginx-for-mac-os-x-lion-in-2-minutes/" target="_blank">Nginx for Mac OS X Lion in 2 minutes</a>文章里的步骤，但是在后来编译Nginx时候会出现下面的问题。</p>
-
-<p>``` bash
-Undefined symbols for architecture x86_64:</p>
-
-<pre><code>"_pcre_free_study", referenced from:
-    _ngx_pcre_free_studies in ngx_regex.o
-</code></pre>
-
-<p>```</p>
-
-<p>在Nginx官方的问题列表里面有这个问题的具体描述，详细请看这里<a href="http://trac.nginx.org/nginx/ticket/94" target="_blank">compilation fails on Mac OS X 10.7.2</a>，其实就是库的位置没有找到。那篇文档中给出了两种解决方案，我使用了第一种，成功解决了问题：</p>
-
-<p>1. Remove the PCRE version installed into /usr/local and reinstall one from macports. This is recommended solution.</p>
-
-<p>2. Force /usr/local/lib to be before /usr/lib in library search path with ./configure &mdash;with-ld-opt=&ldquo;-I /usr/local/lib&rdquo;. This may work, but likely you&rsquo;ll be facing the same problem in other places as well.</p>
-
-<p>具体过程首先安装macports，然后利用port安装pcre。安装macports可以编译源码，也可以直接使用dmg安装。<a href="http://www.macports.org/install.php" target="_blank">Installing MacPorts</a>上有详细的安装说明。安装pcre就很简单了，一行命令。</p>
-
-<p><code>bash
-$ port install pcre
-</code></p>
-
-<h3>安装Nginx</h3>
-
-<p>准备工作做好了，这一步就很简单了，首先将nginx-1.2.0.tar.gz放在/usr/local/src目录下，执行下面的命令即可。相应的一些参数可以按照个人需求修改。</p>
-
-<p><code>bash
-$ tar xvzf nginx-1.2.0.tar.gz
-$ cd nginx-1.2.0
-$ sudo ./configure --prefix=/usr/local/nginx --with-http_ssl_module
-$ sudo make
-$ sudo make install
-</code></p>
-
-<h3>开启Nginx</h3>
-
-<p>可以将/usr/local/nginx/sbin加入到环境变量里，那样可以直接使用sudo nginx开启Nginx。如果不加入的话使用绝对路径亦可。在使用Nginx的默认参数情况下，访问地址<a href="http://localhost/">http://localhost/</a> ，看到“Welcome to nginx!”，说明Nginx正常工作。接下来就可以进一步学习Nginx的各种参数配置和相关使用了。</p>
-
-<p><code>bash
-$ sudo /usr/local/nginx/sbin/nginx
-</code></p>
 ]]></content>
   </entry>
   

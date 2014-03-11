@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mac | Amyangfei's Blog]]></title>
   <link href="http://amyangfei.me/blog/categories/mac/atom.xml" rel="self"/>
   <link href="http://amyangfei.me/"/>
-  <updated>2014-03-04T21:28:28+08:00</updated>
+  <updated>2014-03-11T19:30:50+08:00</updated>
   <id>http://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
@@ -78,7 +78,7 @@ sudo /usr/local/nginx/sbin/nginx
 sudo /opt/local/bin/php-cgi -b 127.0.0.1:9000
 </code></p>
 
-<p>创建index.php测试，典型内容&lt;?php phpinfo(); ?>,访问页面<a href="http://127.0.0.1/index.php%EF%BC%8C%E6%AD%A3%E5%B8%B8%E8%AE%BF%E9%97%AE%E7%9C%8B%E5%88%B0php%E7%9B%B8%E5%85%B3%E7%9A%84%E4%BF%A1%E6%81%AF%EF%BC%8C%E5%8F%AF%E4%BB%A5%E6%B8%85%E6%A5%9A%E7%9A%84%E7%9C%8B%E5%88%B0Server">http://127.0.0.1/index.php%EF%BC%8C%E6%AD%A3%E5%B8%B8%E8%AE%BF%E9%97%AE%E7%9C%8B%E5%88%B0php%E7%9B%B8%E5%85%B3%E7%9A%84%E4%BF%A1%E6%81%AF%EF%BC%8C%E5%8F%AF%E4%BB%A5%E6%B8%85%E6%A5%9A%E7%9A%84%E7%9C%8B%E5%88%B0Server</a> API是CGI/FastCGI。</p>
+<p>创建index.php测试，典型内容&lt;?php phpinfo(); ?>,访问页面 <a href="http://127.0.0.1/index.php">http://127.0.0.1/index.php</a> ，正常访问看到php相关的信息，可以清楚的看到Server API是CGI/FastCGI。</p>
 
 <p>至此，nginx-php基本配置完毕。</p>
 ]]></content>

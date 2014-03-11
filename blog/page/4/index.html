@@ -325,54 +325,6 @@
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/2012/05/01/install-nginx-for-mac/">
-		
-			在mac上安装nginx</a>
-	</h2>
-	<div class="entry-content">
-		<p>大名鼎鼎的Nginx听说过很久，它有着高性能、高稳定性等优点，国内的很多大型门户也都部署了Nginx，还有淘宝开源的<a href="http://tengine.taobao.org/" target="_blank">Tengine</a>也是根据Nginx改写。不过自己一直没有使用过，今天白天在新买来的mac上配置了Nginx，这里记录一下配置的过程和遇到的一些问题。配置过程参考了<a href="http://www.kevinworthington.com/nginx-for-mac-os-x-lion-in-2-minutes/" target="_blank">Nginx for Mac OS X Lion in 2 minutes</a>这篇文章。</p>
-
-<h3>概述</h3>
-
-<p>这篇文章介绍了在Mac OS X 10.7.3 Lion下编译Nginx 1.2.0源码并安装的过程。由于在Lion下默认bash没有gcc的一系列命令，比如make，而我们需要编译Nginx的C源码，一个比较简单的解决方案是安装最新版本的XCode，AppStore里可以免费下载，安装结束后启动XCode，然后到XCode->Preferences->Downloads里，选择component，安装“Command Line Tools”就可以了。这样以后就可以方便地在Terminal里make了。</p>
-
-
-		
-		<a href="/2012/05/01/install-nginx-for-mac/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-01T00:00:00+08:00" pubdate data-updated="true">May 1<span>st</span>, 2012</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/nginx/'>Nginx</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2012/05/01/install-nginx-for-mac/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
 		<a href="/2012/04/29/sixv-detect-robot/">
 		
 			六维空间free资源检索工具</a>
@@ -413,6 +365,50 @@
 </div>
 	
 	<div class="comments"><a href="/2012/04/29/sixv-detect-robot/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/2012/04/11/simple-thrift-useage/">
+		
+			Thrift使用简介</a>
+	</h2>
+	<div class="entry-content">
+		<p>在上一篇文章中提到过thrift，今天抽出一些时间学习了一下，框架用起来很方便。thrift最初是由facebook开发，用于跨语言的服务部署，它通过接口定义语言来定义RPC的接口和数据类型，使用自己的编译器根据固定格式的thrift文件生成不同语言的代码，并由生成的代码负责RPC协议层和传输层的实现。详细的框架设计，数据传输等等的细节就不多说了，<a href="http://thrift.apache.org/" target="_blank">Thrift</a>的官方文档说的很详细。接下来介绍的例子也主要参照官方文档的配置方法，也有一处地方在官方文档中没有提及，后面有详细的说明。简单说这些，现在一起Getting Started！</p>
+
+
+		
+		<a href="/2012/04/11/simple-thrift-useage/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-11T00:00:00+08:00" pubdate data-updated="true">Apr 11<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/python/'>Python</a>, <a class='category' href='/blog/categories/rpc/'>RPC</a>, <a class='category' href='/blog/categories/thrift/'>Thrift</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2012/04/11/simple-thrift-useage/#disqus_thread">Comments</a></div>
 	
 </div>
 </article>
