@@ -3,13 +3,13 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>通过端口映射访问虚拟机内部网络 | Amyangfei's Blog</title>
+	<title>Category: puppet | Amyangfei's Blog</title>
 	<meta name="author" content="amyangfei">
 
 	
 		
-		<meta name="description" content="一台远程主机运行虚拟机，虚拟机通过NAT获得的内网ip上网，使用端口映射达到直接在外网访问虚拟机内部网络的目的。">
-		<meta name="keywords" content="port mapping, virtual machine, NAT">
+		<meta name="description" content="Category: puppet">
+		
 	
 
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -85,88 +85,32 @@
 	
 		
 	
-	<div id="content" class="inner"><article class="post">
-	<h2 class="title">通过端口映射访问虚拟机内部网络</h2>
-	<div class="entry-content"><p>在VMware Workstation中如果使用NAT，虚拟机内部只会获取内网地址。现在我有这样的实验环境：</p>
-
-<ul>
-<li><p>主机：Windows7 + Vmware Workstation 9  公网IP: 166.111.x.x</p></li>
-<li><p>虚拟机：Ubuntu12.10  内网IP: 192.168.248.129</p></li>
-</ul>
-
-
-<p>需求：在虚拟机内部搭建http服务，在外网可以直接访问；在外网通过ssh连接虚拟机。下边是进行ssh端口映射的步骤，http服务类似。</p>
-
-<!-- more -->
-
-
-<p>1. 找到Edit-Virtual Network Editor，选取虚拟机对应的网卡，这里为VMnet8。打开NAT Settings。</p>
-
-<p><img src="/images/post/20130228network_editor.png" style=""/></p>
-
-<p>2. 在port forwarding中添加端口映射，将主机的10000端口影射为虚拟机的22端口。如果主机打开了防火墙，主机开了防火墙，手动打开10000端口，<a href="http://windows.microsoft.com/zh-CN/windows7/Open-a-port-in-Windows-Firewall" target="_blank">开启端口方法</a>。</p>
-
-<p><img src="/images/post/20130228portmapping.png" style=""/></p>
-
-<p>之后就可以在外网直接通过ssh连接虚拟机： ssh <a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#111;&#58;&#x75;&#x73;&#x65;&#114;&#x6e;&#97;&#x6d;&#101;&#x40;&#x31;&#54;&#54;&#x2e;&#x31;&#49;&#x31;&#46;&#120;&#46;&#x78;">&#117;&#115;&#x65;&#114;&#x6e;&#x61;&#109;&#101;&#x40;&#49;&#54;&#x36;&#46;&#49;&#x31;&#x31;&#46;&#120;&#x2e;&#x78;</a> -p10000</p>
-</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-02-28T00:00:00+08:00" pubdate data-updated="true">Feb 28<span>th</span>, 2013</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/nat/'>NAT</a>, <a class='category' href='/blog/categories/virtualization/'>Virtualization</a>
-
-
-</div>
+	<div id="content" class="inner">
 	
-	<div class="comments"><a href="#disqus_thread">Comments</a></div>
+
+
 	
+	
+	<section class="archives"><h1 class="year">2014</h1>
+
+<article>
+	<h2 class="title"><a href="/2014/04/05/tips-of-puppet/">puppet使用笔记</a></h2>
+	<div class="meta">
+		<div class="date">Apr  5</div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/ops/'>ops</a>, <a class='category' href='/blog/categories/puppet/'>puppet</a>
+
+
 </div>
-</article>
-
-<nav id="pagenavi">
-     
-      <a class="prev" href="/2013/02/08/android-taskscheduler-and-scripting/" title="Previous Post: Android运行脚本与定时工具"> Android运行脚本与定时工具</a>
-    
-     
-      <a class="next" href="/2013/03/01/tornado-source-analysis-5/" title="next Post: tornado源码分析5">tornado源码分析5 </a>
-    
-    <div class="center"><a href="/blog/archives">Blog Archives</a></div>
-</nav>
-
-<!-- 
-	<div class="share">
-	<div class="addthis_toolbox addthis_default_style ">
-		
-		
-		
-		
+	    
 	</div>
+</article>
 	
-</div>
+	</section>
+	
 
- -->
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
-</section>
 </div>
 	<footer id="footer" class="inner">Copyright &copy; 2012-2014
 
@@ -189,10 +133,7 @@
       var disqus_shortname = 'amyangfei';
       
         
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://amyangfei.me/2013/02/28/access-vm-ssh-via-port-mapping/';
-        var disqus_url = 'http://amyangfei.me/2013/02/28/access-vm-ssh-via-port-mapping/';
-        var disqus_script = 'embed.js';
+        var disqus_script = 'count.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

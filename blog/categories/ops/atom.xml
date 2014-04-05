@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: ops | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/ops/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2014-04-05T21:40:04+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[puppet使用笔记]]></title>
+    <link href="http://amyangfei.me/2014/04/05/tips-of-puppet/"/>
+    <updated>2014-04-05T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2014/04/05/tips-of-puppet</id>
+    <content type="html"><![CDATA[<p>本文主要介绍使用 puppet 过程中遇到的问题和解决方法。</p>
+
+<h3>同步文件</h3>
+
+<p>先介绍一下基本环境，master 和 client 所在机器都是 Ubuntu Server 12.04，使用 puppetlab 官方源安装，参考 <a herf="" target="_blank">Using the Puppet Labs Package Repositories</a>，puppet的版本：</p>
+
+<p><code>bash
+$ puppet --version
+3.5.0-rc3
+</code></p>
+
+<p>下边介绍同步文件遇到的一个小问题。首先服务端已经对客户端完成了验证，现在需要从服务端向客户端同步文件。创建一个类，然后添加 <code>init.pp</code> 文件</p>
+
+<!-- more -->
+
+
+<p>``` bash
+$ sudo mkdir -p /etc/puppet/modules/syncfile_test/{manifests,files,templates}</p>
+
+<p>$ cat /etc/puppet/modules/syncfile_test/manifests/init.pp</p>
+
+<p>class syncfile_test {</p>
+
+<pre><code>$puppet_server = "node12-25"
+file{
+    "/tmp/work/create_dir.sh":
+    source =&gt; "puppet://${puppet_server}/syncfile_test/create_dir.sh",
+    owner =&gt; root,
+    group =&gt; root,
+    mode =&gt; 755,
+}
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>配置 <code>fileserver.conf</code>，加入以下内容</p>
+
+<p>``` bash</p>
+
+<p>[syncfile_test]</p>
+
+<pre><code>path /tmp/work
+allow *
+</code></pre>
+
+<p>```</p>
+
+<p>这里需要注意一个问题，就是 allow 的值，网络上的一些教程写到可使用类似于 <code>allow 10.0.10.*</code> 或者 <code>allow 10.0.10.0/24</code> 的配置，但实际使用时会出现400错误：Could not evaluate: Error 400 on SERVER: Not authorized to call find on /file_metadata/syncfile_test/create_dir.sh with {:links=>&ldquo;manage&rdquo;}</p>
+
+<p>其实在 puppet 的文档中写的很清楚，<a href="http://docs.puppetlabs.com/guides/file_serving.html#ip-addresses" target="_blank">The Puppet File Server#ip address</a></p>
+
+<blockquote><p>Note: Puppet 3.0.0 broke IP address filtering in fileserver.conf, and it is currently broken in all 3.0.x versions of Puppet. This is issue #16686.</p></blockquote>
+
+<p>&hellip;未完待续</p>
+]]></content>
+  </entry>
+  
+</feed>
