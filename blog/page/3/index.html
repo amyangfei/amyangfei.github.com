@@ -91,6 +91,62 @@
     <article class="post">
 	<h2 class="title">
 		
+		<a href="/2013/02/05/tornado-source-analysis-4/">
+		
+			Tornado源码分析4</a>
+	</h2>
+	<div class="entry-content">
+		<p>IOStream对socket读写进行了封装，分别提供读、写缓冲区实现对socket的异步读写。当socket被accept之后HTTPServer的_handle_connection会被回调并初始化IOStream对象，进一步通过IOStream提供的功能接口完成socket的读写。文章接下来将关注IOStream实现读写的细节。</p>
+
+<h3>IOStream的初始化</h3>
+
+<p>IOStream初始化过程中主要完成以下操作：</p>
+
+<ol>
+<li>绑定对应的socket</li>
+<li>绑定ioloop</li>
+<li>创建读缓冲区_read_buffer，一个python deque容器</li>
+<li>创建写缓冲区_write_buffer，同样也是一个python deque容器</li>
+</ol>
+
+
+
+		
+		<a href="/2013/02/05/tornado-source-analysis-4/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-05T00:00:00+08:00" pubdate data-updated="true">Feb 5<span>th</span>, 2013</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/asynchronous/'>Asynchronous</a>, <a class='category' href='/blog/categories/tornado/'>Tornado</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2013/02/05/tornado-source-analysis-4/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
 		<a href="/2013/02/03/tornado-source-analysis-3/">
 		
 			Tornado源码分析3</a>
@@ -358,59 +414,6 @@
 </div>
 	
 	<div class="comments"><a href="/2013/01/07/abtest-script-and-bash-subshell/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2013/01/02/baidustar-code-digraph/">
-		
-			Baidu-star算法题-地铁</a>
-	</h2>
-	<div class="entry-content">
-		<p>题目来源：<a href="http://astar.baidu.com/index.php?r=home/detail&id=8" target="_blank">百度之星-2012年12月23号竞赛题目三-地铁</a></p>
-
-<p>思路：地图是一个有向图，需要从M条边中删除M-K条有向边。下面将一个点的出度与入度差的绝对值记为该点的“度”。由于只删边不增加边，那么如果希望降低系统的最大度，那么具有最大度的顶点一定需要删除与其相关的边。考虑使用贪心算法，每次选择删除边的规则如下：</p>
-
-<ol>
-<li>选出具有最大度的所有顶点，定义一个待删除相关节点最大度lastdegmax。对应每一个顶点u，如果u的出度大于入度，那么对应每一条(u,v),若删除(u,v)后会降低v的度，并且v的度大于lastdegmax，那么将(u,v)设置为将要删除的缓冲区(待删除缓冲区长度为1)。如果u的入度大于出度，操作类似。</li>
-<li>如果1中删除任何一条(u,v)或(v,u)都会增加v的度，那么选择选择具有最小度的v，将(u,v)或(v,u)加入待删除缓冲区。</li>
-<li>缓冲区中的边即为该轮迭代中将要删除的边。</li>
-</ol>
-
-
-
-		
-		<a href="/2013/01/02/baidustar-code-digraph/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-02T00:00:00+08:00" pubdate data-updated="true">Jan 2<span>nd</span>, 2013</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/algorithm/'>Algorithm</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2013/01/02/baidustar-code-digraph/#disqus_thread">Comments</a></div>
 	
 </div>
 </article>

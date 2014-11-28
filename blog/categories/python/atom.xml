@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Python | Amyangfei's Blog]]></title>
+  <title><![CDATA[Category: python | Amyangfei's Blog]]></title>
   <link href="http://amyangfei.me/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://amyangfei.me/"/>
-  <updated>2014-04-05T21:40:04+08:00</updated>
+  <updated>2014-11-28T15:38:40+08:00</updated>
   <id>http://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
@@ -14,511 +14,158 @@
 
   
   <entry>
-    <title type="html"><![CDATA[APScheduler 源码阅读笔记]]></title>
-    <link href="http://amyangfei.me/2013/11/06/apscheduler-source-analyse/"/>
-    <updated>2013-11-06T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2013/11/06/apscheduler-source-analyse</id>
-    <content type="html"><![CDATA[<h3>概述</h3>
+    <title type="html"><![CDATA[python 拾遗]]></title>
+    <link href="http://amyangfei.me/2014/11/27/python-tips/"/>
+    <updated>2014-11-27T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2014/11/27/python-tips</id>
+    <content type="html"><![CDATA[<p>整理 python 使用的一些技巧，以及一些可能被忽略的细节，很多在文档可以查找到的内容将不会过多的描述，更多以外链的形式存在。</p>
 
-<p>APScheduler 是由 python 实现的一个轻量级任务调度器，它可以按照一定间隔（IntervalTrigger）、指定时间（2.1中的SimpleTrigger/3.0中的DateTrigger）或者以类似 cron（CronTrigger） 的形式触发待执行任务（即调用函数或者调用 python 的 callable 对象）。现在 pypi 上的稳定版是 <a href="https://pypi.python.org/pypi/APScheduler/2.1.1" target="_blank">APScheduler 2.1.1</a>，3.0 版本在 class Scheduler 中移除了针对不同 trigger 的 add_trigger_job() 接口，统一为 add_job()，但是底层实现变化不大。我主要看了 2.1.1 的代码。代码很简洁，加起来一共2049行。</p>
-
-<h3>模块组织</h3>
-
-<ul>
-<li><p><strong>Scheduler</strong>  调度器的核心部分，负责对 job 的管理和调度，用户使用添加/移除任务，启动调度器都通过 Scheduler 提供的接口完成。</p></li>
-<li><p><strong>Job</strong>  封装了需要调度的任务，每一个 Job 实例是在 Scheduler 添加 job 时被初始化，具体的初始化参数决定了调度被触发的形式（3类不同的trigger）。</p></li>
-<li><p><strong>Trigger</strong>  包含 SimpleTrigger，IntervalTrigger和 CronTrigger 三个类。Trigger 的作用就是计算下一次触发任务的时间。</p></li>
-<li><p><strong>JobStore</strong>  抽象基类，针对任务存储的介质有多个实现，包括基于内存（RAMJobStore）、使用shelve的简单持久化存储（ShelveJobStore）、使用数据库存储（RedisJobStore，MongoDBJobStore）等。如果不指定参数默认使用 RAMJobStore，使用持久化的 JobStore 的目的是在 Scheduler 重启之后能够恢复原有的任务调度。</p></li>
-</ul>
-
-
-<h3>底层实现</h3>
-
-<p>从分析 Scheduler 类入手，首先看项目中自带的example：</p>
+<p>注意: 以下讨论主要为 Python2.7 版本， Python 3 的内容有待跟进</p>
 
 <!-- more -->
 
 
-<p>```python</p>
+<h3>import</h3>
 
-<p>from datetime import datetime
-from apscheduler.scheduler import Scheduler</p>
+<p>python 的 import 通过调用 <code>__import__(name[, globals[, locals[, fromlist[, level]]]])</code> 这个函数实现，借助这个函数可以通过 python 模块的名字动态引用模块。来自tornado 的 <a href="http://tornado.readthedocs.org/en/latest/_modules/tornado/util.html#import_object" target="_blank">import_object</a> 是一个很简洁的封装。</p>
 
-<p>def tick():</p>
+<p>```python
+def import_object(name):</p>
 
-<pre><code>print('Tick! The time is: %s' % datetime.now())
-</code></pre>
+<pre><code>"""Imports an object by name.
+import_object('x') is equivalent to 'import x'.
+import_object('x.y.z') is equivalent to 'from x.y import z'.
+"""
+if name.count('.') == 0:
+    return __import__(name, None, None)
 
-<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
-
-<pre><code>scheduler = Scheduler(standalone=True)
-scheduler.add_interval_job(tick, seconds=3)
-print('Press Ctrl+C to exit')
+parts = name.split('.')
+obj = __import__('.'.join(parts[:-1]), None, None, [parts[-1]], 0)
 try:
-    scheduler.start()
-except (KeyboardInterrupt, SystemExit):
-    pass
+    return getattr(obj, parts[-1])
+except AttributeError:
+    raise ImportError("No module named %s" % parts[-1])
 </code></pre>
 
 <p>```</p>
 
-<p>上边代码的最核心的三行就是初始化Scheduler，添加以interval为触发的 job 和启动scheduler。这也是使用APScheduler 最基本也最主要的方式。</p>
+<p>除此之外，我们还可以利用 python2.7 开始提供的 <a href="https://docs.python.org/2/library/importlib.html" target="_blank">importlib.import_module</a> （<a href="http://svn.python.org/projects/python/trunk/Lib/importlib/__init__.py" target="_blank">实现代码</a>）来进行动态引用。例如：<code>importlib.import_module(&lsquo;tornado.httpclient&rsquo;)</code></p>
 
-<p>初始化 Scheduler 有很多参数可以选择（详细可以参考 <a href="http://apscheduler.readthedocs.org/en/v2.1.0/#scheduler-configuration-options" target="_blank">scheduler-configuration-options</a>），这里简单介绍 standalone 和 daemonic 两个参数。standalone 设置为 False，那么 scheduler 将会以 embedded 模式运行，该模式下调度器会在一个新的线程中运行调度循环(_main_loop)；如果 standlone 设置为True，那么 scheduler 会阻塞当前线程，执行调度循环，直到不再有调度任务后返回，被阻塞的线程继续运行。daemonic 即是否以守护线程运行 scheduler，与python 守护线程的效果一致，如果 daemonic 设置为 False，显然该参数在 embedded 模式（standalone==False）下才有效果。Scheduler 默认的运行参数是 standalone == False, daemonic == True，即以 embedded 模式的守护线程中运行调度循环。</p>
+<h3>reload</h3>
 
-<p>start 是启动 scheduler 的方法，如下所示。代码很简洁，启动前读取所有 job_store 中pending job（pending job 是 scheduler 未启动前添加的job），如果为 standalone 模式，会直接进入 _main_loop 调度循环，否则在新的线程中运行调度循环。</p>
+<p>当 reload 一个 python 模块之后有两处不会使用新的模块的值：</p>
 
-<p>``` python
-def start(self):</p>
+<ol>
+<li><p>原来已经使用的实例还是会使用旧的模块，而新生产的实例会使用新的模块；</p></li>
+<li><p>其他模块引用该模块的对象，这些引用不会绑定到新的对象上。</p></li>
+</ol>
 
-<pre><code>if self.running:
-    raise SchedulerAlreadyRunningError
 
-# Create a RAMJobStore as the default if there is no default job store
-if not 'default' in self._jobstores:
-    self.add_jobstore(RAMJobStore(), 'default', True)
+<p><a href="https://github.com/jparise/python-reloader" target="_blank">python-reloader</a> 是一个很有趣的项目，它将 <code>__builtin__.__import__</code> 修改为自定义的 <code>_import</code> 函数，新的 <code>_import</code> 在原有调用 <code>__import__(name[, globals[, locals[, fromlist[, level]]]])</code> 的同时记录下引用模块之间的依赖关系。python-reloader 实现的是 reload 一个模块之后，reload 该模块所依赖的所有模块，而不是 reload 所有依赖该模块的模块。说起来很绕，这里 <a href="https://github.com/jparise/python-reloader/issues/14" target="_blank">issue(It should reload dependants instead of dependencies)</a>有很好的讨论。在实际运行的系统中动态 reload 模块可能并非一种很好的选择。</p>
 
-# Schedule all pending jobs
-for job, jobstore in self._pending_jobs:
-    self._real_add_job(job, jobstore, False)
-del self._pending_jobs[:]
+<h3>Catching an exception while using &lsquo;with&rsquo;</h3>
 
-self._stopped = False
-if self.standalone:
-    self._main_loop()
-else:
-    self._thread = Thread(target=self._main_loop, name='APScheduler')
-    self._thread.setDaemon(self.daemonic)
-    self._thread.start()
+<p>当我们使用 with 表达式并且需要捕捉异常的时候，我们可以这样做：</p>
+
+<p>```python
+try:</p>
+
+<pre><code>with open( "foo.txt" ) as f :
+    print f.readlines()
+</code></pre>
+
+<p>except EnvironmentError: # parent of IOError, OSError</p>
+
+<pre><code>print 'oops'
 </code></pre>
 
 <p>```</p>
 
-<p>_main_loop 就是调度循环，主体就是一个 while 循环。</p>
+<p>如果希望捕捉 with 表达式的异常与内部工作代码的异常分离出来，我们可以这样做：</p>
 
-<p>``` python
-while not self._stopped:</p>
+<p>```python
+try:</p>
 
-<pre><code>logger.debug('Looking for jobs to run')
-now = datetime.now()
-next_wakeup_time = self._process_jobs(now)
-
-# Sleep until the next job is scheduled to be run, a new job is added or the scheduler is stopped
-if next_wakeup_time is not None:
-    wait_seconds = time_difference(next_wakeup_time, now)
-    self._wakeup.wait(wait_seconds)
-    self._wakeup.clear()
-elif self.standalone:
-    self.shutdown()
-    break
-else:
-    self._wakeup.wait()
-    self._wakeup.clear()
+<pre><code>f = open('foo.txt')
 </code></pre>
 
-<p>```</p>
+<p>except IOError:</p>
 
-<p>进入循环后首先调用 _process_jobs 处理任务，以此处理不同 job_store 中的 每一个 job。在处理 job 过程中首先通过 get_run_times 获取 run_times（get_run_times 很有趣，它获取在 next_run_time 和 now 之间所有需要进行任务调度的时间点，之所以这样做的原因是 APScheduler 允许设定一个 misfire_grace_time 时间，也就是事件执行的延迟时间，因为有很多原因会导致计划调度不能准确在设定好的时间执行。）_process_jobs 处理很简单，将 job 的执行调度交给 scheduler 的线程池，针对每一个 job 的触发会开启一个新的线程（一个疑问：这个线程设置了t.setDaemon(True)，但是文档上却说"Jobs are always executed in non-daemonic threads.&ldquo;）来执行，而实际的任务执行发生在 Scheduler 的 _run_job 方法中。</p>
-
-<p>_process_jobs 会返回下次执行调度的时间，调度循环会根据返回值进行相应的处理，wait 指定时间、或一直 wait 等待事件通知唤醒、或退出循环。调度循环的阻塞和唤醒是由 python 原生 Event 的 wait 和 set 来实现的，阻塞结束的方式有两种：一是 wait(wait_seconds) 超时；另一种是在 scheduler 处于 running 状态添加新的任务，添加新任务过程中会自动调用 set()唤醒 event。</p>
-
-<h3>总结</h3>
-
-<p>总体而言 APScheduler 以 <a href="http://docs.python.org/2/library/threading.html#module-threading" target="_blank">threading</a> 模块为基础实现，主要用到了 threading.Event 和 threading.Thread，用到的 ThreadPool 是对 threading.Thread 的简单封装。真是因为此所以 APScheduler 有 &ldquo;No (hard) external dependencies&rdquo; 和 &ldquo;Thread-safe API&rdquo; 这两项优点。但同时存在一个问题，由于 <a href="https://wiki.python.org/moin/GlobalInterpreterLock" target="_blank">GIL</a> 的存在，任务的执行一定会阻塞主线程，所以如果任务执行时间较长、有更多异步调度的需求，那么可能就会用到另外一个更强大的框架：<a href="http://www.celeryproject.org/" target="_blank">Celery</a>。 Celery 毕竟是一个分布式的任务队列，相比而言 APScheduler 的特点是轻巧，一言以蔽之即: APScheduler is a light but powerful in-process task scheduler.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[使用Tornado进行异步编程]]></title>
-    <link href="http://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado/"/>
-    <updated>2013-06-17T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado</id>
-    <content type="html"><![CDATA[<p>翻译自：<a href="http://lbolla.info/blog/2012/10/03/asynchronous-programming-with-tornado" target="_blank">Asynchronous programming with Tornado</a></p>
-
-<p>对于初学者来说异步编程很令人迷惑，因此我觉得有必要介绍一些有用的基本概念来帮助初学者避免一些常见的陷阱。如果希望理解通用的异步编程模型，可以查看以下这些网络资源，<a href="http://cs.brown.edu/courses/cs196-5/f12/handouts/async.pdf" target="_blank">Introduction to Asynchronous Programming</a>，<a href="http://krondo.com/?page_id=1327" target="_blank">Twisted Introduction</a>。在这篇文章中我将会着眼于如何使用 Tornado 进行异步编程。</p>
-
-<p>来自Tornado主页的一段话：</p>
-
-<blockquote><p>FriendFeed&rsquo;s web server is a relatively simple, non-blocking web server written in Python. The FriendFeed application is written using a web framework that looks a bit like web.py or Google&rsquo;s webapp, but with additional tools and optimizations to take advantage of the non-blocking web server and tools. Tornado is an open source version of this web server and some of the tools we use most often at FriendFeed. The framework is distinct from most mainstream web server frameworks (and certainly most Python frameworks) because it is non-blocking and reasonably fast. Because it is non-blocking and uses epoll or kqueue, it can handle thousands of simultaneous standing connections, which means the framework is ideal for real-time web services. We built the web server specifically to handle FriendFeed&rsquo;s real-time features every active user of FriendFeed maintains an open connection to the FriendFeed servers. (For more information on scaling servers to support thousands of clients, see The C10K problem.)</p></blockquote>
-
-<p>对于初学者首先需要认清的是自己是否真的需要异步操作。异步编程比同步编程复杂得多，因此有人说：异步编程是不适合人类大脑的。</p>
-
-<!-- more -->
-
-
-<p>如果你的应用需要监控一些资源并且当这些资源的状态发生变化时需要采取一定的操作，那么你需要使用异步编程。比如对于一个 web 服务器，如果没有请求到达，那么它处于空闲状态；当有请求通过 socket 到达 web 服务器它就需要对这条请求进行一定的处理。另外一种需要异步编程的情况比如一个应用需要定期的执行一些任务或者延迟一段时间再执行代码。可以使用多线程/进程来控制多个任务的并发执行，那样编程模型也会迅速变得复杂起来。</p>
-
-<p>第二步是需要确认你想要的操作是否能够进行异步操作。不幸的是在 Tornado 中，并非所有的功能都可以异步执行。</p>
-
-<p>Tornado是单线程运行的（尽管在实际应用中，它支持多线程模式），因此阻塞操作会阻塞整个服务器。这意味着一个阻塞操作将会阻止系统执行下一个等待执行的任务。任务的调度通过<a href="http://www.tornadoweb.org/en/stable/ioloop.html" target="_blank"> IOLoop </a>完成，IOLoop运行在唯一的可用的线程中。</p>
-
-<p>下边是一个错误使用 IOLoop 的例子（译者注：这段代码与原文不一样，是按照原文的描述修改的）：</p>
-
-<p>``` python
-import time
-from tornado.ioloop import IOLoop
-from tornado import gen</p>
-
-<p>@gen.engine
-def f():</p>
-
-<pre><code>print 'sleeping'
-time.sleep(1)
-print 'awake!'
-</code></pre>
-
-<p>if <strong>name</strong> == &ldquo;<strong>main</strong>&rdquo;:</p>
-
-<pre><code># Note that now code is executed "concurrently"
-IOLoop.instance().add_callback(f)
-IOLoop.instance().add_callback(f)
-IOLoop.instance().start()
-</code></pre>
-
-<p>```</p>
-
-<p>注意到 blocking_call（译者注：函数f，不知道为什么原文作者说这是blocking_call） 被正确地调用，但是由于它被 time.sleep 阻塞，会阻止接下来任务（第二次调用该函数）的执行。只有当第一次调用结束后，这个函数才会被IOLoop 调度第二次调用。因此输出是这样的一个序列（“sleeping”, “awake!”, “sleeping”, “awake!”）。</p>
-
-<p>对比同样的代码，但是使用 time.sleep 的异步版本，例如 add_timeout：</p>
-
-<p>``` python</p>
-
-<h1>Example of non-blocking sleep.</h1>
-
-<p>import time
-from tornado.ioloop import IOLoop
-from tornado import gen</p>
-
-<p>@gen.engine
-def f():</p>
-
-<pre><code>print 'sleeping'
-yield gen.Task(IOLoop.instance().add_timeout, time.time() + 1)
-print 'awake!'
-</code></pre>
-
-<p>if <strong>name</strong> == &ldquo;<strong>main</strong>&rdquo;:</p>
-
-<pre><code># Note that now code is executed "concurrently"
-IOLoop.instance().add_callback(f)
-IOLoop.instance().add_callback(f)
-IOLoop.instance().start()
-</code></pre>
-
-<p>```</p>
-
-<p>在这种情况下，函数 f 第一次被调用，会打印“sleeping”，然后它会在1秒之后向 IOLoop 请求继续执行。IOLoop 重获控制权，它会调度函数 f 的第二次调用，第二次调用首先打印“sleeping”，之后将控制权还给 IOLoop。1秒钟后 IOLoop 会在第一个函数挂起的位置继续执行并且打印“awake”。最后，第二次“awake”也会被打印。所以全部的打印序列为“sleeping”, “sleeping”, “awake!”, “awake!”。这两次函数调用是并发执行的（但不是<a href="http://stackoverflow.com/questions/1897993/difference-between-concurrent-programming-and-parallel-programming" target="_blank">并行</a>！）</p>
-
-<p>现在我会听到你提问：“我如何创建一个函数并且异步地执行它？”在 Tornado 中，每一个有“callback”参数的函数都可以使用 “gen.engine.Task（译者注：应该是gen.Task）”进行异步操作。但是要注意：使用 Task 并不意味着就一定是异步执行！一个事实是函数会被调度获得控制权并执行，执行后任何传递给 callback 的值都会在 Task 中返回。看下边的代码：</p>
-
-<p>``` python
-import time
-from tornado.ioloop import IOLoop
-from tornado import gen</p>
-
-<p>def my_function(callback):</p>
-
-<pre><code>print 'do some work'
-# Note: this line will block!
-time.sleep(1)
-callback(123)
-</code></pre>
-
-<p>@gen.engine
-def f():</p>
-
-<pre><code>print 'start'
-# Call my_function and return here as soon as "callback" is called.
-# "result" is whatever argument was passed to "callback" in "my_function".
-result = yield gen.Task(my_function)
-print 'result is', result
-IOLoop.instance().stop()
-</code></pre>
-
-<p>if <strong>name</strong> == &ldquo;<strong>main</strong>&rdquo;:</p>
-
-<pre><code>f()
-IOLoop.instance().start()
-</code></pre>
-
-<p>```</p>
-
-<p>绝大多数初学者可能会这样写：Task(my_func)，然后认为 my_func 会自动被异步执行。事实上这并不是 Tornado 工作的原理，这是<a href="http://golang.org/" target="_blank"> Go </a>如何工作的！下边是我最后的建议(译者注：我觉得这是这篇文章最重要的建议)：</p>
-
-<blockquote><p><strong><em> In a function that is going to be used “asynchronously”, only asynchronous libraries should be used. </em></strong></p></blockquote>
-
-<p>就是说如果希望异步编程，那么一些阻塞的调用比如 time.sleep 或者 urllib2.urlopen 或者 db.query，它们需要替换成相应的异步版本。比如，IOLoop.add_timeout 是 time.sleep 的替换，AsyncHTTPClient.fetch 是 urllib2.urlopen 的替换等等。对于数据库查询，情况比较复杂，需要一些特定的异步查询驱动，比如对于 MongoDB 的<a href="http://blog.mongodb.org/post/30927719826/motor-asynchronous-driver-for-mongodb-and-python" target="_blank"> Motor </a>。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[scrapy使用笔记]]></title>
-    <link href="http://amyangfei.me/2013/03/16/tips-of-scrapy/"/>
-    <updated>2013-03-16T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2013/03/16/tips-of-scrapy</id>
-    <content type="html"><![CDATA[<p>最近在使用 scrapy 做爬虫，整个爬取框架很清晰，使用 <a href="http://twistedmatrix.com/trac/" target="_blank">twisted</a> 这个异步网络库来处理网络通讯，由 scrapy engine 作为系统调度。具体使用时通过继承 BaseSpider 自定义爬虫类，用户自己实现具体的页面分析、提供带抓取url，系统会自动调度完成页面的请求、下载返回resonse供解析。对于需要保存的数据，可以送到 Item Pipeline 中做后续处理。</p>
-
-<h3>递归爬取页面</h3>
-
-<p>爬虫运行时不断发现新的页面并进行爬取。跟踪 scrapy 源码中 BaseSpider 类，会发现下边的方法。爬去框架初始运行时会由系统调度，通过调用 next()，在 yield 挂起处继续执行 make_requests_from_url 返回 Request 对象，然后由系统调度进一步请求页面。每次爬去页面返回获得response后执行 spider 中的 parse 函数。</p>
-
-<p>``` python
-def start_requests(self):</p>
-
-<pre><code>for url in self.start_urls:
-    yield self.make_requests_from_url(url)
-</code></pre>
-
-<p>def make_requests_from_url(self, url):</p>
-
-<pre><code>return Request(url, dont_filter=True)
-</code></pre>
-
-<h1>code in engine.py/class ExecutionEngine</h1>
-
-<p>try:</p>
-
-<pre><code>request = slot.start_requests.next()
-</code></pre>
-
-<p>except StopIteration:</p>
-
-<pre><code>slot.start_requests = None
-</code></pre>
-
-<p>except Exception, exc:</p>
-
-<pre><code>log.err(None, 'Obtaining request from start requests', spider=spider)
+<pre><code>print 'oops'
 </code></pre>
 
 <p>else:</p>
 
-<pre><code>self.crawl(request, spider)
+<pre><code>with f:
+    print f.readlines()
 </code></pre>
 
 <p>```</p>
 
-<p>爬虫爬取时会不断发现新的 url 要爬取，在scrapy中实现递归爬取的方法很简单，只需要将下面的代码加到 parse 函数中。这样 parse 会在 yield 处挂起，等待系统的调度。下一次调用 next()后返回挂起点继续执行。</p>
+<p>关于 python 使用 try-except-else, with 的一些讨论：<a href="http://stackoverflow.com/questions/16138232/is-it-a-good-practice-to-use-try-except-else-in-python" target="_blank">Is it a good practice to use try-except-else</a>，<a href="http://stackoverflow.com/questions/3642080/using-python-with-statement-with-try-except-block" target="_blank">Using python “with” statement with try-except block</a></p>
 
-<!-- more -->
+<h3>StringIO</h3>
 
+<p>当我们使用一些接收参数是文件类型的 API 时，我们可能需要使用到 StringIO，例如使用 gzip 模块压缩一个字符串：</p>
 
-<p>``` python
-yield self.make_requests_from_url(url)</p>
+<p>```python
+import gzip, StringIO</p>
 
-<h1>you can also use the following line</h1>
+<p>stringio = StringIO.StringIO()
+gzip_file = gzip.GzipFile(fileobj=stringio, mode=&lsquo;w&rsquo;)
+gzip_file.write(&lsquo;Hello World&rsquo;)
+gzip_file.close()</p>
 
-<p>items.append(self.make_requests_from_url(url))
+<p>stringio.getvalue()
 ```</p>
 
-<p>需要注意的是递归调用 make_requests_from_url 的代码 <b>一定写在 parse 函数中</b>，否则如果像下边代码的结构，parse 调用 _handle_page ，当_handle_page 进入 yield 语句块时会挂起，等待 next 信号，但是 parse 函数会运行退出，于是 yield 后的 make_requests_from_url 将不再会被调用，爬取也无法递归的进行下去。我一开始写就遇到了这个问题，分析系统调度过程中使用 yield 之后发现了问题所在。</p>
+<p>在 Python2.7 中 <a href="https://docs.python.org/2/library/stringio.html#module-cStringIO" target="_blank">cStringIO</a> 提供了与 StringIO 类似的接口，并且运行效率更高。在 Python3.4 中这两者被统一成为了 io.StringIO。</p>
 
-<p>``` python
-def parse(self, response):</p>
+<p>注意：cStringIO 的使用有一些限制：cStringIO 不能作为基类被继承；cStringIO 不能接收非 ASCII 字符的字符串参数；还有一点与 StringIO 不同的是当使用字符串参数初始化一个 cStringIO 对象时，该对象是只读的。</p>
 
-<pre><code>page_type = self._gen_type_fromurl(response.url)       
-self._handle_page(response, page_type)
-</code></pre>
+<h3>Queue.Queue vs collections.deque</h3>
 
-<p>def _handle_page(self, response, page_type):</p>
+<p>Queue (python3 重命名为 queue)是一个可用于多线程之间同步、交换数据的队列模块，包括 FIFO，LIFO，优先级队列三个实现。</p>
 
-<pre><code>if page_type == 'subject':
-    hxs = HtmlXPathSelector(response)
-    new_url = hxs.select('//div[@class="rr"]/a/@href')[0].extract()
-    yield self.make_requests_from_url(new_url)
-elif page_type == 'review':
-    hxs = HtmlXPathSelector(response)
-    content = hxs.select('//div[@id="link-report"]/div').select('text()').extract()
-</code></pre>
+<p>collections.deque 是一个双端队列的数据结构，在头和尾的插入、删除、读取操作是O(1)复杂度；在队列中部的随机读取操作是O(n)的。</p>
 
-<p>```</p>
+<p>reference：<a href="http://stackoverflow.com/questions/717148/python-queue-queue-vs-collections-deque" target="_blank">Python: Queue.Queue vs. collections.deque</a></p>
 
-<p>下边这个 demo 是上边错误的简化版本，调用 funcb 函数，funcc 函数挂起，funcb 内部的代码执行后 funcb 函数退出。</p>
+<h3>heapq</h3>
 
-<p>``` python
-def funcb():</p>
+<p>python 内置的 heapq 是一个小顶堆，并且 <code>heapify</code>, <code>heappush</code>, <code>heappop</code> 操作是不支持传递 <code>key</code> 参数的。如果想实现大顶堆，可以这样 <code>lambda x: -x</code>，或者自己封装一层。例如：
+<a href="http://stackoverflow.com/a/14189741/1115857" target="_blank">python topN max heap</a>。另外，<code>heapq.nlargest</code> 和 <code>heapq.nsmallest</code> 支持 key 参数。
+邮件列表里的讨论：<a href="http://code.activestate.com/lists/python-list/162387/" target="_blank">为什么 python 的 heapq 没有支持 key 参数</a></p>
 
-<pre><code>print 'fun-b starts'
-funcc()
-print 'fun-b ends'
-</code></pre>
+<h3>itertools.tee</h3>
 
-<p>def funcc():</p>
+<p><code>itertools.tee</code> 从一个迭代器返回 n 个独立的迭代器，原始迭代器将不允许被使用，如果使用，那么可能会导致新的迭代器失效。<a href="http://discontinuously.com/2012/06/inside-python-tee/" target="_blank">Inside Python&rsquo;s itertools.tee</a> 很详细的探究了 <code>itertools.tee</code> 的实现细节。</p>
 
-<pre><code>print 'fun-c starts'
-yield 'fun-c yield'
-</code></pre>
+<h3>when should we use operator</h3>
 
-<p>if <strong>name</strong> == &lsquo;<strong>main</strong>&rsquo;:</p>
+<p>最常用的就是 <code> operator.itemgetter</code>，例如我们有一个 tuple 列表，需要对这些元组按照第i个元素排序，那么可以这样：<code>lst.sort(key=operator.itemgetter(i))</code>。</p>
 
-<pre><code>b = funcb()
-</code></pre>
+<p><code>operator.add</code> 与 <code>lambda x, y: x+y</code> 具有相同的效果，二者的不同主要有两个方面：一方面是它们的可读性、开发者的使用习惯的差别；另一方面是性能差别。在<a href="https://wiki.python.org/moin/PythonSpeed" target="_blank">python wiki</a> 中有这样一段话：</p>
 
-<h1>output</h1>
+<blockquote><p>Likewise, the builtin functions run faster than hand-built equivalents. For example, map(operator.add, v1, v2) is faster than map(lambda x,y: x+y, v1, v2).</p></blockquote>
 
-<p>fun-b starts
-fun-b ends  <br/>
+<p>我们对二者做一次简单的实验对比：</p>
+
+<p>```python
+➜ python -m timeit &lsquo;import operator&rsquo; &lsquo;map(operator.add, [x for x in range(5000)], [y for y in range(5000)])&rsquo;
+1000 loops, best of 3: 710 usec per loop</p>
+
+<p>➜ python3 -m timeit &lsquo;import operator&rsquo; &lsquo;map(operator.add, [x for x in range(5000)], [y for y in range(5000)])&rsquo;
+1000 loops, best of 3: 401 usec per loop</p>
+
+<p>➜ python -m timeit &lsquo;map(lambda x,y:x+y, [x for x in range(5000)], [y for y in range(5000)])&rsquo;
+100 loops, best of 3: 929 usec per loop</p>
+
+<p>➜ python3 -m timeit &lsquo;map(lambda x,y:x+y, [x for x in range(5000)], [y for y in range(5000)])&rsquo;
+1000 loops, best of 3: 397 usec per loop
 ```</p>
 
-<h3>Scrapy相关资源链接</h3>
-
-<ol>
-<li><a href="http://blog.pluskid.org/?p=366" target="_blank">Scrapy 轻松定制网络爬虫</a></li>
-<li><a href="http://www.yakergong.net/blog/archives/500" target="_blank">使用scrapy进行大规模抓取</a></li>
-<li><a href="http://isbullsh.it/2012/04/Web-crawling-with-scrapy/" target="_blank">Crawl a website with scrapy</a></li>
-</ol>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[thrift使用简介]]></title>
-    <link href="http://amyangfei.me/2012/04/11/simple-thrift-useage/"/>
-    <updated>2012-04-11T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2012/04/11/simple-thrift-useage</id>
-    <content type="html"><![CDATA[<p>在上一篇文章中提到过thrift，今天抽出一些时间学习了一下，框架用起来很方便。thrift最初是由facebook开发，用于跨语言的服务部署，它通过接口定义语言来定义RPC的接口和数据类型，使用自己的编译器根据固定格式的thrift文件生成不同语言的代码，并由生成的代码负责RPC协议层和传输层的实现。详细的框架设计，数据传输等等的细节就不多说了，<a href="http://thrift.apache.org/" target="_blank">Thrift</a>的官方文档说的很详细。接下来介绍的例子也主要参照官方文档的配置方法，也有一处地方在官方文档中没有提及，后面有详细的说明。简单说这些，现在一起Getting Started！</p>
-
-<!-- more -->
-
-
-<h3>下载 Thrift</h3>
-
-<p>没什么好说的，请到这里<a href="http://thrift.apache.org/download/" target="_blank">download</a> a copy of Thrift.</p>
-
-<h3>安装 Thrift 编译器</h3>
-
-<p>继续官方文档blabla，<a href="http://thrift.apache.org/docs/install/" target="_blank">installing</a> Thrift guide，选择自己的操作系统，一步步执行so easy。安装时候需要的支持库很多，没有什么装什么。我按照官方文档的命令正常安装，没出现什么问题。</p>
-
-<p><code>bash
-sudo apt-get install libboost-dev libboost-test-dev libboost-program-options-dev libevent-dev \
-automake libtool flex bison pkg-config g++ libssl-dev
-</code></p>
-
-<h3>根据服务器及客户端运行语言生成运行时</h3>
-
-<p>这一步在我看到的很多thrift使用介绍以及官方文档中都没有提及，但这一步是不可缺少的。简单说如果要在框架下使用java就要有thrift对应的java库引用，就是打好的jar包。生成的方法很简单，找到下载的thrift源码包，lib目录下不同语言的名字对应于生成不同语言运行时的源码，基本都有写好的自动脚本。比如python，进入到 /lib/py 目录输入下面的命令下就OK啦。</p>
-
-<p><code>bash
-sudo python setup.py install
-</code></p>
-
-<h3>编写.thrift文件，生成client和server的代码</h3>
-
-<p>.thrift文件就是用来定义数据类型和调用方法的，下面的代码定义了一个User类和两个要使用的方法。这一部分看文档也很简单。</p>
-
-<p>``` c++
-struct User {</p>
-
-<pre><code>1: i32 uid,
-2: string uname
-</code></pre>
-
-<p>}</p>
-
-<p>service HelloWorld {</p>
-
-<pre><code>User ping(1: User user),
-string say(1:string msg)
-</code></pre>
-
-<p>}
-```</p>
-
-<p>然后生成client和server要使用的代码</p>
-
-<p><code>bash
-thrift --gen py helloworld.thrift
-thrift --gen java helloworld.thrift
-</code></p>
-
-<h3>编写server和client</h3>
-
-<p>我用python编写server端，用java编写客户端。thrift自动生成的代码里包括了server和client各自启动连接的部分，我看了java，C++，python自动生成的部分，使用方法基本相同。</p>
-
-<h3>python server</h3>
-
-<p>``` python</p>
-
-<h1>!/usr/bin/env python</h1>
-
-<p>import socket
-import sys
-sys.path.append(&lsquo;./gen-py&rsquo;)</p>
-
-<p>from helloworld import HelloWorld
-from helloworld.ttypes import *</p>
-
-<p>from thrift.transport import TSocket
-from thrift.transport import TTransport
-from thrift.protocol import TBinaryProtocol
-from thrift.server import TServer</p>
-
-<p>class HelloWorldHandler:
-  def ping(self, user):</p>
-
-<pre><code>user.uid += 1
-user.uname += " huang"
-return user
-</code></pre>
-
-<p>  def say(self, msg):</p>
-
-<pre><code>ret = "Response from server: " + msg
-print "message from client:", msg
-return ret
-</code></pre>
-
-<p>handler = HelloWorldHandler()
-processor = HelloWorld.Processor(handler)
-transport = TSocket.TServerSocket(&ldquo;localhost&rdquo;, 9090)
-tfactory = TTransport.TBufferedTransportFactory()
-pfactory = TBinaryProtocol.TBinaryProtocolFactory()</p>
-
-<p>server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)</p>
-
-<p>print &ldquo;Starting thrift server in python&hellip;&rdquo;
-server.serve()
-print &ldquo;done!&rdquo;
-```</p>
-
-<h3>java client</h3>
-
-<p>``` java
-import org.apache.thrift.<em>;
-import org.apache.thrift.protocol.</em>;
-import org.apache.thrift.transport.*;</p>
-
-<p>public class client {</p>
-
-<pre><code>public static void main(String[] args) throws Exception {
-    try {
-        TTransport transport = new TSocket("localhost", 9090);
-        TProtocol protocol = new TBinaryProtocol(transport);
-        HelloWorld.Client client = new HelloWorld.Client(protocol);
-        transport.open();
-
-        User u = new User(1, "xiaoming");
-        User uRet = client.ping(u);
-        System.out.println("invoke of ping return: uid-" + uRet.uid + " uname-"+uRet.uname);
-        String say = client.say("My heart will go on");
-        System.out.println("invoke of say return:" + say);
-
-        transport.close();
-    } catch (TException x) {
-        x.printStackTrace();
-    }
-}
-</code></pre>
-
-<p>}
-```</p>
-
-<p>客户端的输出结果如下图所示，xiaoming 变成了 xiaoming huang，uid 加了1，没有问题。
-<img src="http://amyangfei.me/images/post/java-client-output.png" style="width: 580px;"/></p>
-
-<h3>总结</h3>
-
-<p>总体感觉按照官方文档thrift配置起来还是很顺手的，同时thrift的源码里有各种语言客户端服务器的使用例子，看一看很快就可以上手。以后有时间今天配thrift有一种似曾相识的感觉，后来想想，这种感觉应该是上学期配置<a href="http://wso2.com/" target="_blank"></a>WSO2的各种服务吧，Application Server，Enterprise Service Bus，Business Process Server。。。oh no。。。</p>
+<p>实验结果中，在 Python2.7 环境下 <code>operator.add</code> 稍微快于使用 lambda 表达式，在 Python3 环境下两者几乎没有差别。事实上 Python 并不适合 CPU 密集型的应用场景，当 CPU 不是性能瓶颈时，operator 和 lambda 之间的性能差距基本可以忽略。</p>
 ]]></content>
   </entry>
   

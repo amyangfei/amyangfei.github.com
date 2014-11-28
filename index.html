@@ -91,6 +91,52 @@
     <article class="post">
 	<h2 class="title">
 		
+		<a href="/2014/11/27/python-tips/">
+		
+			Python 拾遗</a>
+	</h2>
+	<div class="entry-content">
+		<p>整理 python 使用的一些技巧，以及一些可能被忽略的细节，很多在文档可以查找到的内容将不会过多的描述，更多以外链的形式存在。</p>
+
+<p>注意: 以下讨论主要为 Python2.7 版本， Python 3 的内容有待跟进</p>
+
+
+		
+		<a href="/2014/11/27/python-tips/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-27T00:00:00+08:00" pubdate data-updated="true">Nov 27<span>th</span>, 2014</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/python/'>python</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2014/11/27/python-tips/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
 		<a href="/2014/04/05/tips-of-puppet/">
 		
 			Puppet使用笔记</a>
@@ -372,54 +418,6 @@
 </div>
 	
 	<div class="comments"><a href="/2013/06/17/asynchronous-programming-with-tornado/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2013/05/10/longest-segement-merge/">
-		
-			线段合并求最长线段</a>
-	</h2>
-	<div class="entry-content">
-		<p>原始题目来自于雅虎北研黑客日初赛试题，大概的描述是“在一维空间有n条线段，将每两条具有交集的线段（如[a,b],[c,d],b>a,d>c）合并为一条线段，合并后的线段为 [min(a,c),max(b,d)]”，求经过合并操作后最长的线段长度。</p>
-
-<p>在acm timus找到一道几乎一样的题目<a href="http://acm.timus.ru/problem.aspx?space=1&num=1019" target="_blank"> timus 1019 </a>。用<a href="https://en.wikipedia.org/wiki/Segment_tree" target="_blank">线段树</a>求解这两道题十分简单，例如 <a href="http://www.cnblogs.com/scau20110726/archive/2013/04/03/2998742.html" target="_blank">ural(Timus) 1019 Line Painting</a> 中的解法。</p>
-
-<p>我答题的时候没有使用线段树，而是通过一个有序列表记录实际线段的起止坐标，对于题目1019，将画白线对应于加入线段，画黑线对应于擦除线段。那么每次画线的起止点分别有4种情况：起点在线段上；起点在线段外；终点在线段上；终点在线段外。根据情况修改有序列表记录的坐标值，有序列表中 [i,i+1]（i=0,2,4&hellip;）始终表示不相交的线段。最后遍历有序列表即可得到最长的线段。</p>
-
-
-		
-		<a href="/2013/05/10/longest-segement-merge/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-05-10T00:00:00+08:00" pubdate data-updated="true">May 10<span>th</span>, 2013</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/algorithm/'>Algorithm</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2013/05/10/longest-segement-merge/#disqus_thread">Comments</a></div>
 	
 </div>
 </article>

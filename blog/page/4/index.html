@@ -216,76 +216,6 @@
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/2012/11/12/secure-tips-for-ssh/">
-		
-			配置安全ssh的几个方法</a>
-	</h2>
-	<div class="entry-content">
-		<p>最近一直通过ssh连接到机房的电脑，昨天把ssh端口改回了默认的22，结果今天早上收到Logwatch的报告时发现来自3个不同ip的100多条登陆失败的记录，于是总结一些配置安全ssh的方法。本文实验环境为unbutu12.10。</p>
-
-<h3>SSH服务配置，合理配置/etc/ssh/sshd_config文件</h3>
-
-<ul>
-<li>1.修改默认端口：ssh默认登录端口为22，修改后可以增加入侵者探测系统是否运行有sshd守护进程的难度。如：</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Port 4312
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>2.限定监听ip：通常如果配置ListenAddress 0.0.0.0，那么任意ip都可以通过ssh访问。如果指定了ListenAddress为特定IP，那么仅有这些限定的IP可以访问。</li>
-</ul>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>ListenAddress 192.168.1.100
-</span><span class='line'>ListenAddress 192.168.1.101
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-
-		
-		<a href="/2012/11/12/secure-tips-for-ssh/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-11-12T00:00:00+08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/linux/'>Linux</a>, <a class='category' href='/blog/categories/ubuntu/'>Ubuntu</a>, <a class='category' href='/blog/categories/ssh/'>ssh</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2012/11/12/secure-tips-for-ssh/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
 		<a href="/2012/09/20/server-suffering-attack/">
 		
 			An Experience of Being Attacked</a>
@@ -431,6 +361,50 @@
 </div>
 	
 	<div class="comments"><a href="/2012/04/29/sixv-detect-robot/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/2012/04/11/simple-thrift-useage/">
+		
+			Thrift使用简介</a>
+	</h2>
+	<div class="entry-content">
+		<p>在上一篇文章中提到过thrift，今天抽出一些时间学习了一下，框架用起来很方便。thrift最初是由facebook开发，用于跨语言的服务部署，它通过接口定义语言来定义RPC的接口和数据类型，使用自己的编译器根据固定格式的thrift文件生成不同语言的代码，并由生成的代码负责RPC协议层和传输层的实现。详细的框架设计，数据传输等等的细节就不多说了，<a href="http://thrift.apache.org/" target="_blank">Thrift</a>的官方文档说的很详细。接下来介绍的例子也主要参照官方文档的配置方法，也有一处地方在官方文档中没有提及，后面有详细的说明。简单说这些，现在一起Getting Started！</p>
+
+
+		
+		<a href="/2012/04/11/simple-thrift-useage/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-11T00:00:00+08:00" pubdate data-updated="true">Apr 11<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/java/'>Java</a>, <a class='category' href='/blog/categories/python/'>Python</a>, <a class='category' href='/blog/categories/rpc/'>RPC</a>, <a class='category' href='/blog/categories/thrift/'>Thrift</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2012/04/11/simple-thrift-useage/#disqus_thread">Comments</a></div>
 	
 </div>
 </article>

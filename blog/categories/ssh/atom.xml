@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ssh | Amyangfei's Blog]]></title>
   <link href="http://amyangfei.me/blog/categories/ssh/atom.xml" rel="self"/>
   <link href="http://amyangfei.me/"/>
-  <updated>2014-04-05T21:40:04+08:00</updated>
+  <updated>2014-11-28T15:38:40+08:00</updated>
   <id>http://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
@@ -12,107 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[配置安全ssh的几个方法]]></title>
-    <link href="http://amyangfei.me/2012/11/12/secure-tips-for-ssh/"/>
-    <updated>2012-11-12T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2012/11/12/secure-tips-for-ssh</id>
-    <content type="html"><![CDATA[<p>最近一直通过ssh连接到机房的电脑，昨天把ssh端口改回了默认的22，结果今天早上收到Logwatch的报告时发现来自3个不同ip的100多条登陆失败的记录，于是总结一些配置安全ssh的方法。本文实验环境为unbutu12.10。</p>
-
-<h3>SSH服务配置，合理配置/etc/ssh/sshd_config文件</h3>
-
-<ul>
-<li><p>1.修改默认端口：ssh默认登录端口为22，修改后可以增加入侵者探测系统是否运行有sshd守护进程的难度。如：
-<code>bash
-Port 4312
-</code></p></li>
-<li><p>2.限定监听ip：通常如果配置ListenAddress 0.0.0.0，那么任意ip都可以通过ssh访问。如果指定了ListenAddress为特定IP，那么仅有这些限定的IP可以访问。</p></li>
-</ul>
-
-
-<p><code>bash
-ListenAddress 192.168.1.100
-ListenAddress 192.168.1.101
-</code></p>
-
-<!-- more -->
-
-
-<ul>
-<li>3.禁止root登录</li>
-</ul>
-
-
-<p><code>bash
-PermitRootLogin no
-</code></p>
-
-<ul>
-<li>4.禁止/允许特定用户和用户组登录:
-以下分别对应禁止用户登录、禁止用户组登录、允许用户登录、允许用户组登录。处理顺序是：DenyUsers, AllowUsers, DenyGroups, AllowGroups。</li>
-</ul>
-
-
-<p><code>bash
-DenyUsers apache jame
-DenyGroups developers qa
-AllowUsers apple pear
-AllowGroups sysadmin dba
-</code></p>
-
-<ul>
-<li>5.设置超时断开:可以通过修改ClientAliveInterval和ClientAliveCountMax参数断开一定时间内没有活动的连接用户。ClientAliveCountMax参数表示ssh-server向client发送活动检测的次数，例如ClientAliveInterval=150，ClientAliveCountMax=3，那么大约在450s后会断开没有响应的连接。</li>
-</ul>
-
-
-<p><code>bash
-ClientAliveInterval 150
-ClientAliveCountMax 3
-</code></p>
-
-<ul>
-<li>6.限制密码尝试次数</li>
-</ul>
-
-
-<p><code>bash
-MaxAuthTries 10
-</code></p>
-
-<h3>配置hosts.allow和hosts.deny文件</h3>
-
-<p>/etc/hosts.allow控制可以访问本机的IP地址，/etc/hosts.deny控制禁止访问本机的IP。如果两个文件的配置有冲突，/etc/hosts.allow优先级较高，即同时出现在.allow和.deny中的IP是可以访问本机的。比如限定禁止访问的IP直接加到/etc/hosts.deny文件中即可</p>
-
-<p><code>bash
-sshd:119.196.231.193
-sshd:125.136.130.18
-sshd:94.103.147.75
-</code></p>
-
-<p>在网上看到了一种比较好的方法，就是每天利用crontab任务分析系统登录日志，将登陆失败次数达到一定范围的IP加入/etc/hosts.deny文件来拒绝这个IP登录。原文地址-><a href="http://www.pyshell.com/index.php/archives/225" target="_blank"> 利用shell拒绝ssh暴力破解 </a>实现脚本如下，注意，只修改hosts.allow和hosts.deny文件不需要重启networking服务。</p>
-
-<p>``` bash</p>
-
-<h1>!/bin/bash</h1>
-
-<p>blackip=&lsquo;/var/myscript/blackip.txt&rsquo;
-cat /var/log/auth.log | awk &lsquo;/Failed/{print $(NF-3)}&rsquo; | sort | uniq -c | awk &lsquo;{if ($1 >= 9) {print $2"=&ldquo;$1}}&rsquo; > $blackip
-for i in $(cat $blackip)
-do</p>
-
-<pre><code>ip=$(echo $i | awk -F= '{print $1}')
-grep $ip /etc/hosts.deny
-if [ $? -gt 0 ];
-then
-    echo "sshd:$ip" &gt;&gt; /etc/hosts.deny
-fi
-</code></pre>
-
-<p>done
-```</p>
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[An Experience of being Attacked]]></title>

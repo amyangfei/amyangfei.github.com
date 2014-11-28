@@ -4,7 +4,7 @@
   <title><![CDATA[Amyangfei's Blog]]></title>
   <link href="http://amyangfei.me/atom.xml" rel="self"/>
   <link href="http://amyangfei.me/"/>
-  <updated>2014-04-05T21:40:04+08:00</updated>
+  <updated>2014-11-28T15:38:40+08:00</updated>
   <id>http://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
@@ -12,6 +12,189 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[python 拾遗]]></title>
+    <link href="http://amyangfei.me/2014/11/27/python-tips/"/>
+    <updated>2014-11-27T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2014/11/27/python-tips</id>
+    <content type="html"><![CDATA[<p>整理 python 使用的一些技巧，以及一些可能被忽略的细节，很多在文档可以查找到的内容将不会过多的描述，更多以外链的形式存在。</p>
+
+<p>注意: 以下讨论主要为 Python2.7 版本， Python 3 的内容有待跟进</p>
+
+<!-- more -->
+
+
+<h3>import</h3>
+
+<p>python 的 import 通过调用 <code>__import__(name[, globals[, locals[, fromlist[, level]]]])</code> 这个函数实现，借助这个函数可以通过 python 模块的名字动态引用模块。来自tornado 的 <a href="http://tornado.readthedocs.org/en/latest/_modules/tornado/util.html#import_object" target="_blank">import_object</a> 是一个很简洁的封装。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">def</span> <span class="nf">import_object</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+</span><span class='line'>    <span class="sd">&quot;&quot;&quot;Imports an object by name.</span>
+</span><span class='line'><span class="sd">    import_object(&#39;x&#39;) is equivalent to &#39;import x&#39;.</span>
+</span><span class='line'><span class="sd">    import_object(&#39;x.y.z&#39;) is equivalent to &#39;from x.y import z&#39;.</span>
+</span><span class='line'><span class="sd">    &quot;&quot;&quot;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">parts</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">obj</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">[</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">try</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</span><span class='line'>    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s">&quot;No module named </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>除此之外，我们还可以利用 python2.7 开始提供的 <a href="https://docs.python.org/2/library/importlib.html" target="_blank">importlib.import_module</a> （<a href="http://svn.python.org/projects/python/trunk/Lib/importlib/__init__.py" target="_blank">实现代码</a>）来进行动态引用。例如：<code>importlib.import_module(&lsquo;tornado.httpclient&rsquo;)</code></p>
+
+<h3>reload</h3>
+
+<p>当 reload 一个 python 模块之后有两处不会使用新的模块的值：</p>
+
+<ol>
+<li><p>原来已经使用的实例还是会使用旧的模块，而新生产的实例会使用新的模块；</p></li>
+<li><p>其他模块引用该模块的对象，这些引用不会绑定到新的对象上。</p></li>
+</ol>
+
+
+<p><a href="https://github.com/jparise/python-reloader" target="_blank">python-reloader</a> 是一个很有趣的项目，它将 <code>__builtin__.__import__</code> 修改为自定义的 <code>_import</code> 函数，新的 <code>_import</code> 在原有调用 <code>__import__(name[, globals[, locals[, fromlist[, level]]]])</code> 的同时记录下引用模块之间的依赖关系。python-reloader 实现的是 reload 一个模块之后，reload 该模块所依赖的所有模块，而不是 reload 所有依赖该模块的模块。说起来很绕，这里 <a href="https://github.com/jparise/python-reloader/issues/14" target="_blank">issue(It should reload dependants instead of dependencies)</a>有很好的讨论。在实际运行的系统中动态 reload 模块可能并非一种很好的选择。</p>
+
+<h3>Catching an exception while using &lsquo;with&rsquo;</h3>
+
+<p>当我们使用 with 表达式并且需要捕捉异常的时候，我们可以这样做：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">try</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="s">&quot;foo.txt&quot;</span> <span class="p">)</span> <span class="k">as</span> <span class="n">f</span> <span class="p">:</span>
+</span><span class='line'>        <span class="k">print</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+</span><span class='line'><span class="k">except</span> <span class="ne">EnvironmentError</span><span class="p">:</span> <span class="c"># parent of IOError, OSError</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&#39;oops&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果希望捕捉 with 表达式的异常与内部工作代码的异常分离出来，我们可以这样做：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">try</span><span class="p">:</span>
+</span><span class='line'>    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;foo.txt&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">print</span> <span class="s">&#39;oops&#39;</span>
+</span><span class='line'><span class="k">else</span><span class="p">:</span>
+</span><span class='line'>    <span class="k">with</span> <span class="n">f</span><span class="p">:</span>
+</span><span class='line'>        <span class="k">print</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>关于 python 使用 try-except-else, with 的一些讨论：<a href="http://stackoverflow.com/questions/16138232/is-it-a-good-practice-to-use-try-except-else-in-python" target="_blank">Is it a good practice to use try-except-else</a>，<a href="http://stackoverflow.com/questions/3642080/using-python-with-statement-with-try-except-block" target="_blank">Using python “with” statement with try-except block</a></p>
+
+<h3>StringIO</h3>
+
+<p>当我们使用一些接收参数是文件类型的 API 时，我们可能需要使用到 StringIO，例如使用 gzip 模块压缩一个字符串：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="kn">import</span> <span class="nn">gzip</span><span class="o">,</span> <span class="nn">StringIO</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">stringio</span> <span class="o">=</span> <span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+</span><span class='line'><span class="n">gzip_file</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">GzipFile</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">stringio</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;w&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">gzip_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Hello World&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="n">gzip_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">stringio</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在 Python2.7 中 <a href="https://docs.python.org/2/library/stringio.html#module-cStringIO" target="_blank">cStringIO</a> 提供了与 StringIO 类似的接口，并且运行效率更高。在 Python3.4 中这两者被统一成为了 io.StringIO。</p>
+
+<p>注意：cStringIO 的使用有一些限制：cStringIO 不能作为基类被继承；cStringIO 不能接收非 ASCII 字符的字符串参数；还有一点与 StringIO 不同的是当使用字符串参数初始化一个 cStringIO 对象时，该对象是只读的。</p>
+
+<h3>Queue.Queue vs collections.deque</h3>
+
+<p>Queue (python3 重命名为 queue)是一个可用于多线程之间同步、交换数据的队列模块，包括 FIFO，LIFO，优先级队列三个实现。</p>
+
+<p>collections.deque 是一个双端队列的数据结构，在头和尾的插入、删除、读取操作是O(1)复杂度；在队列中部的随机读取操作是O(n)的。</p>
+
+<p>reference：<a href="http://stackoverflow.com/questions/717148/python-queue-queue-vs-collections-deque" target="_blank">Python: Queue.Queue vs. collections.deque</a></p>
+
+<h3>heapq</h3>
+
+<p>python 内置的 heapq 是一个小顶堆，并且 <code>heapify</code>, <code>heappush</code>, <code>heappop</code> 操作是不支持传递 <code>key</code> 参数的。如果想实现大顶堆，可以这样 <code>lambda x: -x</code>，或者自己封装一层。例如：
+<a href="http://stackoverflow.com/a/14189741/1115857" target="_blank">python topN max heap</a>。另外，<code>heapq.nlargest</code> 和 <code>heapq.nsmallest</code> 支持 key 参数。
+邮件列表里的讨论：<a href="http://code.activestate.com/lists/python-list/162387/" target="_blank">为什么 python 的 heapq 没有支持 key 参数</a></p>
+
+<h3>itertools.tee</h3>
+
+<p><code>itertools.tee</code> 从一个迭代器返回 n 个独立的迭代器，原始迭代器将不允许被使用，如果使用，那么可能会导致新的迭代器失效。<a href="http://discontinuously.com/2012/06/inside-python-tee/" target="_blank">Inside Python&rsquo;s itertools.tee</a> 很详细的探究了 <code>itertools.tee</code> 的实现细节。</p>
+
+<h3>when should we use operator</h3>
+
+<p>最常用的就是 <code> operator.itemgetter</code>，例如我们有一个 tuple 列表，需要对这些元组按照第i个元素排序，那么可以这样：<code>lst.sort(key=operator.itemgetter(i))</code>。</p>
+
+<p><code>operator.add</code> 与 <code>lambda x, y: x+y</code> 具有相同的效果，二者的不同主要有两个方面：一方面是它们的可读性、开发者的使用习惯的差别；另一方面是性能差别。在<a href="https://wiki.python.org/moin/PythonSpeed" target="_blank">python wiki</a> 中有这样一段话：</p>
+
+<blockquote><p>Likewise, the builtin functions run faster than hand-built equivalents. For example, map(operator.add, v1, v2) is faster than map(lambda x,y: x+y, v1, v2).</p></blockquote>
+
+<p>我们对二者做一次简单的实验对比：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="err">➜</span> <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">timeit</span> <span class="s">&#39;import operator&#39;</span> <span class="s">&#39;map(operator.add, [x for x in range(5000)], [y for y in range(5000)])&#39;</span>
+</span><span class='line'><span class="mi">1000</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">710</span> <span class="n">usec</span> <span class="n">per</span> <span class="n">loop</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">➜</span> <span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">timeit</span> <span class="s">&#39;import operator&#39;</span> <span class="s">&#39;map(operator.add, [x for x in range(5000)], [y for y in range(5000)])&#39;</span>
+</span><span class='line'><span class="mi">1000</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">401</span> <span class="n">usec</span> <span class="n">per</span> <span class="n">loop</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">➜</span> <span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">timeit</span> <span class="s">&#39;map(lambda x,y:x+y, [x for x in range(5000)], [y for y in range(5000)])&#39;</span>
+</span><span class='line'><span class="mi">100</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">929</span> <span class="n">usec</span> <span class="n">per</span> <span class="n">loop</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">➜</span> <span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">timeit</span> <span class="s">&#39;map(lambda x,y:x+y, [x for x in range(5000)], [y for y in range(5000)])&#39;</span>
+</span><span class='line'><span class="mi">1000</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">397</span> <span class="n">usec</span> <span class="n">per</span> <span class="n">loop</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实验结果中，在 Python2.7 环境下 <code>operator.add</code> 稍微快于使用 lambda 表达式，在 Python3 环境下两者几乎没有差别。事实上 Python 并不适合 CPU 密集型的应用场景，当 CPU 不是性能瓶颈时，operator 和 lambda 之间的性能差距基本可以忽略。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[puppet使用笔记]]></title>
@@ -1120,7 +1303,7 @@
 
 <p><img src="http://amyangfei.me/images/post/20130228portmapping.png" style=""/></p>
 
-<p>之后就可以在外网直接通过ssh连接虚拟机： ssh <a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#111;&#58;&#x75;&#x73;&#x65;&#114;&#x6e;&#97;&#x6d;&#101;&#x40;&#x31;&#54;&#54;&#x2e;&#x31;&#49;&#x31;&#46;&#120;&#46;&#x78;">&#117;&#115;&#x65;&#114;&#x6e;&#x61;&#109;&#101;&#x40;&#49;&#54;&#x36;&#46;&#49;&#x31;&#x31;&#46;&#120;&#x2e;&#x78;</a> -p10000</p>
+<p>之后就可以在外网直接通过ssh连接虚拟机： ssh <a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#x3a;&#117;&#115;&#x65;&#114;&#x6e;&#97;&#x6d;&#x65;&#64;&#49;&#x36;&#x36;&#x2e;&#49;&#x31;&#49;&#46;&#120;&#46;&#x78;">&#117;&#x73;&#x65;&#114;&#x6e;&#97;&#109;&#101;&#x40;&#x31;&#54;&#x36;&#x2e;&#x31;&#49;&#x31;&#x2e;&#x78;&#46;&#x78;</a> -p10000</p>
 ]]></content>
   </entry>
   
@@ -2201,316 +2384,6 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 <h3>参考文章</h3>
 
 <p><a href="http://blog.csdn.net/chosen0ne/article/details/7302991" target="_blank">压力测试shell脚本</a>，<a href="http://blog.csdn.net/sosodream/article/details/5683515" target="_blank">实例解析shell子进程（subshell )</a>，<a href="http://lihdd.net/bash-pipe-pitfall" target="_blank">小心bash的管道</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[baidu-star算法题-地铁]]></title>
-    <link href="http://amyangfei.me/2013/01/02/baidustar-code-digraph/"/>
-    <updated>2013-01-02T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2013/01/02/baidustar-code-digraph</id>
-    <content type="html"><![CDATA[<p>题目来源：<a href="http://astar.baidu.com/index.php?r=home/detail&id=8" target="_blank">百度之星-2012年12月23号竞赛题目三-地铁</a></p>
-
-<p>思路：地图是一个有向图，需要从M条边中删除M-K条有向边。下面将一个点的出度与入度差的绝对值记为该点的“度”。由于只删边不增加边，那么如果希望降低系统的最大度，那么具有最大度的顶点一定需要删除与其相关的边。考虑使用贪心算法，每次选择删除边的规则如下：</p>
-
-<ol>
-<li>选出具有最大度的所有顶点，定义一个待删除相关节点最大度lastdegmax。对应每一个顶点u，如果u的出度大于入度，那么对应每一条(u,v),若删除(u,v)后会降低v的度，并且v的度大于lastdegmax，那么将(u,v)设置为将要删除的缓冲区(待删除缓冲区长度为1)。如果u的入度大于出度，操作类似。</li>
-<li>如果1中删除任何一条(u,v)或(v,u)都会增加v的度，那么选择选择具有最小度的v，将(u,v)或(v,u)加入待删除缓冲区。</li>
-<li>缓冲区中的边即为该轮迭代中将要删除的边。</li>
-</ol>
-
-
-<!-- more -->
-
-
-<p>实现代码如下：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-<span class='line-number'>73</span>
-<span class='line-number'>74</span>
-<span class='line-number'>75</span>
-<span class='line-number'>76</span>
-<span class='line-number'>77</span>
-<span class='line-number'>78</span>
-<span class='line-number'>79</span>
-<span class='line-number'>80</span>
-<span class='line-number'>81</span>
-<span class='line-number'>82</span>
-<span class='line-number'>83</span>
-<span class='line-number'>84</span>
-<span class='line-number'>85</span>
-<span class='line-number'>86</span>
-<span class='line-number'>87</span>
-<span class='line-number'>88</span>
-<span class='line-number'>89</span>
-<span class='line-number'>90</span>
-<span class='line-number'>91</span>
-<span class='line-number'>92</span>
-<span class='line-number'>93</span>
-<span class='line-number'>94</span>
-<span class='line-number'>95</span>
-<span class='line-number'>96</span>
-<span class='line-number'>97</span>
-<span class='line-number'>98</span>
-<span class='line-number'>99</span>
-<span class='line-number'>100</span>
-<span class='line-number'>101</span>
-<span class='line-number'>102</span>
-<span class='line-number'>103</span>
-<span class='line-number'>104</span>
-<span class='line-number'>105</span>
-<span class='line-number'>106</span>
-<span class='line-number'>107</span>
-<span class='line-number'>108</span>
-<span class='line-number'>109</span>
-<span class='line-number'>110</span>
-<span class='line-number'>111</span>
-<span class='line-number'>112</span>
-<span class='line-number'>113</span>
-<span class='line-number'>114</span>
-<span class='line-number'>115</span>
-<span class='line-number'>116</span>
-<span class='line-number'>117</span>
-<span class='line-number'>118</span>
-<span class='line-number'>119</span>
-<span class='line-number'>120</span>
-<span class='line-number'>121</span>
-<span class='line-number'>122</span>
-<span class='line-number'>123</span>
-<span class='line-number'>124</span>
-<span class='line-number'>125</span>
-<span class='line-number'>126</span>
-<span class='line-number'>127</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="cp">#include &lt;iostream&gt;</span>
-</span><span class='line'><span class="cp">#include &lt;vector&gt;</span>
-</span><span class='line'><span class="cp">#include &lt;map&gt;</span>
-</span><span class='line'><span class="cp">#include &lt;cmath&gt;</span>
-</span><span class='line'><span class="k">using</span> <span class="k">namespace</span><span class="o">::</span><span class="n">std</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">bool</span> <span class="n">SortByDeg</span><span class="p">(</span><span class="k">const</span> <span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">v1</span><span class="p">,</span> <span class="k">const</span> <span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">v2</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="n">abs</span><span class="p">(</span><span class="n">v1</span><span class="p">.</span><span class="n">second</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">abs</span><span class="p">(</span><span class="n">v2</span><span class="p">.</span><span class="n">second</span><span class="p">);</span> <span class="c1">//desc sort</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="n">SortWrap</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">deg</span><span class="p">,</span> <span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">degmap</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">sort</span><span class="p">(</span><span class="n">deg</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">deg</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">SortByDeg</span><span class="p">);</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">deg</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">degmap</span><span class="p">[</span><span class="n">deg</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">first</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="n">deldeg</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">deldeg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">u</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">uiter</span> <span class="o">=</span> <span class="n">deldeg</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">uiter</span> <span class="o">!=</span> <span class="n">deldeg</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="n">uiter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">uiter</span> <span class="o">==</span> <span class="n">u</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="n">deldeg</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">uiter</span><span class="p">);</span>
-</span><span class='line'>            <span class="k">break</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="n">update</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">outdeg</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">indeg</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">deg</span><span class="p">,</span> <span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">degmap</span><span class="p">,</span> <span class="kt">int</span> <span class="n">u</span><span class="p">,</span> <span class="kt">int</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">deldeg</span><span class="p">(</span><span class="n">outdeg</span><span class="p">,</span> <span class="n">v</span><span class="p">);</span>
-</span><span class='line'>    <span class="n">deldeg</span><span class="p">(</span><span class="n">indeg</span><span class="p">,</span> <span class="n">u</span><span class="p">);</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">deg</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">iter</span> <span class="o">!=</span> <span class="n">deg</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="n">iter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
-</span><span class='line'>            <span class="k">break</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">if</span> <span class="p">((</span><span class="o">*</span><span class="n">iter</span><span class="p">).</span><span class="n">first</span> <span class="o">==</span> <span class="n">u</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="p">(</span><span class="o">*</span><span class="n">iter</span><span class="p">).</span><span class="n">second</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>            <span class="n">ret</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">else</span> <span class="k">if</span> <span class="p">((</span><span class="o">*</span><span class="n">iter</span><span class="p">).</span><span class="n">first</span> <span class="o">==</span> <span class="n">v</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="p">(</span><span class="o">*</span><span class="n">iter</span><span class="p">).</span><span class="n">second</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>            <span class="n">ret</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="n">SortWrap</span><span class="p">(</span><span class="n">deg</span><span class="p">,</span> <span class="n">degmap</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="n">setdelbuf</span><span class="p">(</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">delbuf</span><span class="p">,</span> <span class="kt">int</span> <span class="n">u</span><span class="p">,</span> <span class="kt">int</span> <span class="n">v</span><span class="p">,</span> <span class="kt">int</span> <span class="n">handleOut</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">delbuf</span><span class="p">.</span><span class="n">first</span> <span class="o">=</span> <span class="n">handleOut</span><span class="o">&gt;</span><span class="mi">0</span> <span class="o">?</span> <span class="n">u</span> <span class="o">:</span> <span class="n">v</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">delbuf</span><span class="p">.</span><span class="n">second</span> <span class="o">=</span> <span class="n">handleOut</span><span class="o">&gt;</span><span class="mi">0</span> <span class="o">?</span> <span class="n">v</span> <span class="o">:</span> <span class="n">u</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="n">oneSelect</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">outdeg</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">indeg</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">deg</span><span class="p">,</span> <span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">degmap</span><span class="p">,</span> <span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">delbuf</span><span class="p">,</span> <span class="kt">int</span> <span class="n">u</span><span class="p">,</span> <span class="kt">int</span> <span class="o">*</span><span class="n">lastdegmax</span><span class="p">,</span> <span class="kt">int</span> <span class="o">*</span><span class="n">lastdegmin</span><span class="p">,</span> <span class="kt">bool</span> <span class="o">*</span><span class="n">minusmax</span><span class="p">,</span> <span class="kt">int</span> <span class="n">handleOut</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">handleDeg</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">handleOut</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
-</span><span class='line'>        <span class="n">handleDeg</span> <span class="o">=</span> <span class="n">outdeg</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">else</span>
-</span><span class='line'>        <span class="n">handleDeg</span> <span class="o">=</span> <span class="n">indeg</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">viter</span> <span class="o">=</span> <span class="n">handleDeg</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">viter</span> <span class="o">!=</span> <span class="n">handleDeg</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="n">viter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">degmap</span><span class="p">[</span><span class="o">*</span><span class="n">viter</span><span class="p">]).</span><span class="n">second</span> <span class="o">*</span> <span class="n">handleOut</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="n">abs</span><span class="p">(</span><span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">degmap</span><span class="p">[</span><span class="o">*</span><span class="n">viter</span><span class="p">]).</span><span class="n">second</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">*</span><span class="n">lastdegmax</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                <span class="o">*</span><span class="n">lastdegmax</span> <span class="o">=</span> <span class="n">abs</span><span class="p">(</span><span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">degmap</span><span class="p">[</span><span class="o">*</span><span class="n">viter</span><span class="p">]).</span><span class="n">second</span><span class="p">);</span>
-</span><span class='line'>                <span class="n">setdelbuf</span><span class="p">(</span><span class="n">delbuf</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="o">*</span><span class="n">viter</span><span class="p">,</span> <span class="n">handleOut</span><span class="p">);</span>
-</span><span class='line'>                <span class="o">*</span><span class="n">minusmax</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="o">*</span><span class="n">minusmax</span><span class="p">)</span> <span class="p">){</span>
-</span><span class='line'>            <span class="k">if</span><span class="p">(</span> <span class="n">abs</span><span class="p">(</span><span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">degmap</span><span class="p">[</span><span class="o">*</span><span class="n">viter</span><span class="p">]).</span><span class="n">second</span><span class="p">)</span> <span class="o">&lt;</span> <span class="o">*</span><span class="n">lastdegmin</span> <span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>                <span class="n">setdelbuf</span><span class="p">(</span><span class="n">delbuf</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="o">*</span><span class="n">viter</span><span class="p">,</span> <span class="n">handleOut</span><span class="p">);</span>
-</span><span class='line'>                <span class="o">*</span><span class="n">lastdegmin</span> <span class="o">=</span> <span class="n">abs</span><span class="p">(</span><span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">degmap</span><span class="p">[</span><span class="o">*</span><span class="n">viter</span><span class="p">]).</span><span class="n">second</span><span class="p">);</span>
-</span><span class='line'>            <span class="p">}</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="n">cutSelect</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">outdeg</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">indeg</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">deg</span><span class="p">,</span> <span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">degmap</span><span class="p">,</span> <span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">delbuf</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">degmax</span> <span class="o">=</span> <span class="n">abs</span><span class="p">(</span><span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">second</span><span class="p">);</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">lastdegmax</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">lastdegmin</span> <span class="o">=</span> <span class="n">degmax</span><span class="p">;</span>
-</span><span class='line'>    <span class="kt">bool</span> <span class="n">minusmax</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span><span class="o">&lt;</span><span class="n">deg</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="n">abs</span><span class="p">(</span><span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">j</span><span class="p">).</span><span class="n">second</span><span class="p">)</span><span class="o">==</span><span class="n">degmax</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="kt">int</span> <span class="n">handleOut</span> <span class="o">=</span> <span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">j</span><span class="p">).</span><span class="n">second</span><span class="o">&gt;</span><span class="mi">0</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">oneSelect</span><span class="p">(</span><span class="n">outdeg</span><span class="p">[</span><span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">j</span><span class="p">).</span><span class="n">first</span><span class="p">],</span> <span class="n">indeg</span><span class="p">[</span><span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">j</span><span class="p">).</span><span class="n">first</span><span class="p">],</span> <span class="n">deg</span><span class="p">,</span> <span class="n">degmap</span><span class="p">,</span> <span class="n">delbuf</span><span class="p">,</span> <span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">j</span><span class="p">).</span><span class="n">first</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">lastdegmax</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">lastdegmin</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">minusmax</span><span class="p">,</span> <span class="n">handleOut</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="n">solve</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="kt">int</span> <span class="n">m</span><span class="p">,</span> <span class="kt">int</span> <span class="n">k</span><span class="p">,</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">way</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">outdeg</span> <span class="o">=</span> <span class="k">new</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">[</span><span class="n">n</span><span class="p">];</span>
-</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">*</span><span class="n">indeg</span> <span class="o">=</span> <span class="k">new</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">[</span><span class="n">n</span><span class="p">];</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">way</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">iter</span> <span class="o">!=</span> <span class="n">way</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="n">iter</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">outdeg</span><span class="p">[(</span><span class="o">*</span><span class="n">iter</span><span class="p">).</span><span class="n">first</span><span class="p">].</span><span class="n">push_back</span><span class="p">((</span><span class="o">*</span><span class="n">iter</span><span class="p">).</span><span class="n">second</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">indeg</span><span class="p">[(</span><span class="o">*</span><span class="n">iter</span><span class="p">).</span><span class="n">second</span><span class="p">].</span><span class="n">push_back</span><span class="p">((</span><span class="o">*</span><span class="n">iter</span><span class="p">).</span><span class="n">first</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="n">deg</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">map</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="n">degmap</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">deg</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">make_pair</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">outdeg</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">size</span><span class="p">()</span><span class="o">-</span><span class="n">indeg</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">size</span><span class="p">()));</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="n">SortWrap</span><span class="p">(</span><span class="n">deg</span><span class="p">,</span> <span class="n">degmap</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">m</span><span class="o">-</span><span class="n">k</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="n">delbuf</span> <span class="o">=</span> <span class="n">make_pair</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">cutSelect</span><span class="p">(</span><span class="n">outdeg</span><span class="p">,</span> <span class="n">indeg</span><span class="p">,</span> <span class="n">deg</span><span class="p">,</span> <span class="n">degmap</span><span class="p">,</span> <span class="n">delbuf</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">update</span><span class="p">(</span><span class="n">outdeg</span><span class="p">[</span><span class="n">delbuf</span><span class="p">.</span><span class="n">first</span><span class="p">],</span> <span class="n">indeg</span><span class="p">[</span><span class="n">delbuf</span><span class="p">.</span><span class="n">second</span><span class="p">],</span> <span class="n">deg</span><span class="p">,</span> <span class="n">degmap</span><span class="p">,</span> <span class="n">delbuf</span><span class="p">.</span><span class="n">first</span><span class="p">,</span> <span class="n">delbuf</span><span class="p">.</span><span class="n">second</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">return</span> <span class="n">abs</span><span class="p">(</span><span class="n">deg</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">second</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">T</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">cin</span> <span class="o">&gt;&gt;</span> <span class="n">T</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">*</span><span class="n">way</span> <span class="o">=</span><span class="k">new</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="o">&gt;</span><span class="p">[</span><span class="n">T</span><span class="p">];</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="o">*</span><span class="n">n</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="n">T</span><span class="p">];</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="o">*</span><span class="n">m</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="n">T</span><span class="p">];</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="o">*</span><span class="n">k</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="n">T</span><span class="p">];</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">T</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">cin</span> <span class="o">&gt;&gt;</span> <span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="n">m</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-</span><span class='line'>        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">m</span><span class="p">[</span><span class="n">i</span><span class="p">];</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>            <span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">;</span>
-</span><span class='line'>            <span class="n">cin</span> <span class="o">&gt;&gt;</span> <span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="n">b</span><span class="p">;</span>
-</span><span class='line'>            <span class="n">way</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">push_back</span><span class="p">(</span><span class="n">make_pair</span><span class="p">(</span><span class="n">a</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">-</span><span class="mi">1</span><span class="p">));</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">T</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Case &quot;</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">solve</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">m</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">way</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>测试数据</h3>
-
-<p>&#8220; bash
-6
-2 1 1
-1 2
-2 1 0
-1 2
-4 4 3
-1 2 1 3 2 4 4 3
-9 8 4
-1 2 1 3 2 4 2 5 2 6 3 7 3 8 3 9
-9 8 7
-1 2 1 3 2 4 2 5 2 6 3 7 3 8 3 9
-5 4 3
-1 2 1 3 2 5 4 3</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="cp">### 输出 ###</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Case 1: 1
-Case 2: 0
-Case 3: 1
-Case 4: 1
-Case 5: 2
-Case 6: 1
-&#8220;`</p>
 ]]></content>
   </entry>
   
