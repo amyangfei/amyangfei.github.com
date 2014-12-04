@@ -91,6 +91,58 @@
     <article class="post">
 	<h2 class="title">
 		
+		<a href="/2013/06/17/asynchronous-programming-with-tornado/">
+		
+			使用Tornado进行异步编程</a>
+	</h2>
+	<div class="entry-content">
+		<p>翻译自：<a href="http://lbolla.info/blog/2012/10/03/asynchronous-programming-with-tornado" target="_blank">Asynchronous programming with Tornado</a></p>
+
+<p>对于初学者来说异步编程很令人迷惑，因此我觉得有必要介绍一些有用的基本概念来帮助初学者避免一些常见的陷阱。如果希望理解通用的异步编程模型，可以查看以下这些网络资源，<a href="http://cs.brown.edu/courses/cs196-5/f12/handouts/async.pdf" target="_blank">Introduction to Asynchronous Programming</a>，<a href="http://krondo.com/?page_id=1327" target="_blank">Twisted Introduction</a>。在这篇文章中我将会着眼于如何使用 Tornado 进行异步编程。</p>
+
+<p>来自Tornado主页的一段话：</p>
+
+<blockquote><p>FriendFeed&rsquo;s web server is a relatively simple, non-blocking web server written in Python. The FriendFeed application is written using a web framework that looks a bit like web.py or Google&rsquo;s webapp, but with additional tools and optimizations to take advantage of the non-blocking web server and tools. Tornado is an open source version of this web server and some of the tools we use most often at FriendFeed. The framework is distinct from most mainstream web server frameworks (and certainly most Python frameworks) because it is non-blocking and reasonably fast. Because it is non-blocking and uses epoll or kqueue, it can handle thousands of simultaneous standing connections, which means the framework is ideal for real-time web services. We built the web server specifically to handle FriendFeed&rsquo;s real-time features every active user of FriendFeed maintains an open connection to the FriendFeed servers. (For more information on scaling servers to support thousands of clients, see The C10K problem.)</p></blockquote>
+
+<p>对于初学者首先需要认清的是自己是否真的需要异步操作。异步编程比同步编程复杂得多，因此有人说：异步编程是不适合人类大脑的。</p>
+
+
+		
+		<a href="/2013/06/17/asynchronous-programming-with-tornado/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-17T00:00:00+08:00" pubdate data-updated="true">Jun 17<span>th</span>, 2013</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/asynchronous/'>Asynchronous</a>, <a class='category' href='/blog/categories/python/'>Python</a>, <a class='category' href='/blog/categories/tornado/'>Tornado</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2013/06/17/asynchronous-programming-with-tornado/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
 		<a href="/2013/05/10/longest-segement-merge/">
 		
 			线段合并求最长线段</a>
@@ -414,60 +466,6 @@
 </div>
 	
 	<div class="comments"><a href="/2013/02/28/access-vm-ssh-via-port-mapping/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2013/02/08/android-taskscheduler-and-scripting/">
-		
-			Android运行脚本与定时工具</a>
-	</h2>
-	<div class="entry-content">
-		<p>用惯了crontab，实验室的机器因为某些原因连不上，于是希望在自己的Android手机上完成定时执行一些脚本的任务。google一下找到了 <a href="http://i55m411.appspot.com/?p=594004" target="_blank">android应用实现定时打电话</a> 这样一篇文章，正好满足我的需求。下面做一个简单的总结。</p>
-
-<h3>安装的软件</h3>
-
-<ul>
-<li><p><a href="http://code.google.com/p/android-scripting" target="_blank">SL4A(Scripting Layer for Android)</a>，Andriod系统下运行脚本的环境，可以在终端、后台或Locale中运行，现阶段支持Python, Perl, JRuby, Lua, BeanShell, JavaScript, Tcl和shell脚本。</p></li>
-<li><p><a href="http://code.google.com/p/android-scripting/downloads/detail?name=PythonForAndroid_r4.apk&can=2" target="_blank">Py4A</a>，SL4A的python插件，安装之后就可以运行python脚本。</p></li>
-<li><p><a href="https://play.google.com/store/apps/details?id=org.androidideas.taskbomb" target="_blank">TaskBomb task scheduler</a>，一个可以执行计划任务的app，类似于Unix中的crontab。</p></li>
-<li><p><a href="https://play.google.com/store/apps/details?id=org.androidideas.scriptlauncher" target="_blank">SL4A Script Launcher</a>，TaskBomb可以通过此app执行SL4A脚本。</p></li>
-</ul>
-
-
-
-		
-		<a href="/2013/02/08/android-taskscheduler-and-scripting/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-02-08T00:00:00+08:00" pubdate data-updated="true">Feb 8<span>th</span>, 2013</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/android/'>Android</a>, <a class='category' href='/blog/categories/tools/'>Tools</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2013/02/08/android-taskscheduler-and-scripting/#disqus_thread">Comments</a></div>
 	
 </div>
 </article>
