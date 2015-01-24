@@ -91,6 +91,56 @@
     <article class="post">
 	<h2 class="title">
 		
+		<a href="/2013/09/06/xenserver-use-tip/">
+		
+			Xenserver 使用小结</a>
+	</h2>
+	<div class="entry-content">
+		<p>手头四台服务器，准备搭建一个小的云平台，了解了几种不同的方案，包括Vmware Esxi，Xen，OpenStack 等。先把各种方法都试一试，然后确定一个具体实施。之前有使用过 Vmware ESXi，虽说 ESXi 可以免费使用，但是 Vmware 浓厚的商业气息让我有种道不同不相为谋的感觉。XenServer 最近有开源，于是昨天花了一个下午尝试了一下。</p>
+
+<h3>安装 XenServer 和 XenCenter</h3>
+
+<p>首先去官网下载 XenServer 的镜像文件，我下载了 6.2.0 版本。XenServer 本身其实就是一个 Linux 操作系统，于是服务器直接通过启动 bios 引导安装 XenServer，安装过程中配置好 root 的密码以及网络信息，这样就可以通过管理工具管理 XenServer 了。</p>
+
+<p>使用的管理工具是 Windows 版的，貌似有 Linux 版本的<a href="http://sourceforge.net/projects/openxenceter/" target="_blank">OpenXenCenter</a>，我没有试验。进入 XenCenter，服务器是四网卡，现在接了0，2号网卡。2号网卡连接外网，配有有一个 166.111.xx.yy的 ip。0号网卡接内部网络，ip 设为 192.168.10.254。配置如下图：</p>
+
+
+		
+		<a href="/2013/09/06/xenserver-use-tip/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-06T00:00:00+08:00" pubdate data-updated="true">Sep 6<span>th</span>, 2013</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/nat/'>NAT</a>, <a class='category' href='/blog/categories/virtualization/'>Virtualization</a>, <a class='category' href='/blog/categories/xen/'>Xen</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2013/09/06/xenserver-use-tip/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
 		<a href="/2013/06/17/asynchronous-programming-with-tornado/">
 		
 			使用Tornado进行异步编程</a>
@@ -418,58 +468,6 @@
 </div>
 </article>
 
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2013/02/28/access-vm-ssh-via-port-mapping/">
-		
-			通过端口映射访问虚拟机内部网络</a>
-	</h2>
-	<div class="entry-content">
-		<p>在VMware Workstation中如果使用NAT，虚拟机内部只会获取内网地址。现在我有这样的实验环境：</p>
-
-<ul>
-<li><p>主机：Windows7 + Vmware Workstation 9  公网IP: 166.111.x.x</p></li>
-<li><p>虚拟机：Ubuntu12.10  内网IP: 192.168.248.129</p></li>
-</ul>
-
-
-<p>需求：在虚拟机内部搭建http服务，在外网可以直接访问；在外网通过ssh连接虚拟机。下边是进行ssh端口映射的步骤，http服务类似。</p>
-
-
-		
-		<a href="/2013/02/28/access-vm-ssh-via-port-mapping/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-02-28T00:00:00+08:00" pubdate data-updated="true">Feb 28<span>th</span>, 2013</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/nat/'>NAT</a>, <a class='category' href='/blog/categories/virtualization/'>Virtualization</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2013/02/28/access-vm-ssh-via-port-mapping/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
 <nav id="pagenavi">
     
         <a href="/" class="prev">Prev</a>
@@ -479,7 +477,7 @@
     
     <div class="center"><a href="/blog/archives">Blog Archives</a></div>
 </nav></div>
-	<footer id="footer" class="inner">Copyright &copy; 2012-2014
+	<footer id="footer" class="inner">Copyright &copy; 2012-2015
 
     amyangfei
 

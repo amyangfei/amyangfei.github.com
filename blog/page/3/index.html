@@ -91,6 +91,58 @@
     <article class="post">
 	<h2 class="title">
 		
+		<a href="/2013/02/28/access-vm-ssh-via-port-mapping/">
+		
+			通过端口映射访问虚拟机内部网络</a>
+	</h2>
+	<div class="entry-content">
+		<p>在VMware Workstation中如果使用NAT，虚拟机内部只会获取内网地址。现在我有这样的实验环境：</p>
+
+<ul>
+<li><p>主机：Windows7 + Vmware Workstation 9  公网IP: 166.111.x.x</p></li>
+<li><p>虚拟机：Ubuntu12.10  内网IP: 192.168.248.129</p></li>
+</ul>
+
+
+<p>需求：在虚拟机内部搭建http服务，在外网可以直接访问；在外网通过ssh连接虚拟机。下边是进行ssh端口映射的步骤，http服务类似。</p>
+
+
+		
+		<a href="/2013/02/28/access-vm-ssh-via-port-mapping/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-28T00:00:00+08:00" pubdate data-updated="true">Feb 28<span>th</span>, 2013</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/nat/'>NAT</a>, <a class='category' href='/blog/categories/virtualization/'>Virtualization</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2013/02/28/access-vm-ssh-via-port-mapping/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
 		<a href="/2013/02/08/android-taskscheduler-and-scripting/">
 		
 			Android运行脚本与定时工具</a>
@@ -397,81 +449,6 @@
 </div>
 </article>
 
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2013/01/07/abtest-script-and-bash-subshell/">
-		
-			Bash Subshell变量作用域问题</a>
-	</h2>
-	<div class="entry-content">
-		<p>今天研究apache ab这个测试工具，在网上看到<a href="http://blog.csdn.net/chosen0ne/article/details/7302991" target="_blank">压力测试shell脚本</a>一文介绍了一个封装的bash脚本，用于多次测试返回requests per second的平均值，对脚本进行了简单的改写，将所有的测试输出进行记录。改写脚本在文章的最后。</p>
-
-<p>改写过程中发现这样一个问题，比如写下面的脚本：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/bash</span>
-</span><span class='line'>
-</span><span class='line'><span class="nv">result</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
-</span><span class='line'>cat abtest_temp.log | <span class="k">while </span><span class="nb">read </span>LINE
-</span><span class='line'><span class="k">do</span>
-</span><span class='line'><span class="k">    </span><span class="nv">result</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="nv">$LINE</span> | grep <span class="s1">&#39;Requests per second:&#39;</span><span class="sb">`</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$result&quot;</span> !<span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]</span>
-</span><span class='line'>    <span class="k">then</span>
-</span><span class='line'><span class="k">        </span><span class="nb">break</span>
-</span><span class='line'><span class="nb">    </span><span class="k">fi</span>
-</span><span class='line'><span class="k">done</span>
-</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;result is &quot;</span><span class="k">${</span><span class="nv">result</span><span class="k">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-
-		
-		<a href="/2013/01/07/abtest-script-and-bash-subshell/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-07T00:00:00+08:00" pubdate data-updated="true">Jan 7<span>th</span>, 2013</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/bash/'>Bash</a>, <a class='category' href='/blog/categories/ipc/'>IPC</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2013/01/07/abtest-script-and-bash-subshell/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
 <nav id="pagenavi">
     
         <a href="/blog/page/2/" class="prev">Prev</a>
@@ -481,7 +458,7 @@
     
     <div class="center"><a href="/blog/archives">Blog Archives</a></div>
 </nav></div>
-	<footer id="footer" class="inner">Copyright &copy; 2012-2014
+	<footer id="footer" class="inner">Copyright &copy; 2012-2015
 
     amyangfei
 

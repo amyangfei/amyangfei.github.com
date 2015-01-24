@@ -91,6 +91,81 @@
     <article class="post">
 	<h2 class="title">
 		
+		<a href="/2013/01/07/abtest-script-and-bash-subshell/">
+		
+			Bash Subshell变量作用域问题</a>
+	</h2>
+	<div class="entry-content">
+		<p>今天研究apache ab这个测试工具，在网上看到<a href="http://blog.csdn.net/chosen0ne/article/details/7302991" target="_blank">压力测试shell脚本</a>一文介绍了一个封装的bash脚本，用于多次测试返回requests per second的平均值，对脚本进行了简单的改写，将所有的测试输出进行记录。改写脚本在文章的最后。</p>
+
+<p>改写过程中发现这样一个问题，比如写下面的脚本：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/bash</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">result</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+</span><span class='line'>cat abtest_temp.log | <span class="k">while </span><span class="nb">read </span>LINE
+</span><span class='line'><span class="k">do</span>
+</span><span class='line'><span class="k">    </span><span class="nv">result</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="nv">$LINE</span> | grep <span class="s1">&#39;Requests per second:&#39;</span><span class="sb">`</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$result&quot;</span> !<span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]</span>
+</span><span class='line'>    <span class="k">then</span>
+</span><span class='line'><span class="k">        </span><span class="nb">break</span>
+</span><span class='line'><span class="nb">    </span><span class="k">fi</span>
+</span><span class='line'><span class="k">done</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;result is &quot;</span><span class="k">${</span><span class="nv">result</span><span class="k">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+
+		
+		<a href="/2013/01/07/abtest-script-and-bash-subshell/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-07T00:00:00+08:00" pubdate data-updated="true">Jan 7<span>th</span>, 2013</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/bash/'>Bash</a>, <a class='category' href='/blog/categories/ipc/'>IPC</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2013/01/07/abtest-script-and-bash-subshell/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
 		<a href="/2012/12/31/baidustar-code-fibonacci/">
 		
 			baidu-star算法题-du熊学斐波那契I</a>
@@ -384,54 +459,6 @@
 </div>
 </article>
 
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2012/04/29/sixv-detect-robot/">
-		
-			六维空间free资源检索工具</a>
-	</h2>
-	<div class="entry-content">
-		<p>最近自己对挂六维空间刷下载积分热情高涨，但是六维上挂出免费资源的时间是不确定的，于是写了一个自动检索免费资源的小工具：基本功能是自动登录六维空间并检索指定板块的下载资源，找到在指定时间内最新发布的资源，如果有新的免费资源发送一条飞信给自己的手机。代码没有太多技术含量，主要分为三个模块。</p>
-
-<h3>模拟登录模块</h3>
-
-<p>登录六维空间，以及后面发送飞信登录wap网站，使用的是同样的方法。python提供的urllib,urllib2库很强大，模拟登录，保存cookie非常简单，写法很固定。</p>
-
-
-		
-		<a href="/2012/04/29/sixv-detect-robot/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-04-29T00:00:00+08:00" pubdate data-updated="true">Apr 29<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/tools/'>Tools</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2012/04/29/sixv-detect-robot/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
 <nav id="pagenavi">
     
         <a href="/blog/page/3/" class="prev">Prev</a>
@@ -441,7 +468,7 @@
     
     <div class="center"><a href="/blog/archives">Blog Archives</a></div>
 </nav></div>
-	<footer id="footer" class="inner">Copyright &copy; 2012-2014
+	<footer id="footer" class="inner">Copyright &copy; 2012-2015
 
     amyangfei
 

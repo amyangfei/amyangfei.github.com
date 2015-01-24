@@ -4,7 +4,7 @@
   <title><![CDATA[Amyangfei's Blog]]></title>
   <link href="http://amyangfei.me/atom.xml" rel="self"/>
   <link href="http://amyangfei.me/"/>
-  <updated>2014-12-04T21:31:07+08:00</updated>
+  <updated>2015-01-25T20:26:28+08:00</updated>
   <id>http://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
@@ -12,6 +12,395 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[SSH through different kinds of proxy]]></title>
+    <link href="http://amyangfei.me/2015/01/24/ssh-and-proxy/"/>
+    <updated>2015-01-24T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2015/01/24/ssh-and-proxy</id>
+    <content type="html"><![CDATA[<p>有时候因为网络、安全等原因，我们不能通过 ssh 直接连接到目标主机，而是需要通过代理服务器或跳板机实现连接。本文总结通过代理或跳板机使用 ssh 的各种方法，并且分析这些方法的基本原理。</p>
+
+<p>我们设定本地主机的地址为 homepc，绑定有公网 ip；运行有各类代理的代理服务器或跳板机地址为 proxy-server，proxy-server 上绑定一个公网 ip，同时绑定一个内网 ip（假定为10.0.10.252）；需要连接的目标主机 target-server，绑定内网 ip（假定为 10.0.10.25）。所有的用户名、登录用户名使用 apple。</p>
+
+<!-- more -->
+
+
+<p>首先我们介绍一些常见的连接方法</p>
+
+<h3>登录跳板机，在跳板机上连接目标主机</h3>
+
+<hr />
+
+<ul>
+<li>方法A：直接登录，可以通过 <code>-A</code> 选项利用Agent forwarding 特性</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># now on homepc</span>
+</span><span class='line'>apple@homepc
+</span><span class='line'>➜ ssh -A apple@proxy-server
+</span><span class='line'>
+</span><span class='line'><span class="c"># now on proxy-server</span>
+</span><span class='line'>apple@proxy-server
+</span><span class='line'>➜ ssh apple@10.0.10.25
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>方法B：A useful trick，通过 <code>-tt</code> 强制分配 tty，直接执行 ssh 命令</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apple@homepc
+</span><span class='line'>➜  ssh -A -tt apple@proxy-server ssh apple@10.0.10.25
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>方法C：利用 netcat 在跳板机上建立 tunnel，通过此 tunnel 连接目标主机</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>apple@homepc
+</span><span class='line'>➜  ssh -oProxyCommand<span class="o">=</span><span class="s1">&#39;ssh apple@proxy-server nc %h %p&#39;</span> apple@10.0.10.25
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>借助 proxy 连接目标主机</h3>
+
+<hr />
+
+<ul>
+<li>方法D：本地 ssh 代理，在 proxy-server 上用户 apple 设有 nologin 的 shell 权限，不能通过 ssh 登录 proxy-server 但是可以进行 ssh 连接，通过 <code>-D</code> 进行本地的端口转发，详情可以查看 man ssh。</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># run ssh daemon on homepc for local “dynamic” application-level port forwarding</span>
+</span><span class='line'>apple@homepc
+</span><span class='line'>➜  ssh -N -D 12171 apple@proxy-server &amp;
+</span><span class='line'>
+</span><span class='line'>apple@homepc
+</span><span class='line'>➜  ssh -oProxyCommand<span class="o">=</span><span class="s1">&#39;nc -x 127.0.0.1:12171 %h %p&#39;</span> apple@10.0.10.25
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>方法E：类似于本地 ssh 代理的方式，可以在 proxy-server 上运行任何协议类型的代理，在 homepc 本地运行代理客户端连接 proxy-server 上的 proxy，在 ssh 的 ProxyCommand 指定为本地代理客户端的连接点即可。</p></li>
+<li><p>方法F：利用 <a href="http://www.agroman.net/corkscrew/">corkscrew</a> ，<a href="https://packages.debian.org/source/sid/connect-proxy">connect-proxy</a>，<a href="https://github.com/rofl0r/proxychains-ng">proxychains</a> 等直接连接 proxy-server 上的代理。假定 proxy-server 上运行有 squid http 代理，代理使用用户名/密码这种基本验证方式。corkscrew 仅支持 http 代理，connect-proxy 和 proxychains 支持 http, socks4, socks5 代理。proxychains 还支持 shell 内所有流量都通过代理，提供了更过的功能，这里不展开叙述。只简单看一下通过它们使用 http 代理连接 ssh 的情况。</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c"># corkscrew can specify authfile with pattern of username:password for http proxy authentication</span>
+</span><span class='line'>apple@homepc
+</span><span class='line'>➜  ssh -oProxyCommand<span class="o">=</span><span class="s1">&#39;corkscrew proxy-server 3128 %h %p ~/.ssh/authfile&#39;</span> apple@10.0.10.25
+</span><span class='line'>
+</span><span class='line'><span class="c"># use connect-proxy</span>
+</span><span class='line'>apple@homepc
+</span><span class='line'>➜  ssh -oProxyCommand<span class="o">=</span><span class="s1">&#39;connect -H apple@proxy-server:3128 %h %p&#39;</span> apple@10.0.10.25
+</span><span class='line'>
+</span><span class='line'><span class="c"># use proxychains</span>
+</span><span class='line'><span class="c"># add &quot;http xxx.yyy.zzz.www 3128 apple apple&quot; to &quot;[ProxyList]&quot; node in proxychains config file</span>
+</span><span class='line'><span class="c"># xxx.yyy.zzz.www is the WAN ip of proxy-server. proxychains doesn&#39;t support dns lookup for proxy server</span>
+</span><span class='line'><span class="c"># more details: https://github.com/rofl0r/proxychains-ng/issues/25</span>
+</span><span class='line'>apple@homepc
+</span><span class='line'>➜  proxychains4 ssh apple@10.0.10.25
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>ProxyCommand</h3>
+
+<hr />
+
+<p>关于 ProxyCommand 在此不多叙述，详情参考 <code>man ssh_config</code>。可以在 ~/.ssh/config 中配置 ProxyCommand，还可以根据不同的 host 配置不同的 ProxyCommand。</p>
+
+<h3>原理分析</h3>
+
+<hr />
+
+<p>这些方法看起来有些眼花缭乱，但其实原理都很简单，除去登录到跳板机的情形，剩下场景的都是通过某种形式连接到代理服务器上的代理（或通过更多层的代理连接到代理服务器上的代理，形成一个代理链），由代理转发数据到目标服务器。</p>
+
+<p>首先看方法C 的场景，参考<a href="http://backdrift.org/transparent-proxy-with-ssh">transparent-proxy-with-ssh</a></p>
+
+<pre><code>    +--------+                  +--------------+                +---------------+
+    | homepc |                  | proxy-server |                | target-server |
+    |        | ===ssh=over=netcat=tunnel======================&gt; | 10.0.10.25    |
+    +--------+                  +--------------+                +---------------+
+</code></pre>
+
+<p>该场景中，proxy-server 上实际运行有 <code>nc 10.0.10.25 22</code> 进程，该进程将会完成数据在 homepc 和 target-server 之间的转发。</p>
+
+<p>方法D, E, F 中包含有明显的代理，以方法F 中的 corkscrew + squid http proxy 进行分析。</p>
+
+<p>ssh 指定使用 ProxyCommand 之后，在建立连接时有这样一段关键代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// from openssh-5.9p1, sshconnect.c</span>
+</span><span class='line'><span class="kt">int</span>
+</span><span class='line'><span class="nf">ssh_connect</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">host</span><span class="p">,</span> <span class="k">struct</span> <span class="n">sockaddr_storage</span> <span class="o">*</span> <span class="n">hostaddr</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">u_short</span> <span class="n">port</span><span class="p">,</span> <span class="kt">int</span> <span class="n">family</span><span class="p">,</span> <span class="kt">int</span> <span class="n">connection_attempts</span><span class="p">,</span> <span class="kt">int</span> <span class="o">*</span><span class="n">timeout_ms</span><span class="p">,</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">want_keepalive</span><span class="p">,</span> <span class="kt">int</span> <span class="n">needpriv</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">proxy_command</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'>    <span class="cm">/* If a proxy command is given, connect using it. */</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">proxy_command</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">ssh_proxy_connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">proxy_command</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在 ssh_proxy_connect 中会 fork 出子进程来执行 ProxyCommand 中的命令，同时会重定向子进程的标准输入和标准输出，子进程的标准输入重定向到 pin[0]，所以子进程会通过 pin[1] 获得父进程标准输出的内容；子进程的标准输出重定向到 pout[1]，所以写到子进程标准输出的内容可以在父进程通过读取 pout[0] 获得。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// from openssh-5.9p1, sshconnect.c</span>
+</span><span class='line'><span class="k">static</span> <span class="kt">int</span>
+</span><span class='line'><span class="nf">ssh_proxy_connect</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">host</span><span class="p">,</span> <span class="n">u_short</span> <span class="n">port</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">proxy_command</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/* Fork and execute the proxy command. */</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">((</span><span class="n">pid</span> <span class="o">=</span> <span class="n">fork</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="p">...</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="cm">/* Redirect stdin and stdout. */</span>
+</span><span class='line'>      <span class="n">close</span><span class="p">(</span><span class="n">pin</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="n">pin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>          <span class="k">if</span> <span class="p">(</span><span class="n">dup2</span><span class="p">(</span><span class="n">pin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>              <span class="n">perror</span><span class="p">(</span><span class="s">&quot;dup2 stdin&quot;</span><span class="p">);</span>
+</span><span class='line'>          <span class="n">close</span><span class="p">(</span><span class="n">pin</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>      <span class="n">close</span><span class="p">(</span><span class="n">pout</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="n">dup2</span><span class="p">(</span><span class="n">pout</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>          <span class="n">perror</span><span class="p">(</span><span class="s">&quot;dup2 stdout&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="cm">/* Cannot be 1 because pin allocated two descriptors. */</span>
+</span><span class='line'>      <span class="n">close</span><span class="p">(</span><span class="n">pout</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="cm">/* Stderr is left as it is so that error messages get</span>
+</span><span class='line'><span class="cm">        printed on the user&#39;s terminal. */</span>
+</span><span class='line'>      <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">shell</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;-c&quot;</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">command_string</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="cm">/* Execute the proxy command.  Note that we gave up any</span>
+</span><span class='line'><span class="cm">        extra privileges above. */</span>
+</span><span class='line'>      <span class="n">signal</span><span class="p">(</span><span class="n">SIGPIPE</span><span class="p">,</span> <span class="n">SIG_DFL</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">execv</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">argv</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">perror</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span><span class='line'>      <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'>  <span class="cm">/* Close child side of the descriptors. */</span>
+</span><span class='line'>  <span class="n">close</span><span class="p">(</span><span class="n">pin</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</span><span class='line'>  <span class="n">close</span><span class="p">(</span><span class="n">pout</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="cm">/* Set the connection file descriptors. */</span>
+</span><span class='line'>  <span class="n">packet_set_connection</span><span class="p">(</span><span class="n">pout</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pin</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<pre><code> +----------+             +---------------+               +----------+              +---------------+
+ | terminal |  --------&gt;  | parent stdout |  ----------&gt;  |  pin[0]  |  ---------&gt;  |  child stdin  |
+ |  input   |             |    pin[1]     |     read      |          |   redirect   |               |
+ +----------+             +---------------+               +----------+              +---------------+
+
+ +----------+             +---------------+               +----------+              +---------------+
+ | terminal |  &lt;--------  | parent stdin  |  &lt;----------  |  pout[1] |  &lt;---------  |  child stdout |
+ | display  |             |    pout[0]    |     read      |          |   redirect   |               |
+ +----------+             +---------------+               +----------+              +---------------+
+</code></pre>
+
+<p>上图描述了调用 ProxyCommand 时 ssh 客户端数据的流动情况，在我们的应用场景中，父进程对应 ssh 客户端进程，子进程运行 corkscrew。corkscrew 的实现很简单，它与代理服务器创建 tcp 连接，然后进入一个主循环，通过 select(2) 处理文件事件。
+（注意 corkscrew 将与代理服务器协商的代码也写在主循环中，通过 setup 标志来确定处于建立连接后的协商阶段还是已经建立好到代理的连接，协商部分的代码可以抽离出来，类似的 connect-proxy 就是抽离出协商阶段和稳定连接阶段。下边分析的主循环略过协商阶段的代码。），这样处理文件读写事件的代码就非常简单：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// from corkscrew2.0, corkscrew.c</span>
+</span><span class='line'><span class="k">for</span><span class="p">(;;)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">FD_ZERO</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sfd</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">FD_ZERO</span><span class="p">(</span><span class="o">&amp;</span><span class="n">rfd</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">FD_SET</span><span class="p">(</span><span class="n">csock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rfd</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">FD_SET</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rfd</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">tv</span><span class="p">.</span><span class="n">tv_sec</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">tv</span><span class="p">.</span><span class="n">tv_usec</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">csock</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="o">&amp;</span><span class="n">rfd</span><span class="p">,</span><span class="o">&amp;</span><span class="n">sfd</span><span class="p">,</span><span class="nb">NULL</span><span class="p">,</span><span class="o">&amp;</span><span class="n">tv</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">FD_ISSET</span><span class="p">(</span><span class="n">csock</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rfd</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">len</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">csock</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buffer</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">len</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">len</span> <span class="o">=</span> <span class="n">write</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">len</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">len</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">FD_ISSET</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rfd</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">len</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buffer</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">len</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">len</span> <span class="o">=</span> <span class="n">write</span><span class="p">(</span><span class="n">csock</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">len</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">len</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>corkscrew 的处理逻辑很清楚，从标准输入读取的数据，write 到 csock 中；从 csock 读取的数据，write 到标准输出。与 ssh 客户端结合起来，就可以得到下边的一张图：</p>
+
+<pre><code> +--------------+             +------------+               +-----------------+          +---------+
+ | child stdin  |  --------&gt;  | corkscrew  |  ----------&gt;  | csock           |  -----&gt;  |  proxy  |
+ | corkscrew    |    read     |            |     write     | conn with proxy |          |         |
+ +--------------+             +------------+               +-----------------+          +---------+
+
+ +--------------+             +------------+               +-----------------+          +---------+
+ | child stdout |  &lt;--------  | corkscrew  |  &lt;----------  | csock           |  &lt;-----  |  proxy  |
+ | corkscrew    |    write    |            |     read      | conn with proxy |          |         |
+ +--------------+             +------------+               +-----------------+          +---------+
+</code></pre>
+
+<p>从代理到目标服务器的数据收发与上述实现类似，只是 socket 有所不同，不再按照不同代理具体分析。使用不同的代理形式，只是在代理协商阶段有所不同，当稳定连接后，代理的工作就是不停的转发数据了。从数据的发送接收角度，加入代理后不影响 ssh 客户端和服务器之间传输数据的内容和顺序，因而可以将代理看做是透明的，就好像 ssh 客户端直接连接到目标服务器一样。</p>
+
+<h3>问答</h3>
+
+<p>TODO</p>
+
+<ol>
+<li>使用代理会不会存在安全问题？例如 <a href="http://www.unixwiz.net/techtips/ssh-agent-forwarding.html#sec">Security Issues With Key Agents</a> 提到的安全问题。</li>
+<li>我使用 <a href="https://mosh.mit.edu">mosh</a>，这些方法是否可以使用？</li>
+<li>如果我使用公私钥登录的方式，代理服务器上需要进行哪些操作？</li>
+</ol>
+
+
+<h3>参考链接</h3>
+
+<ol>
+<li><a href="http://backdrift.org/transparent-proxy-with-ssh">Using SSH ProxyCommand to Tunnel Connections</a></li>
+<li><a href="http://daniel.haxx.se/docs/sshproxy.html">SSH Through or Over Proxy</a></li>
+<li><a href="http://www.agroman.net/corkscrew/">Corkscrew</a></li>
+<li><a href="http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Proxies_and_Jump_Hosts">OpenSSH/Cookbook/Proxies and Jump Hosts</a></li>
+<li><a href="http://www.unixwiz.net/techtips/ssh-agent-forwarding.html">An Illustrated Guide to SSH Agent Forwarding</a></li>
+<li><a href="http://www.zeitoun.net/articles/ssh-through-http-proxy/start">SSH through HTTP proxy</a></li>
+<li><a href="http://www.lainme.com/doku.php/blog/2011/01/%E9%80%8F%E8%BF%87%E4%BB%A3%E7%90%86%E8%BF%9E%E6%8E%A5ssh">透过代理连接SSH</a></li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[python 拾遗2]]></title>
@@ -1421,7 +1810,7 @@
 
 <p><img src="http://amyangfei.me/images/post/20130228portmapping.png" style=""/></p>
 
-<p>之后就可以在外网直接通过ssh连接虚拟机： ssh <a href="&#109;&#97;&#x69;&#108;&#116;&#111;&#58;&#117;&#x73;&#x65;&#x72;&#110;&#x61;&#109;&#x65;&#64;&#x31;&#54;&#54;&#46;&#x31;&#x31;&#49;&#x2e;&#x78;&#x2e;&#120;">&#x75;&#115;&#101;&#x72;&#110;&#97;&#109;&#x65;&#64;&#49;&#x36;&#x36;&#x2e;&#49;&#49;&#x31;&#46;&#120;&#46;&#120;</a> -p10000</p>
+<p>之后就可以在外网直接通过ssh连接虚拟机： ssh <a href="&#109;&#97;&#x69;&#108;&#116;&#x6f;&#x3a;&#117;&#115;&#101;&#x72;&#110;&#97;&#x6d;&#x65;&#64;&#x31;&#54;&#x36;&#46;&#49;&#x31;&#x31;&#46;&#x78;&#x2e;&#x78;">&#x75;&#x73;&#x65;&#x72;&#x6e;&#97;&#109;&#101;&#64;&#x31;&#x36;&#54;&#x2e;&#x31;&#x31;&#49;&#46;&#120;&#x2e;&#120;</a> -p10000</p>
 ]]></content>
   </entry>
   
@@ -2686,73 +3075,6 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 </span><span class='line'>    <span class="p">}</span>
 </span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 </span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[how to build this blog]]></title>
-    <link href="http://amyangfei.me/2012/12/30/how-to-build-this-blog/"/>
-    <updated>2012-12-30T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2012/12/30/how-to-build-this-blog</id>
-    <content type="html"><![CDATA[<p>系统环境Mac OS X 10.8.2，这个博客主要通过jekyll生成静态页面，使用ruby提供的一些扩展插件，比如按月份进行归档等，配置环境的过程如下。</p>
-
-<p>安装ruby，rubygems</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo port ruby
-</span><span class='line'>sudo port install rb-rubygems
-</span><span class='line'>sudo gem install rubygems-update
-</span><span class='line'>sudo gem update --system
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装bundle</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo gem install bundler
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<!-- more -->
-
-
-<p>安装jeklly，rdiscount（支持markdown语法，<a href="https://github.com/rtomayko/rdiscount" target="_blank">rdiscount github</a>），liquid（支持jekyll模板渲染，<a href="https://github.com/mojombo/jekyll/wiki/liquid-extensions" target="_blank">Liquid Extensions</a>）。可以写到一个Gemfile文件中然后 bundle install。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>bundle install
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Gemfile文件内容</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">source</span> <span class="s2">&quot;http://rubygems.org&quot;</span>
-</span><span class='line'>
-</span><span class='line'>gem <span class="s2">&quot;jekyll&quot;</span>, <span class="s2">&quot;0.10.0&quot;</span>
-</span><span class='line'>gem <span class="s2">&quot;jekyll_ext&quot;</span>
-</span><span class='line'>gem <span class="s2">&quot;liquid&quot;</span>, <span class="s2">&quot;2.2.2&quot;</span>
-</span><span class='line'>gem <span class="s2">&quot;rdiscount&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>关于jekyll的一些扩展插件，可以参考 <a href="https://github.com/mojombo/jekyll/wiki/Plugins" target="_blank">jekyll plugins</a> 和 <a href="https://github.com/rfelix/my_jekyll_extensions" target="_blank">rfelix&rsquo;s jelyll extensions</a> 。</p>
-
-<p>生成静态页面，运行服务器</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>bundle <span class="nb">exec </span>ejekyll --server
 </span></code></pre></td></tr></table></div></figure>
 
 ]]></content>
