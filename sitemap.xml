@@ -2,30 +2,10 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://amyangfei.me/2012/03/20/hello-world/</loc>
-        <lastmod>2014-01-20T17:16:28+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://amyangfei.me/2012/03/21/namedpipe-communication/</loc>
-        <lastmod>2014-01-20T17:16:28+08:00</lastmod>
+        <lastmod>2016-08-03T23:16:18+08:00</lastmod>
     </url>
     <url>
         <loc>http://amyangfei.me/2012/03/26/bide-algorithm/</loc>
-        <lastmod>2014-01-20T17:16:28+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://amyangfei.me/2012/04/11/simple-thrift-useage/</loc>
-        <lastmod>2014-01-20T17:16:28+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://amyangfei.me/2012/04/29/sixv-detect-robot/</loc>
-        <lastmod>2014-01-20T17:16:28+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://amyangfei.me/2012/07/22/php-with-nginx-in-macOS/</loc>
-        <lastmod>2014-03-11T19:30:09+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://amyangfei.me/2012/09/20/server-suffering-attack/</loc>
         <lastmod>2014-01-20T17:16:28+08:00</lastmod>
     </url>
     <url>
@@ -34,10 +14,6 @@
     </url>
     <url>
         <loc>http://amyangfei.me/2012/12/30/how-to-build-this-blog/</loc>
-        <lastmod>2014-01-20T17:16:28+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://amyangfei.me/2012/12/31/baidustar-code-fibonacci/</loc>
         <lastmod>2014-01-20T17:16:28+08:00</lastmod>
     </url>
     <url>
@@ -65,15 +41,7 @@
         <lastmod>2014-01-20T17:16:28+08:00</lastmod>
     </url>
     <url>
-        <loc>http://amyangfei.me/2013/02/28/access-vm-ssh-via-port-mapping/</loc>
-        <lastmod>2014-01-20T17:16:28+08:00</lastmod>
-    </url>
-    <url>
         <loc>http://amyangfei.me/2013/03/01/tornado-source-analysis-5/</loc>
-        <lastmod>2014-01-20T17:16:28+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://amyangfei.me/2013/03/16/tips-of-scrapy/</loc>
         <lastmod>2014-01-20T17:16:28+08:00</lastmod>
     </url>
     <url>
@@ -81,15 +49,7 @@
         <lastmod>2014-01-25T14:26:57+08:00</lastmod>
     </url>
     <url>
-        <loc>http://amyangfei.me/2013/05/10/longest-segement-merge/</loc>
-        <lastmod>2014-01-20T17:16:28+08:00</lastmod>
-    </url>
-    <url>
         <loc>http://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado/</loc>
-        <lastmod>2014-01-20T17:16:28+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://amyangfei.me/2013/09/06/xenserver-use-tip/</loc>
         <lastmod>2014-01-20T17:16:28+08:00</lastmod>
     </url>
     <url>
@@ -99,10 +59,6 @@
     <url>
         <loc>http://amyangfei.me/2014/01/10/making-progit-ebook/</loc>
         <lastmod>2014-03-04T21:24:12+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://amyangfei.me/2014/04/05/tips-of-puppet/</loc>
-        <lastmod>2014-04-05T21:40:03+08:00</lastmod>
     </url>
     <url>
         <loc>http://amyangfei.me/2014/11/27/python-tips/</loc>
@@ -117,12 +73,20 @@
         <lastmod>2015-01-25T20:26:04+08:00</lastmod>
     </url>
     <url>
+        <loc>http://amyangfei.me/2016/01/30/redis-queue-rethink/</loc>
+        <lastmod>2016-08-03T22:40:04+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://amyangfei.me/2016/08/03/redis-module-with-cgo/</loc>
+        <lastmod>2016-08-03T23:17:15+08:00</lastmod>
+    </url>
+    <url>
         <loc>http://amyangfei.me/404.html</loc>
         <lastmod>2014-01-20T17:16:28+08:00</lastmod>
     </url>
     <url>
         <loc>http://amyangfei.me/blog/about/</loc>
-        <lastmod>2015-01-25T20:26:04+08:00</lastmod>
+        <lastmod>2016-08-03T23:17:15+08:00</lastmod>
     </url>
     <url>
         <loc>http://amyangfei.me/blog/about/</loc>
@@ -130,7 +94,7 @@
     </url>
     <url>
         <loc>http://amyangfei.me/blog/archives/</loc>
-        <lastmod>2015-01-25T20:26:04+08:00</lastmod>
+        <lastmod>2016-08-03T23:17:15+08:00</lastmod>
     </url>
     <url>
         <loc>http://amyangfei.me/blog/categories/</loc>
@@ -138,11 +102,11 @@
     </url>
     <url>
         <loc>http://amyangfei.me/blog/</loc>
-        <lastmod>2015-01-25T20:26:04+08:00</lastmod>
+        <lastmod>2016-08-03T23:17:15+08:00</lastmod>
     </url>
     <url>
         <loc>http://amyangfei.me/</loc>
-        <lastmod>2015-01-25T20:26:04+08:00</lastmod>
+        <lastmod>2016-08-03T23:17:15+08:00</lastmod>
     </url>
     <url>
         <loc>http://amyangfei.me/robots.txt</loc>
@@ -150,6 +114,6 @@
     </url>
     <url>
         <loc>http://amyangfei.me/static/about/</loc>
-        <lastmod>2014-03-04T21:25:58+08:00</lastmod>
+        <lastmod>2016-08-03T22:24:57+08:00</lastmod>
     </url>
 </urlset>

@@ -91,47 +91,22 @@
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/2013/01/07/abtest-script-and-bash-subshell/">
+		<a href="/2012/03/26/bide-algorithm/">
 		
-			Bash Subshell变量作用域问题</a>
+			A Brief Introduction to BIDE Algorithm</a>
 	</h2>
 	<div class="entry-content">
-		<p>今天研究apache ab这个测试工具，在网上看到<a href="http://blog.csdn.net/chosen0ne/article/details/7302991" target="_blank">压力测试shell脚本</a>一文介绍了一个封装的bash脚本，用于多次测试返回requests per second的平均值，对脚本进行了简单的改写，将所有的测试输出进行记录。改写脚本在文章的最后。</p>
+		<h3>背景</h3>
 
-<p>改写过程中发现这样一个问题，比如写下面的脚本：</p>
+<p>最近在做的数据库活动检测引擎，要实现一个异常行为检测的模块。简单的说异常行为检测就是先确定描述用户访问数据库的行为模型，然后定义一系列描述正常访问数据库的行为，检测过程中一旦用户行为与正常行为轮廓不符，则被认定为攻击行为。在实际系统中，正常行为轮廓会组成正常行为知识库，这个知识库会很大，所以正常行为轮廓不能简单的人工定义，于是一个自动挖掘正常行为知识库的需求被提了出来。</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/bash</span>
-</span><span class='line'>
-</span><span class='line'><span class="nv">result</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
-</span><span class='line'>cat abtest_temp.log | <span class="k">while </span><span class="nb">read </span>LINE
-</span><span class='line'><span class="k">do</span>
-</span><span class='line'><span class="k">    </span><span class="nv">result</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="nv">$LINE</span> | grep <span class="s1">&#39;Requests per second:&#39;</span><span class="sb">`</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$result&quot;</span> !<span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]</span>
-</span><span class='line'>    <span class="k">then</span>
-</span><span class='line'><span class="k">        </span><span class="nb">break</span>
-</span><span class='line'><span class="nb">    </span><span class="k">fi</span>
-</span><span class='line'><span class="k">done</span>
-</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;result is &quot;</span><span class="k">${</span><span class="nv">result</span><span class="k">}</span>
-</span></code></pre></td></tr></table></div></figure>
+<p>在系统实现过程中，会将用户对数据库产生影响的原子性操作，比如一次select，一次update抽象成为一个item，用户访问数据库的一系列行为可以抽象成为一个item的序列，由此引出了通过频繁序列挖掘来获得正常行为知识库的想法。</p>
 
-
-
+<h3>频繁序列挖掘</h3>
 
 
 		
-		<a href="/2013/01/07/abtest-script-and-bash-subshell/" class="more-link">Read on &rarr;</a>
+		<a href="/2012/03/26/bide-algorithm/" class="more-link">Read on &rarr;</a>
 	</div>
 
 
@@ -148,16 +123,16 @@
   
 
 
-<time datetime="2013-01-07T00:00:00+08:00" pubdate data-updated="true">Jan 7<span>th</span>, 2013</time></div>
+<time datetime="2012-03-26T00:00:00+08:00" pubdate data-updated="true">Mar 26<span>th</span>, 2012</time></div>
 	<div class="tags">
 
 
-	<a class='category' href='/blog/categories/bash/'>Bash</a>, <a class='category' href='/blog/categories/ipc/'>IPC</a>
+	<a class='category' href='/blog/categories/bide/'>BIDE</a>, <a class='category' href='/blog/categories/algorithm/'>algorithm</a>
 
 
 </div>
 	
-	<div class="comments"><a href="/2013/01/07/abtest-script-and-bash-subshell/#disqus_thread">Comments</a></div>
+	<div class="comments"><a href="/2012/03/26/bide-algorithm/#disqus_thread">Comments</a></div>
 	
 </div>
 </article>
@@ -166,39 +141,15 @@
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/2012/12/31/baidustar-code-fibonacci/">
+		<a href="/2012/03/20/hello-world/">
 		
-			baidu-star算法题-du熊学斐波那契I</a>
+			Hello World</a>
 	</h2>
 	<div class="entry-content">
-		<p>题目来源：<a href="http://astar.baidu.com/index.php?r=home/detail&id=2" target="_blank">百度之星-du熊学斐波那契I</a></p>
-
-<p>题目其实很简单，如果不考虑时间和内存可以按照fibonacci的生成方式暴力进行下去。注意到每次增长只针对最后两位数字，所以每次增长的两位数字组合最多有100种：[0,0]~[9,9]，所以增长一定次数之后会出现一个内嵌的循环。</p>
-
-<p>在oschina上看到一篇帖子，给出了两种很漂亮的python实现，<a href="http://www.oschina.net/code/snippet_103482_16641" target="_blank">原文</a>。下面来分析一下：</p>
-
-<h3>实现一简洁版</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">def</span> <span class="nf">f1</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
-</span><span class='line'>    <span class="n">intDigits</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
-</span><span class='line'>    <span class="k">return</span> <span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">x</span><span class="o">+</span><span class="n">intDigits</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:])),</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="p">[</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">test</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">8</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">]]</span>
-</span><span class='line'><span class="k">print</span> <span class="p">[</span><span class="n">f1</span><span class="p">(</span><span class="o">*</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">test</span><span class="p">]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个版本就是暴力计算了，一直增长n-2次</p>
-
+		<p>似乎应该在这里说些什么。。。</p>
 
 		
-		<a href="/2012/12/31/baidustar-code-fibonacci/" class="more-link">Read on &rarr;</a>
+		
 	</div>
 
 
@@ -215,246 +166,16 @@
   
 
 
-<time datetime="2012-12-31T00:00:00+08:00" pubdate data-updated="true">Dec 31<span>st</span>, 2012</time></div>
+<time datetime="2012-03-20T00:00:00+08:00" pubdate data-updated="true">Mar 20<span>th</span>, 2012</time></div>
 	<div class="tags">
 
 
-	<a class='category' href='/blog/categories/algorithm/'>Algorithm</a>
+	<a class='category' href='/blog/categories/programmer/'>programmer</a>
 
 
 </div>
 	
-	<div class="comments"><a href="/2012/12/31/baidustar-code-fibonacci/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2012/12/30/how-to-build-this-blog/">
-		
-			How to Build This Blog</a>
-	</h2>
-	<div class="entry-content">
-		<p>系统环境Mac OS X 10.8.2，这个博客主要通过jekyll生成静态页面，使用ruby提供的一些扩展插件，比如按月份进行归档等，配置环境的过程如下。</p>
-
-<p>安装ruby，rubygems</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo port ruby
-</span><span class='line'>sudo port install rb-rubygems
-</span><span class='line'>sudo gem install rubygems-update
-</span><span class='line'>sudo gem update --system
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装bundle</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo gem install bundler
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-
-		
-		<a href="/2012/12/30/how-to-build-this-blog/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-12-30T00:00:00+08:00" pubdate data-updated="true">Dec 30<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/jekyll/'>Jekyll</a>, <a class='category' href='/blog/categories/ruby/'>Ruby</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2012/12/30/how-to-build-this-blog/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2012/11/29/shuffle-algorithm/">
-		
-			随机排序算法简介</a>
-	</h2>
-	<div class="entry-content">
-		<p>前几天看了酷壳上的一篇文章<a href="http://coolshell.cn/articles/8593.html" target="_blank">如何测试洗牌程序</a>，之后仔细看了Wikipedia对<a href="http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle" target="_blank">Fisher–Yates shuffle</a>算法的介绍，这里简单的总结一下，基本是翻译Wikipedia。</p>
-
-<h2>Fisher and Yates&#8217; original method</h2>
-
-<p>该算法最初是1938年由Ronald A. Fisher和Frank Yates在《Statistical tables for biological, agricultural and medical research》一书中描述，算法生成1-N个数的随机排列的过程如下：</p>
-
-<ol>
-<li>原始数组中有数字1到N</li>
-<li>设原始数组未被标记的数字个数为k，生成一个1到k之间的随机数</li>
-<li>取出原始数组未被标记数字中的第k个，将其标记并插入到新的排列数组尾端。</li>
-<li>重复过程2直到原始数组中没有未被标记的数字</li>
-<li>过程3中生成的新数组就是一个对原始数组的随机排列</li>
-</ol>
-
-
-<p>该算法可以理解为已知有n个元素，先从n个元素中任选一个，放入新空间的第一个位置，然后再从剩下的n-1个元素中任选一个，放入第二个位置，依此类推。算法在过程3查找未被标记的第k个数字有很多重复操作，导致算法效率并不高，总的时间复杂度为O(N<sup>2</sup> )，空间复杂度为O(N)。算法的python实现如下所示：</p>
-
-
-		
-		<a href="/2012/11/29/shuffle-algorithm/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-11-29T00:00:00+08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/algorithm/'>Algorithm</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2012/11/29/shuffle-algorithm/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2012/09/20/server-suffering-attack/">
-		
-			An Experience of Being Attacked</a>
-	</h2>
-	<div class="entry-content">
-		<p>在9月16日导师交给我一台小型服务器，用作测试环境，服务器运行以Linux 2.6.18内核的Asianux 3.0操作系统。我在服务器上面配置了Oracle服务、国产神通数据库服务，并开启了sshd，在sshd_config配置文件中开启了root登录的权限即配置有PermitRootLogin yes，监听地址直接写为了0.0.0.0，这是我犯的第一个错误，就是对ssh的访问限制过于宽松，没有对访问ip进行限制。我犯的第二个严重错误是老师交给我服务器时的root口令较弱，我并没有进行更改。然后9月16日晚上我竟然把服务器连接上外网然后就放在一边置之不理。</p>
-
-<p>第二天即9月17日晚我尝试使用ssh登录服务器，意外的发现root账户无法登录，给出的错误信息是Permission denied, please try again.使用其他普通账户可以登录，登录查看sshd进程信息发现下面的结果：</p>
-
-<p><img src="/images/post/ps-info.png"/></p>
-
-
-		
-		<a href="/2012/09/20/server-suffering-attack/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-09-20T00:00:00+08:00" pubdate data-updated="true">Sep 20<span>th</span>, 2012</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/linux/'>Linux</a>, <a class='category' href='/blog/categories/ssh/'>ssh</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2012/09/20/server-suffering-attack/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2012/07/22/php-with-nginx-in-macOS/">
-		
-			Running PHP With Nginx on Mac OS X</a>
-	</h2>
-	<div class="entry-content">
-		<p>直接切入正题，关于Mac OS下Nginx的安装部署在<a href="/2012/05/01/install-nginx-for-mac/" target="_blank">mac上安装nginx</a>这篇文章中有详细的叙述。<a href="http://en.wikipedia.org/wiki/FastCGI" target="_blank"> FastCGI </a>是语言无关的、可伸缩架构的CGI开放扩展，其主要行为是将CGI解释器进程保持在内存中并因此获得较高的性能，PHP-CGI是PHP自带的FastCGI管理器。在Mac OS X Lion中系统自带了Apache服务器以及PHP解释器，通过查看phpinfo可以很清楚的看到PHP使用的Server API是Apache2.0 Handler。</p>
-
-<h3>安装PHP</h3>
-
-<p>通过macports安装PHP，安装PHP的同时安装了fastcgi模块，php5-eaccelerator模块用来加速PHP</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo port install php5 +fastcgi fcgi php5-gd php5-mysql php5-sqlite <span class="se">\</span>
-</span><span class='line'>      php5-eaccelerator php5-curl php5-iconv
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-
-		
-		<a href="/2012/07/22/php-with-nginx-in-macOS/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-07-22T00:00:00+08:00" pubdate data-updated="true">Jul 22<span>nd</span>, 2012</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/fastcgi/'>FastCGI</a>, <a class='category' href='/blog/categories/mac/'>Mac</a>, <a class='category' href='/blog/categories/nginx/'>Nginx</a>, <a class='category' href='/blog/categories/php/'>PHP</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2012/07/22/php-with-nginx-in-macOS/#disqus_thread">Comments</a></div>
+	<div class="comments"><a href="/2012/03/20/hello-world/#disqus_thread">Comments</a></div>
 	
 </div>
 </article>
@@ -464,11 +185,9 @@
         <a href="/blog/page/3/" class="prev">Prev</a>
     
     
-        <a href="/blog/page/5/" class="next">Next</a>
-    
     <div class="center"><a href="/blog/archives">Blog Archives</a></div>
 </nav></div>
-	<footer id="footer" class="inner">Copyright &copy; 2012-2015
+	<footer id="footer" class="inner">Copyright &copy; 2012-2016
 
     amyangfei
 

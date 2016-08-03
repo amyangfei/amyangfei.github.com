@@ -4,7 +4,7 @@
   <title><![CDATA[Category: proxy | Amyangfei's Blog]]></title>
   <link href="http://amyangfei.me/blog/categories/proxy/atom.xml" rel="self"/>
   <link href="http://amyangfei.me/"/>
-  <updated>2015-01-25T20:26:28+08:00</updated>
+  <updated>2016-08-03T23:18:48+08:00</updated>
   <id>http://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
@@ -46,7 +46,7 @@
 <h1>now on proxy-server</h1>
 
 <p>apple@proxy-server
-➜ ssh <a href="&#109;&#97;&#105;&#108;&#116;&#x6f;&#58;&#x61;&#112;&#x70;&#x6c;&#x65;&#x40;&#x31;&#48;&#46;&#x30;&#x2e;&#49;&#x30;&#46;&#x32;&#53;">&#x61;&#112;&#112;&#x6c;&#x65;&#64;&#x31;&#x30;&#46;&#48;&#x2e;&#x31;&#48;&#46;&#x32;&#53;</a></p>
+➜ ssh <a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#111;&#x3a;&#x61;&#x70;&#x70;&#108;&#101;&#64;&#49;&#x30;&#x2e;&#48;&#46;&#x31;&#48;&#46;&#50;&#x35;">&#x61;&#112;&#x70;&#x6c;&#101;&#x40;&#49;&#x30;&#46;&#x30;&#x2e;&#x31;&#48;&#x2e;&#x32;&#x35;</a></p>
 
 <p>```</p>
 
@@ -58,7 +58,7 @@
 <p>``` bash</p>
 
 <p>apple@homepc
-➜  ssh -A -tt apple@proxy-server ssh <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#58;&#97;&#112;&#x70;&#108;&#x65;&#x40;&#49;&#x30;&#46;&#48;&#x2e;&#49;&#x30;&#46;&#x32;&#x35;">&#97;&#x70;&#112;&#x6c;&#101;&#x40;&#x31;&#48;&#46;&#x30;&#x2e;&#49;&#x30;&#46;&#50;&#x35;</a></p>
+➜  ssh -A -tt apple@proxy-server ssh <a href="&#109;&#97;&#x69;&#x6c;&#x74;&#111;&#58;&#97;&#112;&#112;&#108;&#101;&#64;&#49;&#x30;&#46;&#48;&#46;&#x31;&#48;&#46;&#x32;&#x35;">&#97;&#112;&#112;&#108;&#101;&#x40;&#x31;&#x30;&#46;&#x30;&#46;&#x31;&#48;&#46;&#x32;&#x35;</a></p>
 
 <p>```</p>
 
@@ -70,7 +70,7 @@
 <p>``` bash</p>
 
 <p>apple@homepc
-➜  ssh -oProxyCommand=&lsquo;ssh apple@proxy-server nc %h %p&rsquo; <a href="&#109;&#x61;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#x61;&#112;&#112;&#x6c;&#x65;&#64;&#49;&#48;&#x2e;&#48;&#x2e;&#49;&#48;&#46;&#x32;&#53;">&#97;&#x70;&#x70;&#108;&#101;&#x40;&#49;&#x30;&#x2e;&#x30;&#46;&#x31;&#x30;&#46;&#50;&#53;</a></p>
+➜  ssh -oProxyCommand=&lsquo;ssh apple@proxy-server nc %h %p&rsquo; <a href="&#109;&#x61;&#x69;&#108;&#116;&#x6f;&#x3a;&#97;&#112;&#112;&#x6c;&#101;&#64;&#49;&#48;&#46;&#48;&#46;&#49;&#48;&#46;&#x32;&#x35;">&#97;&#x70;&#x70;&#x6c;&#x65;&#64;&#49;&#48;&#46;&#x30;&#x2e;&#x31;&#x30;&#x2e;&#50;&#x35;</a></p>
 
 <p>```</p>
 
@@ -91,7 +91,7 @@
 ➜  ssh -N -D 12171 apple@proxy-server &amp;</p>
 
 <p>apple@homepc
-➜  ssh -oProxyCommand=&lsquo;nc -x 127.0.0.1:12171 %h %p&rsquo; <a href="&#109;&#97;&#x69;&#x6c;&#x74;&#111;&#58;&#97;&#112;&#x70;&#108;&#101;&#x40;&#49;&#48;&#x2e;&#x30;&#x2e;&#x31;&#x30;&#x2e;&#x32;&#53;">&#97;&#112;&#112;&#x6c;&#x65;&#64;&#x31;&#48;&#46;&#48;&#x2e;&#49;&#x30;&#x2e;&#50;&#x35;</a></p>
+➜  ssh -oProxyCommand=&lsquo;nc -x 127.0.0.1:12171 %h %p&rsquo; <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#111;&#x3a;&#x61;&#112;&#112;&#x6c;&#101;&#64;&#x31;&#x30;&#46;&#48;&#x2e;&#x31;&#x30;&#x2e;&#x32;&#53;">&#x61;&#112;&#x70;&#108;&#101;&#64;&#x31;&#x30;&#x2e;&#x30;&#46;&#x31;&#48;&#46;&#50;&#x35;</a></p>
 
 <p>```</p>
 
@@ -106,12 +106,12 @@
 <h1>corkscrew can specify authfile with pattern of username:password for http proxy authentication</h1>
 
 <p>apple@homepc
-➜  ssh -oProxyCommand=&lsquo;corkscrew proxy-server 3128 %h %p ~/.ssh/authfile&rsquo; <a href="&#x6d;&#x61;&#x69;&#x6c;&#116;&#x6f;&#x3a;&#x61;&#112;&#x70;&#108;&#x65;&#64;&#x31;&#x30;&#46;&#x30;&#46;&#49;&#48;&#46;&#x32;&#53;">&#x61;&#x70;&#112;&#x6c;&#101;&#x40;&#x31;&#x30;&#x2e;&#48;&#x2e;&#49;&#48;&#46;&#50;&#x35;</a></p>
+➜  ssh -oProxyCommand=&lsquo;corkscrew proxy-server 3128 %h %p ~/.ssh/authfile&rsquo; <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#x3a;&#97;&#x70;&#112;&#x6c;&#x65;&#x40;&#49;&#x30;&#46;&#x30;&#46;&#x31;&#x30;&#x2e;&#50;&#53;">&#97;&#x70;&#112;&#x6c;&#x65;&#x40;&#49;&#48;&#46;&#48;&#x2e;&#x31;&#x30;&#46;&#50;&#x35;</a></p>
 
 <h1>use connect-proxy</h1>
 
 <p>apple@homepc
-➜  ssh -oProxyCommand=&lsquo;connect -H apple@proxy-server:3128 %h %p&rsquo; <a href="&#x6d;&#x61;&#x69;&#108;&#x74;&#111;&#58;&#x61;&#x70;&#112;&#x6c;&#x65;&#64;&#x31;&#48;&#x2e;&#48;&#46;&#49;&#x30;&#x2e;&#x32;&#53;">&#97;&#x70;&#x70;&#x6c;&#x65;&#64;&#x31;&#48;&#x2e;&#48;&#x2e;&#x31;&#x30;&#x2e;&#x32;&#53;</a></p>
+➜  ssh -oProxyCommand=&lsquo;connect -H apple@proxy-server:3128 %h %p&rsquo; <a href="&#109;&#97;&#x69;&#x6c;&#x74;&#x6f;&#58;&#97;&#112;&#112;&#x6c;&#x65;&#x40;&#x31;&#48;&#46;&#48;&#46;&#x31;&#48;&#x2e;&#x32;&#53;">&#x61;&#112;&#x70;&#x6c;&#x65;&#64;&#x31;&#48;&#46;&#48;&#x2e;&#x31;&#x30;&#x2e;&#x32;&#x35;</a></p>
 
 <h1>use proxychains</h1>
 
@@ -122,7 +122,7 @@
 <h1>more details: <a href="https://github.com/rofl0r/proxychains-ng/issues/25">https://github.com/rofl0r/proxychains-ng/issues/25</a></h1>
 
 <p>apple@homepc
-➜  proxychains4 ssh <a href="&#109;&#x61;&#105;&#108;&#116;&#x6f;&#58;&#x61;&#x70;&#112;&#108;&#101;&#x40;&#x31;&#x30;&#46;&#x30;&#46;&#x31;&#48;&#46;&#50;&#x35;">&#x61;&#112;&#112;&#x6c;&#x65;&#64;&#49;&#x30;&#46;&#48;&#x2e;&#49;&#48;&#46;&#50;&#x35;</a></p>
+➜  proxychains4 ssh <a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x61;&#112;&#x70;&#108;&#101;&#x40;&#49;&#48;&#46;&#48;&#46;&#x31;&#x30;&#46;&#x32;&#x35;">&#97;&#x70;&#x70;&#x6c;&#101;&#64;&#49;&#48;&#x2e;&#x30;&#46;&#49;&#48;&#46;&#x32;&#x35;</a></p>
 
 <p>```</p>
 

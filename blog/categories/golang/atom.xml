@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: golang | Amyangfei's Blog]]></title>
+  <link href="http://amyangfei.me/blog/categories/golang/atom.xml" rel="self"/>
+  <link href="http://amyangfei.me/"/>
+  <updated>2016-08-03T23:18:48+08:00</updated>
+  <id>http://amyangfei.me/</id>
+  <author>
+    <name><![CDATA[amyangfei]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[使用 Go 编写 Redis Loadable Modules]]></title>
+    <link href="http://amyangfei.me/2016/08/03/redis-module-with-cgo/"/>
+    <updated>2016-08-03T00:00:00+08:00</updated>
+    <id>http://amyangfei.me/2016/08/03/redis-module-with-cgo</id>
+    <content type="html"><![CDATA[<h2>什么是redis loadable modules</h2>
+
+<p>可加载模块是redis最新加入的功能，目前需要在<code>unstable</code>分支才可以使用。简单说模块系统是redis的C代码暴露出一些API，定义在头文件<a href="https://github.com/antirez/redis/blob/unstable/src/redismodule.h">redismodule.h</a>中，外部模块引用该头文件即可调用所有API函数，这些API提供了包括访问redis的字典空间、调用redis命令、向客户端返回数据等诸多功能。外部模块是以动态库的形式被redis server加载并使用，可以在redis server启动时加载，也可以在启动后动态加载。更多的细节可以参考文档<a href="https://github.com/antirez/redis/blob/unstable/src/modules/INTRO.md">redis module INTRO</a>。</p>
+
+<p>在此之前想对redis扩展有两种方案：一是利用lua脚本；另一种则需要修改redis源码，类似于<a href="https://github.com/mattsta/krmt">Kit of Redis Module Tools</a>提供的方案。lua脚本的扩展性有限，并且lua是通过redis的上层API来调用redis命令的，无法直接访问底层的存储数据，调用redis更底层的API；修改源码的方案就更加hack，是没有办法不断与上游分支合并的。</p>
+
+<p>显然新的模块系统明显优于以上两种方案，优点包括：</p>
+
+<ul>
+<li>直接访问redis存储的各种数据结构；</li>
+<li>直接对存储数据的内存进行操作；</li>
+<li>模块仅依赖<code>redismodule.h</code>暴露的接口函数，而不依赖redis本身的实现，因此可以兼容redis的版本升级。</li>
+</ul>
+
+
+<!-- more -->
+
+
+<p>模块系统也有缺点，比如模块中的代码bug引发的异常会直接导致redis server crash掉；模块的问题譬如引入的内存泄漏，代码执行阻塞都会影响redis服务的正常运行。这些缺点不是模块系统本身的问题，而是这种扩展的灵活性和系统稳定性的权衡，是可以通过优质的扩展模块来避免的。</p>
+
+<p>使用C来编写redis扩展模块很简单，参考文档<a href="https://github.com/antirez/redis/blob/unstable/src/modules/INTRO.md">redis module INTRO</a>，你可以在5分钟内学会编写一个redis扩展模块。Redis Lab官方也提供了很多有趣的模块 <a href="http://redismodules.com/">Module Hub</a>。在文档中同样提到可以用其它语言来编写redis扩展模块。</p>
+
+<blockquote><p>it will be possible to use C++ or other languages that have C binding functionalities.</p></blockquote>
+
+<p>go语言的<a href="https://golang.org/cmd/cgo/">cgo</a>提供了Go和C互相调用的支持，因此本文来尝试通过go语言编写redis的扩展模块。下文所有的代码都可以在<a href="https://github.com/amyangfei/RedisModules-Go">RedisModules-Go</a>这个仓库找到，仓库里还提供了redis module lab的两个模块<a href="http://redismodules.com/modules/password/">password</a>，<a href="http://redismodules.com/modules/graphicsmagick-2/">graphicsmagick</a>的go版本，以及一些简单的benchmark。</p>
+
+<p>redis扩展模块的形式是很固定的，需要编写且只编写两个部分：注册命令的函数和具体实现命令的函数。我们分两个阶段来编写redis的go扩展模块：第一阶段是只通过go代码实现逻辑，即还是在C代码中调用<code>redismodule.h</code>的接口，获取数据后传递给go的函数，go处理数据、返回结果；第二阶段是go代码直接访问redismodule.h提供的API获取数据、处理、返回。先看看第一种类型。</p>
+
+<h2>通过go编写逻辑处理</h2>
+
+<p>基本思路是go的函数接收输入，可以是C的数据类型，可以是指向C内存空间的指针；在C代码中调用由go编写的逻辑处理函数，具体的调用方式是go代码编译时指定<code>buildmode=c-shared</code>得到动态库和相关头文件，在C代码中引用头文件并调用。最简单的实现代码如下所示：</p>
+
+<p>```c
+/<em> ECHO1 <string> &ndash; Echo back a string sent from the client </em>/
+int Echo1Command(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {</p>
+
+<pre><code>if (argc &lt; 2) return RedisModule_WrongArity(ctx);
+RedisModule_AutoMemory(ctx);
+
+size_t len;
+char *dst = RedisModule_Strdup(RedisModule_StringPtrLen(argv[1], &amp;len));
+struct GoEcho1_return r = GoEcho1(dst);
+RedisModuleString *rm_str = RedisModule_CreateString(ctx, r.r0, r.r1);
+free(r.r0);
+RedisModule_Free(dst);
+
+RedisModule_ReplyWithString(ctx, rm_str);
+return REDISMODULE_OK;
+</code></pre>
+
+<p>}
+```</p>
+
+<p>```go
+package main</p>
+
+<p>// #include &lt;stdlib.h>
+import &ldquo;C&rdquo;</p>
+
+<p>//export GoEcho1
+func GoEcho1(s <em>C.char) (</em>C.char, int) {</p>
+
+<pre><code>gostr := (C.GoString(s) + " from golang1")
+return C.CString(gostr), len(gostr)
+</code></pre>
+
+<p>}</p>
+
+<p>func main() {}
+```</p>
+
+<p>这种使用场景可以很简单的理解为我们用go实现了一段逻辑代码，编译成一个.so文件和.h文件；用c来实现redis的扩展模块，这段c代码在编译和链接是分别依赖之前生成的.h和.so文件。最后将编译好的.so库拿来给redis server使用。具体实现中涉及到申请的内存空间是在C的运行环境还是go的运行环境，因为go的运行时提供了gc，而C则需要手动管理内存，这其中有很多细节需要注意；同时go和C之间可以传递的数据也有一些限制，后文会详细讨论。</p>
+
+<h2>通过go调用redismodule.h定义的API</h2>
+
+<p>第一步中所做的是提供数据给go代码进行逻辑处理并返回数据，那么如果希望在go代码中也可以调用redismodule.h定义的API，又需要如何处理？</p>
+
+<p>直观的想通过go调用C代码，在go中直接<code>#include "redismodule.h"</code>就可以了嘛，于是我们编写如下的go代码：</p>
+
+<p>```go
+package main</p>
+
+<p>// #include &ldquo;redismodule.h&rdquo;
+/<em>
+typedef RedisModuleString </em>(<em>redis_func) (RedisModuleCtx </em>ctx, char *ptr, size_t len);</p>
+
+<p>inline RedisModuleString <em>redis_bridge_func(redis_func f, RedisModuleCtx </em>ctx, char *ptr, size_t len)
+{</p>
+
+<pre><code>return f(ctx, ptr, len);
+</code></pre>
+
+<p>}
+*/
+import &ldquo;C&rdquo;</p>
+
+<p>//export GoEcho
+func GoEcho(ctx <em>C.RedisModuleCtx, s </em>C.char) *C.RedisModuleString {</p>
+
+<pre><code>gostr := (C.GoString(s) + " from golang")
+f := C.redis_func(C.RedisModule_CreateString)
+return C.redis_bridge_func(f, ctx, C.CString(gostr), C.size_t(len(gostr)))
+</code></pre>
+
+<p>}</p>
+
+<p>func main() {}
+```</p>
+
+<p><code>redismodule.h</code>定义的API函数都是函数指针，由于go不支持直接调用C的函数指针，所以通过通过go的变量保存C的函数指针，并将该变量作为参数调用C的<code>bridge_function</code>，在<code>bridge_function</code>中调用目标函数指针。编译是可以通过的，但实际运行就会crash。通过调试很容易发现<code>C.RedisModule_CreateString</code>的值是<code>nil</code>，它没有指向正确的函数地址。那换一种方式使用一个C的函数来调用<code>RedisModule_CreateString</code>呢？</p>
+
+<p>```go
+package main</p>
+
+<p>/*</p>
+
+<h1>include &ldquo;redismodule.h&rdquo;</h1>
+
+<p>inline RedisModuleString <em>RedisModule_CreateString_Wrap(RedisModuleCtx </em>ctx, char *ptr, size_t len) {</p>
+
+<pre><code>void *getapifuncptr = ((void**)ctx)[0];
+RedisModule_GetApi = (int (*)(const char *, void *)) (unsigned long)getapifuncptr;
+RedisModule_GetApi("RedisModule_CreateString", (void **)&amp;RedisModule_CreateString);
+
+RedisModuleString *rms = RedisModule_CreateString(ctx, ptr, len);
+return rms;
+</code></pre>
+
+<p>}
+*/
+import &ldquo;C&rdquo;</p>
+
+<p>//export GoEcho
+func GoEcho(ctx <em>C.RedisModuleCtx, s </em>C.char) *C.RedisModuleString {</p>
+
+<pre><code>    gostr := (C.GoString(s) + " from golang version bridge")
+    return C.RedisModule_CreateString_Wrap(ctx, C.CString(gostr), C.size_t(len(gostr)))
+</code></pre>
+
+<p>}</p>
+
+<p>func main() {}
+```</p>
+
+<p>实际运行时依然会在调用<code>RedisModule_CreateString</code>函数时crash掉，跟进gdb调试可以看到该函数指针并没有指向正确的内存地址。</p>
+
+<p><code>c
+(gdb) l
+2
+3       /*
+4       #include "redismodule.h"
+5
+6       inline RedisModuleString *RedisModule_CreateString_Wrap(RedisModuleCtx *ctx, char *ptr, size_t len) {
+7           RedisModuleString *rms = RedisModule_CreateString(ctx, ptr, len);
+8           return rms;
+9       }
+10      */
+11      import "C"
+(gdb) p RedisModule_CreateString
+$1 = (RedisModuleString *(*)(RedisModuleCtx *, const char *, size_t)) 0x0
+</code>
+那么<code>redismodule.h</code>对外提供的函数指针是在何时指向实际的函数内存地址呢？从<code>redismodule.h</code>文件本身就会得到答案：加载一个外部模块都需要调用<code>RedisModule_Init</code>函数，在这个函数中会通过<code>RedisModuleCtx *ctx</code>变量定位到在redis代码<code>module.c</code>内提供的实际API函数，然后将函数指针指向真正的函数地址。由于在上述的go模块中，没有调用<code>RedisModule_Init</code>，<code>RedisModule_CreateString</code>自然指向的是非法的内存地址。所以简单改动一下代码，主动注册一下函数指针的地址即可在go的模块中调用<code>redismodule.h</code>提供的API。</p>
+
+<p>```go
+package main</p>
+
+<p>/*</p>
+
+<h1>include &ldquo;redismodule.h&rdquo;</h1>
+
+<p>inline RedisModuleString <em>RedisModule_CreateString_Wrap(RedisModuleCtx </em>ctx, char *ptr, size_t len) {</p>
+
+<pre><code>void *getapifuncptr = ((void**)ctx)[0];
+RedisModule_GetApi = (int (*)(const char *, void *)) (unsigned long)getapifuncptr;
+RedisModule_GetApi("RedisModule_CreateString", (void **)&amp;RedisModule_CreateString);
+
+RedisModuleString *rms = RedisModule_CreateString(ctx, ptr, len);
+return rms;
+</code></pre>
+
+<p>}
+*/
+import &ldquo;C&rdquo;</p>
+
+<p>//export GoEcho
+func GoEcho(ctx <em>C.RedisModuleCtx, s </em>C.char) *C.RedisModuleString {</p>
+
+<pre><code>    gostr := (C.GoString(s) + " from golang version bridge")
+    return C.RedisModule_CreateString_Wrap(ctx, C.CString(gostr), C.size_t(len(gostr)))
+</code></pre>
+
+<p>}</p>
+
+<p>func main() {}
+```</p>
+
+<h2>一些细节</h2>
+
+<p>编写模块的过程中关于内存使用发现不少有趣的地方。</p>
+
+<h3>1. Go和C之间传递指针的规则和限制</h3>
+
+<p>在<a href="https://github.com/amyangfei/RedisModules-Go/blob/master/example/basic/go1dot5/hello_module.go">go1.5/hello_module.go</a>这个文件中可以看到export给C的go函数的返回值很多返回了go的指针，在C代码中调用go函数之后可以直接访问go的内存，这在go1.5是支持的，但是从go1.6之后加入了Go和C之间传递指针的限制，go1.6明确指出：</p>
+
+<blockquote><p>A Go function called by C code may not return a Go pointer.</p></blockquote>
+
+<p>go1.6对go和C的互相调用进行了大量的规范，有编译层面的也有在运行时的检查，详细可以参考<a href="https://github.com/golang/proposal/blob/master/design/12416-cgo-pointers.md">12416-cgo-pointers</a>。规范的出发点有两个：一是更便于go的内存管理，总所周知go提供了gc，所以有一些破坏了gc规则的使用需要禁止；二是尽可能减少程序运行时内存访问出现的未知错误。</p>
+
+<p>那么回到我们的redis go模块，如果不能从go函数返回go指针给C代码使用，那么如何从go返回数据给C代码呢？目前有两种方式：一是在go代码中生成完整的C数据返回，二是返回C的指针。以hello.echo模块为例，对应的两种返回形式分别是：</p>
+
+<p>```go
+func GoEcho1(s <em>C.char) (</em>C.char, int) {</p>
+
+<pre><code>gostr := (C.GoString(s) + " from golang1")
+return C.CString(gostr), len(gostr)
+</code></pre>
+
+<p>}</p>
+
+<p>func GoEcho6(s *C.char, length, capacity C.int) (unsafe.Pointer, int) {</p>
+
+<pre><code>incr := " from golang6"
+zslice := cgoutils.ZeroCopySlice(unsafe.Pointer(s), int(capacity), int(capacity), false)
+copy(zslice.Data[int(length):], incr)
+return unsafe.Pointer(&amp;zslice.Data[0]), int(length) + len(incr)
+</code></pre>
+
+<p>}
+```</p>
+
+<p>echo1就是直接通过<code>C.String</code>生成C的<code>char *</code>并进行一次内存复制，将<code>gostr</code>的内容复制到C的内存空间。echo6的例子则是现将从C代码传来的内存地址直接映射到go的slice（这里在C代码已经为待处理的数据申请了足够多的内存空间），然后直接在go中直接操作这部分内存，最后返回这部分内存的C指针。显然，echo6比echo1减少了<code>gostr</code>的一次内存复制。使用较大的echo string进行benchmark可以很明显看到echo6比echo1更快。</p>
+
+<p><code>bash
+Benchmark_Echo1     2000            815435 ns/op
+Benchmark_Echo6     2000            575206 ns/op
+</code></p>
+
+<h3>2. 内存管理</h3>
+
+<p>在使用cgo时一定需要区分变量是在go的内存空间还是在C的内存空间，尤其注意在go代码中申请的C的数据一定需要手动释放内存，因为go的gc并不会回收这部分内存。所以譬如通过<code>C.Cstring()</code>生成的数据、通过<code>C.malloc()</code>申请的内存在使用后都需要手动回收。</p>
+
+<h3>3. Go直接映射C的内存空间</h3>
+
+<p>在go代码中C的数据类型会映射成为C.x，可以直接访问C数据类型的变量，但是如果想要对变量进行go代码的逻辑操作，就必须先转换成为go的数据类型，譬如希望对一个C的<code>char *</code>进行处理，需要现转换成为go的<code>slice</code>。转换有两种方法：一是直接调用<code>C.GoBytes</code>方法，另一种是利用反射构造<code>slice</code>，具体的使用方法参考<a href="https://github.com/amyangfei/RedisModules-Go/blob/master/cgoutils/sharemem.go">sharemem.go</a>。使用<code>C.GoBytes</code>会将C数据结构的内存复制到go的内存空间。而第二种方法则是直接映射，没有内存复制。</p>
+
+<p>在直接映射C内存的使用场景下，对go对象slice的一些操作可以直接作用于C的内存空间，譬如在echo6中使用<code>copy(zslice.Data[int(length):], incr)</code>。这里就需要注意，如果一开始C申请的内存空间不足，但是强制增大go中slice的capacity，然后进行copy操作，结果会发现程序运行中会crash掉。这种用法的问题在于不能区分slice增加的capacity内存是位于C代码还是go代码的运行环境；如果不是copy而是使用slice的append操作，由于capacity不足go的slice会重新申请内存空间，那么对应的内存都位于go的运行环境，与原来C运行环境中的数据就没有关系了。</p>
+
+<h2>小结</h2>
+
+<p>后续还会对比使用go和C编写同样的扩展模块在性能方面会有怎样的差距，这里就不再继续讨论。redis计划会在4.0版本中合并模块系统的功能，这还是很值得期待的。使用cgo来完成go和C的交互也十分常见，go标准库本身就有很多地方使用到了cgo来使用C的代码，本文编写的<a href="https://github.com/amyangfei/RedisModules-Go/tree/master/modules/graphicsmagick">graphicsmagick</a>模块使用的<a href="https://github.com/gographics/imagick">imagick</a>库本身也是通过cgo对ImageMagick MagickWand C API的封装。</p>
+]]></content>
+  </entry>
+  
+</feed>

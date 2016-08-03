@@ -91,168 +91,6 @@
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/2013/02/28/access-vm-ssh-via-port-mapping/">
-		
-			通过端口映射访问虚拟机内部网络</a>
-	</h2>
-	<div class="entry-content">
-		<p>在VMware Workstation中如果使用NAT，虚拟机内部只会获取内网地址。现在我有这样的实验环境：</p>
-
-<ul>
-<li><p>主机：Windows7 + Vmware Workstation 9  公网IP: 166.111.x.x</p></li>
-<li><p>虚拟机：Ubuntu12.10  内网IP: 192.168.248.129</p></li>
-</ul>
-
-
-<p>需求：在虚拟机内部搭建http服务，在外网可以直接访问；在外网通过ssh连接虚拟机。下边是进行ssh端口映射的步骤，http服务类似。</p>
-
-
-		
-		<a href="/2013/02/28/access-vm-ssh-via-port-mapping/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-02-28T00:00:00+08:00" pubdate data-updated="true">Feb 28<span>th</span>, 2013</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/nat/'>NAT</a>, <a class='category' href='/blog/categories/virtualization/'>Virtualization</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2013/02/28/access-vm-ssh-via-port-mapping/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2013/02/08/android-taskscheduler-and-scripting/">
-		
-			Android运行脚本与定时工具</a>
-	</h2>
-	<div class="entry-content">
-		<p>用惯了crontab，实验室的机器因为某些原因连不上，于是希望在自己的Android手机上完成定时执行一些脚本的任务。google一下找到了 <a href="http://i55m411.appspot.com/?p=594004" target="_blank">android应用实现定时打电话</a> 这样一篇文章，正好满足我的需求。下面做一个简单的总结。</p>
-
-<h3>安装的软件</h3>
-
-<ul>
-<li><p><a href="http://code.google.com/p/android-scripting" target="_blank">SL4A(Scripting Layer for Android)</a>，Andriod系统下运行脚本的环境，可以在终端、后台或Locale中运行，现阶段支持Python, Perl, JRuby, Lua, BeanShell, JavaScript, Tcl和shell脚本。</p></li>
-<li><p><a href="http://code.google.com/p/android-scripting/downloads/detail?name=PythonForAndroid_r4.apk&can=2" target="_blank">Py4A</a>，SL4A的python插件，安装之后就可以运行python脚本。</p></li>
-<li><p><a href="https://play.google.com/store/apps/details?id=org.androidideas.taskbomb" target="_blank">TaskBomb task scheduler</a>，一个可以执行计划任务的app，类似于Unix中的crontab。</p></li>
-<li><p><a href="https://play.google.com/store/apps/details?id=org.androidideas.scriptlauncher" target="_blank">SL4A Script Launcher</a>，TaskBomb可以通过此app执行SL4A脚本。</p></li>
-</ul>
-
-
-
-		
-		<a href="/2013/02/08/android-taskscheduler-and-scripting/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-02-08T00:00:00+08:00" pubdate data-updated="true">Feb 8<span>th</span>, 2013</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/android/'>Android</a>, <a class='category' href='/blog/categories/tools/'>Tools</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2013/02/08/android-taskscheduler-and-scripting/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2013/02/05/tornado-source-analysis-4/">
-		
-			Tornado源码分析4</a>
-	</h2>
-	<div class="entry-content">
-		<p>IOStream对socket读写进行了封装，分别提供读、写缓冲区实现对socket的异步读写。当socket被accept之后HTTPServer的_handle_connection会被回调并初始化IOStream对象，进一步通过IOStream提供的功能接口完成socket的读写。文章接下来将关注IOStream实现读写的细节。</p>
-
-<h3>IOStream的初始化</h3>
-
-<p>IOStream初始化过程中主要完成以下操作：</p>
-
-<ol>
-<li>绑定对应的socket</li>
-<li>绑定ioloop</li>
-<li>创建读缓冲区_read_buffer，一个python deque容器</li>
-<li>创建写缓冲区_write_buffer，同样也是一个python deque容器</li>
-</ol>
-
-
-
-		
-		<a href="/2013/02/05/tornado-source-analysis-4/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-02-05T00:00:00+08:00" pubdate data-updated="true">Feb 5<span>th</span>, 2013</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/asynchronous/'>Asynchronous</a>, <a class='category' href='/blog/categories/tornado/'>Tornado</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2013/02/05/tornado-source-analysis-4/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
 		<a href="/2013/02/03/tornado-source-analysis-3/">
 		
 			Tornado源码分析3</a>
@@ -449,6 +287,206 @@
 </div>
 </article>
 
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/2013/01/07/abtest-script-and-bash-subshell/">
+		
+			Bash Subshell变量作用域问题</a>
+	</h2>
+	<div class="entry-content">
+		<p>今天研究apache ab这个测试工具，在网上看到<a href="http://blog.csdn.net/chosen0ne/article/details/7302991" target="_blank">压力测试shell脚本</a>一文介绍了一个封装的bash脚本，用于多次测试返回requests per second的平均值，对脚本进行了简单的改写，将所有的测试输出进行记录。改写脚本在文章的最后。</p>
+
+<p>改写过程中发现这样一个问题，比如写下面的脚本：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/bash</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">result</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+</span><span class='line'>cat abtest_temp.log | <span class="k">while </span><span class="nb">read </span>LINE
+</span><span class='line'><span class="k">do</span>
+</span><span class='line'><span class="k">    </span><span class="nv">result</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="nv">$LINE</span> | grep <span class="s1">&#39;Requests per second:&#39;</span><span class="sb">`</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;$result&quot;</span> !<span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]</span>
+</span><span class='line'>    <span class="k">then</span>
+</span><span class='line'><span class="k">        </span><span class="nb">break</span>
+</span><span class='line'><span class="nb">    </span><span class="k">fi</span>
+</span><span class='line'><span class="k">done</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;result is &quot;</span><span class="k">${</span><span class="nv">result</span><span class="k">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+
+		
+		<a href="/2013/01/07/abtest-script-and-bash-subshell/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-07T00:00:00+08:00" pubdate data-updated="true">Jan 7<span>th</span>, 2013</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/bash/'>Bash</a>, <a class='category' href='/blog/categories/ipc/'>IPC</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2013/01/07/abtest-script-and-bash-subshell/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/2012/12/30/how-to-build-this-blog/">
+		
+			How to Build This Blog</a>
+	</h2>
+	<div class="entry-content">
+		<p>系统环境Mac OS X 10.8.2，这个博客主要通过jekyll生成静态页面，使用ruby提供的一些扩展插件，比如按月份进行归档等，配置环境的过程如下。</p>
+
+<p>安装ruby，rubygems</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo port ruby
+</span><span class='line'>sudo port install rb-rubygems
+</span><span class='line'>sudo gem install rubygems-update
+</span><span class='line'>sudo gem update --system
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装bundle</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo gem install bundler
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+
+		
+		<a href="/2012/12/30/how-to-build-this-blog/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-12-30T00:00:00+08:00" pubdate data-updated="true">Dec 30<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/jekyll/'>Jekyll</a>, <a class='category' href='/blog/categories/ruby/'>Ruby</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2012/12/30/how-to-build-this-blog/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/2012/11/29/shuffle-algorithm/">
+		
+			随机排序算法简介</a>
+	</h2>
+	<div class="entry-content">
+		<p>前几天看了酷壳上的一篇文章<a href="http://coolshell.cn/articles/8593.html" target="_blank">如何测试洗牌程序</a>，之后仔细看了Wikipedia对<a href="http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle" target="_blank">Fisher–Yates shuffle</a>算法的介绍，这里简单的总结一下，基本是翻译Wikipedia。</p>
+
+<h2>Fisher and Yates&#8217; original method</h2>
+
+<p>该算法最初是1938年由Ronald A. Fisher和Frank Yates在《Statistical tables for biological, agricultural and medical research》一书中描述，算法生成1-N个数的随机排列的过程如下：</p>
+
+<ol>
+<li>原始数组中有数字1到N</li>
+<li>设原始数组未被标记的数字个数为k，生成一个1到k之间的随机数</li>
+<li>取出原始数组未被标记数字中的第k个，将其标记并插入到新的排列数组尾端。</li>
+<li>重复过程2直到原始数组中没有未被标记的数字</li>
+<li>过程3中生成的新数组就是一个对原始数组的随机排列</li>
+</ol>
+
+
+<p>该算法可以理解为已知有n个元素，先从n个元素中任选一个，放入新空间的第一个位置，然后再从剩下的n-1个元素中任选一个，放入第二个位置，依此类推。算法在过程3查找未被标记的第k个数字有很多重复操作，导致算法效率并不高，总的时间复杂度为O(N<sup>2</sup> )，空间复杂度为O(N)。算法的python实现如下所示：</p>
+
+
+		
+		<a href="/2012/11/29/shuffle-algorithm/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-11-29T00:00:00+08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2012</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/algorithm/'>Algorithm</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2012/11/29/shuffle-algorithm/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
 <nav id="pagenavi">
     
         <a href="/blog/page/2/" class="prev">Prev</a>
@@ -458,7 +496,7 @@
     
     <div class="center"><a href="/blog/archives">Blog Archives</a></div>
 </nav></div>
-	<footer id="footer" class="inner">Copyright &copy; 2012-2015
+	<footer id="footer" class="inner">Copyright &copy; 2012-2016
 
     amyangfei
 

@@ -91,6 +91,111 @@
     <article class="post">
 	<h2 class="title">
 		
+		<a href="/2016/08/03/redis-module-with-cgo/">
+		
+			使用 Go 编写 Redis Loadable Modules</a>
+	</h2>
+	<div class="entry-content">
+		<h2>什么是redis loadable modules</h2>
+
+<p>可加载模块是redis最新加入的功能，目前需要在<code>unstable</code>分支才可以使用。简单说模块系统是redis的C代码暴露出一些API，定义在头文件<a href="https://github.com/antirez/redis/blob/unstable/src/redismodule.h">redismodule.h</a>中，外部模块引用该头文件即可调用所有API函数，这些API提供了包括访问redis的字典空间、调用redis命令、向客户端返回数据等诸多功能。外部模块是以动态库的形式被redis server加载并使用，可以在redis server启动时加载，也可以在启动后动态加载。更多的细节可以参考文档<a href="https://github.com/antirez/redis/blob/unstable/src/modules/INTRO.md">redis module INTRO</a>。</p>
+
+<p>在此之前想对redis扩展有两种方案：一是利用lua脚本；另一种则需要修改redis源码，类似于<a href="https://github.com/mattsta/krmt">Kit of Redis Module Tools</a>提供的方案。lua脚本的扩展性有限，并且lua是通过redis的上层API来调用redis命令的，无法直接访问底层的存储数据，调用redis更底层的API；修改源码的方案就更加hack，是没有办法不断与上游分支合并的。</p>
+
+<p>显然新的模块系统明显优于以上两种方案，优点包括：</p>
+
+<ul>
+<li>直接访问redis存储的各种数据结构；</li>
+<li>直接对存储数据的内存进行操作；</li>
+<li>模块仅依赖<code>redismodule.h</code>暴露的接口函数，而不依赖redis本身的实现，因此可以兼容redis的版本升级。</li>
+</ul>
+
+
+
+		
+		<a href="/2016/08/03/redis-module-with-cgo/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-08-03T00:00:00+08:00" pubdate data-updated="true">Aug 3<span>rd</span>, 2016</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/golang/'>golang</a>, <a class='category' href='/blog/categories/redis/'>redis</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2016/08/03/redis-module-with-cgo/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/2016/01/30/redis-queue-rethink/">
+		
+			RQ (Redis Queue) 使用的一些思考</a>
+	</h2>
+	<div class="entry-content">
+		<p>最近使用了 <a href="http://python-rq.org/">rq</a> 这个简单的队列处理库，其中有一些任务需要使用MySQL的连接或者redis的连接，对此有一些思考。</p>
+
+<h2>MySQL/redis的连接复用</h2>
+
+<p>rq 提供了两种 worker 模型：基于 <code>fork</code> 的 worker 模型和直接在主线程执行任务的 worker 模型。基于 fork 的 worker 在执行任务之前先 fork 一个子进程，在子进程中执行具体的任务，父进程等待子进程执行返回。在基于 fork 的 worker 模型下，如果在父进程有一个 MySQL/redis 连接，由于子进程会继承父进程的地址空间，具有相同的打开文件、socket、管道等，所以子进程中也有同样的 MySQL/redis 连接，那么在这种情况下这个连接可以直接使用么？通过以下代码简单测试一下，连接 MySQL 使用 <a href="https://github.com/bdarnell/torndb">torndb</a> ，连接 redis 使用 <a href="https://github.com/andymccurdy/redis-py">redis-py</a>：</p>
+
+
+		
+		<a href="/2016/01/30/redis-queue-rethink/" class="more-link">Read on &rarr;</a>
+	</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-30T00:00:00+08:00" pubdate data-updated="true">Jan 30<span>th</span>, 2016</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/queue/'>queue</a>, <a class='category' href='/blog/categories/redis/'>redis</a>
+
+
+</div>
+	
+	<div class="comments"><a href="/2016/01/30/redis-queue-rethink/#disqus_thread">Comments</a></div>
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
 		<a href="/2015/01/24/ssh-and-proxy/">
 		
 			SSH Through Different Kinds of Proxy</a>
@@ -229,63 +334,6 @@
     <article class="post">
 	<h2 class="title">
 		
-		<a href="/2014/04/05/tips-of-puppet/">
-		
-			Puppet使用笔记</a>
-	</h2>
-	<div class="entry-content">
-		<p>本文主要介绍使用 puppet 过程中遇到的问题和解决方法。</p>
-
-<h3>同步文件</h3>
-
-<p>先介绍一下基本环境，master 和 client 所在机器都是 Ubuntu Server 12.04，使用 puppetlab 官方源安装，参考 <a herf="" target="_blank">Using the Puppet Labs Package Repositories</a>，puppet的版本：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>puppet --version
-</span><span class='line'>3.5.0-rc3
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>下边介绍同步文件遇到的一个小问题。首先服务端已经对客户端完成了验证，现在需要从服务端向客户端同步文件。创建一个类，然后添加 <code>init.pp</code> 文件</p>
-
-
-		
-		<a href="/2014/04/05/tips-of-puppet/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-04-05T00:00:00+08:00" pubdate data-updated="true">Apr 5<span>th</span>, 2014</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/ops/'>ops</a>, <a class='category' href='/blog/categories/puppet/'>puppet</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2014/04/05/tips-of-puppet/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
 		<a href="/2014/01/10/making-progit-ebook/">
 		
 			Making Ebooks of Pro Git</a>
@@ -352,66 +400,6 @@
 </div>
 </article>
 
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/2013/11/06/apscheduler-source-analyse/">
-		
-			APScheduler 源码阅读笔记</a>
-	</h2>
-	<div class="entry-content">
-		<h3>概述</h3>
-
-<p>APScheduler 是由 python 实现的一个轻量级任务调度器，它可以按照一定间隔（IntervalTrigger）、指定时间（2.1中的SimpleTrigger/3.0中的DateTrigger）或者以类似 cron（CronTrigger） 的形式触发待执行任务（即调用函数或者调用 python 的 callable 对象）。现在 pypi 上的稳定版是 <a href="https://pypi.python.org/pypi/APScheduler/2.1.1" target="_blank">APScheduler 2.1.1</a>，3.0 版本在 class Scheduler 中移除了针对不同 trigger 的 add_trigger_job() 接口，统一为 add_job()，但是底层实现变化不大。我主要看了 2.1.1 的代码。代码很简洁，加起来一共2049行。</p>
-
-<h3>模块组织</h3>
-
-<ul>
-<li><p><strong>Scheduler</strong>  调度器的核心部分，负责对 job 的管理和调度，用户使用添加/移除任务，启动调度器都通过 Scheduler 提供的接口完成。</p></li>
-<li><p><strong>Job</strong>  封装了需要调度的任务，每一个 Job 实例是在 Scheduler 添加 job 时被初始化，具体的初始化参数决定了调度被触发的形式（3类不同的trigger）。</p></li>
-<li><p><strong>Trigger</strong>  包含 SimpleTrigger，IntervalTrigger和 CronTrigger 三个类。Trigger 的作用就是计算下一次触发任务的时间。</p></li>
-<li><p><strong>JobStore</strong>  抽象基类，针对任务存储的介质有多个实现，包括基于内存（RAMJobStore）、使用shelve的简单持久化存储（ShelveJobStore）、使用数据库存储（RedisJobStore，MongoDBJobStore）等。如果不指定参数默认使用 RAMJobStore，使用持久化的 JobStore 的目的是在 Scheduler 重启之后能够恢复原有的任务调度。</p></li>
-</ul>
-
-
-<h3>底层实现</h3>
-
-<p>从分析 Scheduler 类入手，首先看项目中自带的example：</p>
-
-
-		
-		<a href="/2013/11/06/apscheduler-source-analyse/" class="more-link">Read on &rarr;</a>
-	</div>
-
-
-<div class="meta">
-	<div class="date">
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-06T00:00:00+08:00" pubdate data-updated="true">Nov 6<span>th</span>, 2013</time></div>
-	<div class="tags">
-
-
-	<a class='category' href='/blog/categories/apscheduler/'>APScheduler</a>, <a class='category' href='/blog/categories/python/'>Python</a>, <a class='category' href='/blog/categories/job-scheduler/'>job-scheduler</a>
-
-
-</div>
-	
-	<div class="comments"><a href="/2013/11/06/apscheduler-source-analyse/#disqus_thread">Comments</a></div>
-	
-</div>
-</article>
-
 <nav id="pagenavi">
     
     
@@ -419,7 +407,7 @@
     
     <div class="center"><a href="/blog/archives">Blog Archives</a></div>
 </nav></div>
-	<footer id="footer" class="inner">Copyright &copy; 2012-2015
+	<footer id="footer" class="inner">Copyright &copy; 2012-2016
 
     amyangfei
 
