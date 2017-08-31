@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Algorithm | Amyangfei's Blog]]></title>
-  <link href="http://amyangfei.me/blog/categories/algorithm/atom.xml" rel="self"/>
-  <link href="http://amyangfei.me/"/>
-  <updated>2016-08-03T23:18:48+08:00</updated>
-  <id>http://amyangfei.me/</id>
+  <link href="https://amyangfei.me/blog/categories/algorithm/atom.xml" rel="self"/>
+  <link href="https://amyangfei.me/"/>
+  <updated>2017-09-01T00:05:56+08:00</updated>
+  <id>https://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[随机排序算法简介]]></title>
-    <link href="http://amyangfei.me/2012/11/29/shuffle-algorithm/"/>
+    <link href="https://amyangfei.me/2012/11/29/shuffle-algorithm/"/>
     <updated>2012-11-29T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2012/11/29/shuffle-algorithm</id>
+    <id>https://amyangfei.me/2012/11/29/shuffle-algorithm</id>
     <content type="html"><![CDATA[<p>前几天看了酷壳上的一篇文章<a href="http://coolshell.cn/articles/8593.html" target="_blank">如何测试洗牌程序</a>，之后仔细看了Wikipedia对<a href="http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle" target="_blank">Fisher–Yates shuffle</a>算法的介绍，这里简单的总结一下，基本是翻译Wikipedia。</p>
 
 <h2>Fisher and Yates' original method</h2>
@@ -86,7 +86,7 @@ print srclist
 
 <p>该算法同样可以理解成为这样的过程：从1到n个数字中依次随机抽取一个数字，并放到一个新序列的尾端（该算法通过互换数字实现），逐渐形成一个新的序列。计算一下概率：如果某个元素被放入第i（1≤i≤n）个位置，就必须是在前 i-1 次选取中都没有选到它，并且第 i 次恰好选中它。其概率为：</p>
 
-<p><img src="http://amyangfei.me/images/post/20121129probability.png" style=""/></p>
+<p><img src="https://amyangfei.me/images/post/20121129probability.png" style=""/></p>
 
 <p>算法中只有一个从1到N-1的循环，循环内操作为常数步，因而算法总的时间复杂度为O(N)，空间复杂度为O(1)。</p>
 
@@ -118,7 +118,7 @@ print insideout(srclist)
 
 <p>对于这个算法，我们分析可以出现多少种不同的排列数，从$i=1$开始，每一次交换都可以衍生出$(i+1)$倍的排列数，因而总的排列方案数如下图。在随机函数完全随机的情况下每一种排列都是等概率出现的，因而这种算法得到的是一个随机排序。它的时间复杂度和空间复杂度都是O(N)。</p>
 
-<p><img src="http://amyangfei.me/images/post/20121129sum.png" style=""/></p>
+<p><img src="https://amyangfei.me/images/post/20121129sum.png" style=""/></p>
 
 <p>该算法有一个优点就是可以通过不断读取原始数组的下一个元素同时使新的排列数组长度加一，进而生成一个随机排列，即可以对长度未知的序列进行随机排列。实现的伪代码如下：</p>
 

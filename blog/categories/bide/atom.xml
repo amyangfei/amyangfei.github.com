@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: BIDE | Amyangfei's Blog]]></title>
-  <link href="http://amyangfei.me/blog/categories/bide/atom.xml" rel="self"/>
-  <link href="http://amyangfei.me/"/>
-  <updated>2016-08-03T23:18:48+08:00</updated>
-  <id>http://amyangfei.me/</id>
+  <link href="https://amyangfei.me/blog/categories/bide/atom.xml" rel="self"/>
+  <link href="https://amyangfei.me/"/>
+  <updated>2017-09-01T00:05:56+08:00</updated>
+  <id>https://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[A brief introduction to BIDE algorithm]]></title>
-    <link href="http://amyangfei.me/2012/03/26/bide-algorithm/"/>
+    <link href="https://amyangfei.me/2012/03/26/bide-algorithm/"/>
     <updated>2012-03-26T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2012/03/26/bide-algorithm</id>
+    <id>https://amyangfei.me/2012/03/26/bide-algorithm</id>
     <content type="html"><![CDATA[<h3>背景</h3>
 
 <p>最近在做的数据库活动检测引擎，要实现一个异常行为检测的模块。简单的说异常行为检测就是先确定描述用户访问数据库的行为模型，然后定义一系列描述正常访问数据库的行为，检测过程中一旦用户行为与正常行为轮廓不符，则被认定为攻击行为。在实际系统中，正常行为轮廓会组成正常行为知识库，这个知识库会很大，所以正常行为轮廓不能简单的人工定义，于是一个自动挖掘正常行为知识库的需求被提了出来。</p>
@@ -83,7 +83,7 @@
 
 <p>搜索树：</p>
 
-<p><img src="http://amyangfei.me/images/post/bide_search.png" style="width: 580px;"/></p>
+<p><img src="https://amyangfei.me/images/post/bide_search.png" style="width: 580px;"/></p>
 
 <p>一些背景知识：</p>
 

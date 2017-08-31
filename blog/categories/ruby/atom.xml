@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: ruby | Amyangfei's Blog]]></title>
-  <link href="http://amyangfei.me/blog/categories/ruby/atom.xml" rel="self"/>
-  <link href="http://amyangfei.me/"/>
-  <updated>2016-08-03T23:18:48+08:00</updated>
-  <id>http://amyangfei.me/</id>
+  <link href="https://amyangfei.me/blog/categories/ruby/atom.xml" rel="self"/>
+  <link href="https://amyangfei.me/"/>
+  <updated>2017-09-01T00:05:56+08:00</updated>
+  <id>https://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Making Ebooks of Pro Git]]></title>
-    <link href="http://amyangfei.me/2014/01/10/making-progit-ebook/"/>
+    <link href="https://amyangfei.me/2014/01/10/making-progit-ebook/"/>
     <updated>2014-01-10T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2014/01/10/making-progit-ebook</id>
+    <id>https://amyangfei.me/2014/01/10/making-progit-ebook</id>
     <content type="html"><![CDATA[<p>Pro Git 是一本用来学习 git 使用很不错的书，从 <a href="https://github.com/progit/progit" target="_blank">progit</a> 这个开源项目可以获得这本书的全部内容，下边介绍在 Ubuntu Server 12.04 环境下制作电子书的过程。</p>
 
 <h2>安装依赖</h2>

@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Asynchronous | Amyangfei's Blog]]></title>
-  <link href="http://amyangfei.me/blog/categories/asynchronous/atom.xml" rel="self"/>
-  <link href="http://amyangfei.me/"/>
-  <updated>2016-08-03T23:18:48+08:00</updated>
-  <id>http://amyangfei.me/</id>
+  <link href="https://amyangfei.me/blog/categories/asynchronous/atom.xml" rel="self"/>
+  <link href="https://amyangfei.me/"/>
+  <updated>2017-09-01T00:05:56+08:00</updated>
+  <id>https://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[使用Tornado进行异步编程]]></title>
-    <link href="http://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado/"/>
+    <link href="https://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado/"/>
     <updated>2013-06-17T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado</id>
+    <id>https://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado</id>
     <content type="html"><![CDATA[<p>翻译自：<a href="http://lbolla.info/blog/2012/10/03/asynchronous-programming-with-tornado" target="_blank">Asynchronous programming with Tornado</a></p>
 
 <p>对于初学者来说异步编程很令人迷惑，因此我觉得有必要介绍一些有用的基本概念来帮助初学者避免一些常见的陷阱。如果希望理解通用的异步编程模型，可以查看以下这些网络资源，<a href="http://cs.brown.edu/courses/cs196-5/f12/handouts/async.pdf" target="_blank">Introduction to Asynchronous Programming</a>，<a href="http://krondo.com/?page_id=1327" target="_blank">Twisted Introduction</a>。在这篇文章中我将会着眼于如何使用 Tornado 进行异步编程。</p>
@@ -138,9 +138,9 @@ IOLoop.instance().start()
   
   <entry>
     <title type="html"><![CDATA[tornado源码分析5]]></title>
-    <link href="http://amyangfei.me/2013/03/01/tornado-source-analysis-5/"/>
+    <link href="https://amyangfei.me/2013/03/01/tornado-source-analysis-5/"/>
     <updated>2013-03-01T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2013/03/01/tornado-source-analysis-5</id>
+    <id>https://amyangfei.me/2013/03/01/tornado-source-analysis-5</id>
     <content type="html"><![CDATA[<p>Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application，源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。</p>
 
 <h3>RequestHandler分析</h3>
@@ -208,7 +208,7 @@ autoreload.main(your-main-func)
 
 <h3>总结</h3>
 
-<p><a href="http://amyangfei.me/2013/01/29/tornado-source-analysis-2/" target="_blank">tornado源码分析2</a> 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection大方框的handle_request椭圆中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。</p>
+<p><a href="https://amyangfei.me/2013/01/29/tornado-source-analysis-2/" target="_blank">tornado源码分析2</a> 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection大方框的handle_request椭圆中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。</p>
 
 <p><code>python
 http_server = httpserver.HTTPServer(handle_request)
@@ -219,9 +219,9 @@ http_server = httpserver.HTTPServer(application)
   
   <entry>
     <title type="html"><![CDATA[tornado源码分析4]]></title>
-    <link href="http://amyangfei.me/2013/02/05/tornado-source-analysis-4/"/>
+    <link href="https://amyangfei.me/2013/02/05/tornado-source-analysis-4/"/>
     <updated>2013-02-05T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2013/02/05/tornado-source-analysis-4</id>
+    <id>https://amyangfei.me/2013/02/05/tornado-source-analysis-4</id>
     <content type="html"><![CDATA[<p>IOStream对socket读写进行了封装，分别提供读、写缓冲区实现对socket的异步读写。当socket被accept之后HTTPServer的_handle_connection会被回调并初始化IOStream对象，进一步通过IOStream提供的功能接口完成socket的读写。文章接下来将关注IOStream实现读写的细节。</p>
 
 <h3>IOStream的初始化</h3>
@@ -271,7 +271,7 @@ http_server = httpserver.HTTPServer(application)
 </ul>
 
 
-<p><img src="http://amyangfei.me/images/post/20130205iostream_read.png" style="margin-left:22px;"/></p>
+<p><img src="https://amyangfei.me/images/post/20130205iostream_read.png" style="margin-left:22px;"/></p>
 
 <ul>
 <li><p>read_until_regex相当于delimiter为某一正则表达式的read_until。</p></li>
@@ -297,9 +297,9 @@ http_server = httpserver.HTTPServer(application)
   
   <entry>
     <title type="html"><![CDATA[tornado源码分析3]]></title>
-    <link href="http://amyangfei.me/2013/02/03/tornado-source-analysis-3/"/>
+    <link href="https://amyangfei.me/2013/02/03/tornado-source-analysis-3/"/>
     <updated>2013-02-03T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2013/02/03/tornado-source-analysis-3</id>
+    <id>https://amyangfei.me/2013/02/03/tornado-source-analysis-3</id>
     <content type="html"><![CDATA[<p>注：在分割线之前是基于 Tornado2.4 的分析。在Tornado3.0+以后IOLoop发生了一些改动，分割线之后有相应的介绍。</p>
 
 <p>IOLoop是基于epoll实现的底层网络I/O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例直接调用此方法即可。</p>
@@ -470,9 +470,9 @@ return SelectIOLoop
   
   <entry>
     <title type="html"><![CDATA[tornado源码分析2]]></title>
-    <link href="http://amyangfei.me/2013/01/29/tornado-source-analysis-2/"/>
+    <link href="https://amyangfei.me/2013/01/29/tornado-source-analysis-2/"/>
     <updated>2013-01-29T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2013/01/29/tornado-source-analysis-2</id>
+    <id>https://amyangfei.me/2013/01/29/tornado-source-analysis-2</id>
     <content type="html"><![CDATA[<p>httpserver.py中给出了一个简单的http服务器的demo，代码如下所示：</p>
 
 <p>``` python
@@ -499,7 +499,7 @@ ioloop.IOLoop.instance().start()
 <!-- more -->
 
 
-<p><img src="http://amyangfei.me/images/post/20130128tornado-httpserver.png" style="width:610px;"/></p>
+<p><img src="https://amyangfei.me/images/post/20130128tornado-httpserver.png" style="width:610px;"/></p>
 
 <p>服务器的工作流程：首先按照socket->bind->listen顺序创建listen socket监听客户端，并将每个listen socket的fd注册到IOLoop的单例实例中；当listen socket可读时回调_handle_events处理客户端请求；在与客户端通信的过程中使用IOStream封装了读、写缓冲区，实现与客户端的异步读写。</p>
 

@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: job-scheduler | Amyangfei's Blog]]></title>
-  <link href="http://amyangfei.me/blog/categories/job-scheduler/atom.xml" rel="self"/>
-  <link href="http://amyangfei.me/"/>
-  <updated>2016-08-03T23:18:48+08:00</updated>
-  <id>http://amyangfei.me/</id>
+  <link href="https://amyangfei.me/blog/categories/job-scheduler/atom.xml" rel="self"/>
+  <link href="https://amyangfei.me/"/>
+  <updated>2017-09-01T00:05:56+08:00</updated>
+  <id>https://amyangfei.me/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[APScheduler 源码阅读笔记]]></title>
-    <link href="http://amyangfei.me/2013/11/06/apscheduler-source-analyse/"/>
+    <link href="https://amyangfei.me/2013/11/06/apscheduler-source-analyse/"/>
     <updated>2013-11-06T00:00:00+08:00</updated>
-    <id>http://amyangfei.me/2013/11/06/apscheduler-source-analyse</id>
+    <id>https://amyangfei.me/2013/11/06/apscheduler-source-analyse</id>
     <content type="html"><![CDATA[<h3>概述</h3>
 
 <p>APScheduler 是由 python 实现的一个轻量级任务调度器，它可以按照一定间隔（IntervalTrigger）、指定时间（2.1中的SimpleTrigger/3.0中的DateTrigger）或者以类似 cron（CronTrigger） 的形式触发待执行任务（即调用函数或者调用 python 的 callable 对象）。现在 pypi 上的稳定版是 <a href="https://pypi.python.org/pypi/APScheduler/2.1.1" target="_blank">APScheduler 2.1.1</a>，3.0 版本在 class Scheduler 中移除了针对不同 trigger 的 add_trigger_job() 接口，统一为 add_job()，但是底层实现变化不大。我主要看了 2.1.1 的代码。代码很简洁，加起来一共2049行。</p>
