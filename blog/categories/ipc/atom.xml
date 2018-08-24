@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: IPC | Amyangfei's Blog]]></title>
-  <link href="https://amyangfei.me/blog/categories/ipc/atom.xml" rel="self"/>
-  <link href="https://amyangfei.me/"/>
-  <updated>2017-09-01T00:05:56+08:00</updated>
-  <id>https://amyangfei.me/</id>
+  <link href="https://amyangfei.github.io/blog/categories/ipc/atom.xml" rel="self"/>
+  <link href="https://amyangfei.github.io/"/>
+  <updated>2018-08-24T10:52:28+08:00</updated>
+  <id>https://amyangfei.github.io/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[bash subshell变量作用域问题]]></title>
-    <link href="https://amyangfei.me/2013/01/07/abtest-script-and-bash-subshell/"/>
+    <link href="https://amyangfei.github.io/2013/01/07/abtest-script-and-bash-subshell/"/>
     <updated>2013-01-07T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/01/07/abtest-script-and-bash-subshell</id>
+    <id>https://amyangfei.github.io/2013/01/07/abtest-script-and-bash-subshell</id>
     <content type="html"><![CDATA[<p>今天研究apache ab这个测试工具，在网上看到<a href="http://blog.csdn.net/chosen0ne/article/details/7302991" target="_blank">压力测试shell脚本</a>一文介绍了一个封装的bash脚本，用于多次测试返回requests per second的平均值，对脚本进行了简单的改写，将所有的测试输出进行记录。改写脚本在文章的最后。</p>
 
 <p>改写过程中发现这样一个问题，比如写下面的脚本：</p>

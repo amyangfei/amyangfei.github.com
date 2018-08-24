@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Amyangfei's Blog]]></title>
-  <link href="https://amyangfei.me/atom.xml" rel="self"/>
-  <link href="https://amyangfei.me/"/>
-  <updated>2017-09-01T00:05:56+08:00</updated>
-  <id>https://amyangfei.me/</id>
+  <link href="https://amyangfei.github.io/atom.xml" rel="self"/>
+  <link href="https://amyangfei.github.io/"/>
+  <updated>2018-08-24T10:52:28+08:00</updated>
+  <id>https://amyangfei.github.io/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[使用 Go 编写 Redis Loadable Modules]]></title>
-    <link href="https://amyangfei.me/2016/08/03/redis-module-with-cgo/"/>
+    <link href="https://amyangfei.github.io/2016/08/03/redis-module-with-cgo/"/>
     <updated>2016-08-03T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2016/08/03/redis-module-with-cgo</id>
+    <id>https://amyangfei.github.io/2016/08/03/redis-module-with-cgo</id>
     <content type="html"><![CDATA[<h2>什么是redis loadable modules</h2>
 
 <p>可加载模块是redis最新加入的功能，目前需要在<code>unstable</code>分支才可以使用。简单说模块系统是redis的C代码暴露出一些API，定义在头文件<a href="https://github.com/antirez/redis/blob/unstable/src/redismodule.h">redismodule.h</a>中，外部模块引用该头文件即可调用所有API函数，这些API提供了包括访问redis的字典空间、调用redis命令、向客户端返回数据等诸多功能。外部模块是以动态库的形式被redis server加载并使用，可以在redis server启动时加载，也可以在启动后动态加载。更多的细节可以参考文档<a href="https://github.com/antirez/redis/blob/unstable/src/modules/INTRO.md">redis module INTRO</a>。</p>
@@ -364,9 +364,9 @@
   
   <entry>
     <title type="html"><![CDATA[RQ (Redis Queue) 使用的一些思考]]></title>
-    <link href="https://amyangfei.me/2016/01/30/redis-queue-rethink/"/>
+    <link href="https://amyangfei.github.io/2016/01/30/redis-queue-rethink/"/>
     <updated>2016-01-30T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2016/01/30/redis-queue-rethink</id>
+    <id>https://amyangfei.github.io/2016/01/30/redis-queue-rethink</id>
     <content type="html"><![CDATA[<p>最近使用了 <a href="http://python-rq.org/">rq</a> 这个简单的队列处理库，其中有一些任务需要使用MySQL的连接或者redis的连接，对此有一些思考。</p>
 
 <h2>MySQL/redis的连接复用</h2>
@@ -594,9 +594,9 @@
   
   <entry>
     <title type="html"><![CDATA[SSH through different kinds of proxy]]></title>
-    <link href="https://amyangfei.me/2015/01/24/ssh-and-proxy/"/>
+    <link href="https://amyangfei.github.io/2015/01/24/ssh-and-proxy/"/>
     <updated>2015-01-24T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2015/01/24/ssh-and-proxy</id>
+    <id>https://amyangfei.github.io/2015/01/24/ssh-and-proxy</id>
     <content type="html"><![CDATA[<p>有时候因为网络、安全等原因，我们不能通过 ssh 直接连接到目标主机，而是需要通过代理服务器或跳板机实现连接。本文总结通过代理或跳板机使用 ssh 的各种方法，并且分析这些方法的基本原理。</p>
 
 <p>我们设定本地主机的地址为 homepc，绑定有公网 ip；运行有各类代理的代理服务器或跳板机地址为 proxy-server，proxy-server 上绑定一个公网 ip，同时绑定一个内网 ip（假定为10.0.10.252）；需要连接的目标主机 target-server，绑定内网 ip（假定为 10.0.10.25）。所有的用户名、登录用户名使用 apple。</p>
@@ -983,10 +983,10 @@
   
   <entry>
     <title type="html"><![CDATA[python 拾遗2]]></title>
-    <link href="https://amyangfei.me/2014/12/04/python-tips-2/"/>
+    <link href="https://amyangfei.github.io/2014/12/04/python-tips-2/"/>
     <updated>2014-12-04T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2014/12/04/python-tips-2</id>
-    <content type="html"><![CDATA[<p>本文是上一篇文章 <a href="https://amyangfei.me/2014/11/27/python-tips/" target="_blank">python 拾遗</a> 的延续，继续整理 python 的一些使用技巧，以及一些可能被忽略的细节</p>
+    <id>https://amyangfei.github.io/2014/12/04/python-tips-2</id>
+    <content type="html"><![CDATA[<p>本文是上一篇文章 <a href="https://amyangfei.github.io/2014/11/27/python-tips/" target="_blank">python 拾遗</a> 的延续，继续整理 python 的一些使用技巧，以及一些可能被忽略的细节</p>
 
 <p>注意: 以下讨论主要为 Python2.7 版本， Python 3 的内容有待跟进</p>
 
@@ -1101,9 +1101,9 @@
   
   <entry>
     <title type="html"><![CDATA[python 拾遗]]></title>
-    <link href="https://amyangfei.me/2014/11/27/python-tips/"/>
+    <link href="https://amyangfei.github.io/2014/11/27/python-tips/"/>
     <updated>2014-11-27T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2014/11/27/python-tips</id>
+    <id>https://amyangfei.github.io/2014/11/27/python-tips</id>
     <content type="html"><![CDATA[<p>整理 python 使用的一些技巧，以及一些可能被忽略的细节，很多在文档可以查找到的内容将不会过多的描述，更多以外链的形式存在。</p>
 
 <p>注意: 以下讨论主要为 Python2.7 版本， Python 3 的内容有待跟进</p>
@@ -1284,9 +1284,9 @@
   
   <entry>
     <title type="html"><![CDATA[Making Ebooks of Pro Git]]></title>
-    <link href="https://amyangfei.me/2014/01/10/making-progit-ebook/"/>
+    <link href="https://amyangfei.github.io/2014/01/10/making-progit-ebook/"/>
     <updated>2014-01-10T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2014/01/10/making-progit-ebook</id>
+    <id>https://amyangfei.github.io/2014/01/10/making-progit-ebook</id>
     <content type="html"><![CDATA[<p>Pro Git 是一本用来学习 git 使用很不错的书，从 <a href="https://github.com/progit/progit" target="_blank">progit</a> 这个开源项目可以获得这本书的全部内容，下边介绍在 Ubuntu Server 12.04 环境下制作电子书的过程。</p>
 
 <h2>安装依赖</h2>
@@ -1399,9 +1399,9 @@
   
   <entry>
     <title type="html"><![CDATA[APScheduler 源码阅读笔记]]></title>
-    <link href="https://amyangfei.me/2013/11/06/apscheduler-source-analyse/"/>
+    <link href="https://amyangfei.github.io/2013/11/06/apscheduler-source-analyse/"/>
     <updated>2013-11-06T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/11/06/apscheduler-source-analyse</id>
+    <id>https://amyangfei.github.io/2013/11/06/apscheduler-source-analyse</id>
     <content type="html"><![CDATA[<h3>概述</h3>
 
 <p>APScheduler 是由 python 实现的一个轻量级任务调度器，它可以按照一定间隔（IntervalTrigger）、指定时间（2.1中的SimpleTrigger/3.0中的DateTrigger）或者以类似 cron（CronTrigger） 的形式触发待执行任务（即调用函数或者调用 python 的 callable 对象）。现在 pypi 上的稳定版是 <a href="https://pypi.python.org/pypi/APScheduler/2.1.1" target="_blank">APScheduler 2.1.1</a>，3.0 版本在 class Scheduler 中移除了针对不同 trigger 的 add_trigger_job() 接口，统一为 add_job()，但是底层实现变化不大。我主要看了 2.1.1 的代码。代码很简洁，加起来一共2049行。</p>
@@ -1558,9 +1558,9 @@
   
   <entry>
     <title type="html"><![CDATA[使用Tornado进行异步编程]]></title>
-    <link href="https://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado/"/>
+    <link href="https://amyangfei.github.io/2013/06/17/asynchronous-programming-with-tornado/"/>
     <updated>2013-06-17T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado</id>
+    <id>https://amyangfei.github.io/2013/06/17/asynchronous-programming-with-tornado</id>
     <content type="html"><![CDATA[<p>翻译自：<a href="http://lbolla.info/blog/2012/10/03/asynchronous-programming-with-tornado" target="_blank">Asynchronous programming with Tornado</a></p>
 
 <p>对于初学者来说异步编程很令人迷惑，因此我觉得有必要介绍一些有用的基本概念来帮助初学者避免一些常见的陷阱。如果希望理解通用的异步编程模型，可以查看以下这些网络资源，<a href="http://cs.brown.edu/courses/cs196-5/f12/handouts/async.pdf" target="_blank">Introduction to Asynchronous Programming</a>，<a href="http://krondo.com/?page_id=1327" target="_blank">Twisted Introduction</a>。在这篇文章中我将会着眼于如何使用 Tornado 进行异步编程。</p>
@@ -1729,9 +1729,9 @@
   
   <entry>
     <title type="html"><![CDATA[stl make_heap在llvm和g++下的不同实现]]></title>
-    <link href="https://amyangfei.me/2013/05/05/stl-heap-llvm-gcc/"/>
+    <link href="https://amyangfei.github.io/2013/05/05/stl-heap-llvm-gcc/"/>
     <updated>2013-05-05T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/05/05/stl-heap-llvm-gcc</id>
+    <id>https://amyangfei.github.io/2013/05/05/stl-heap-llvm-gcc</id>
     <content type="html"><![CDATA[<p>先来看一段十分简单的使用stl的c++代码，</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -1885,9 +1885,9 @@
   
   <entry>
     <title type="html"><![CDATA[tornado源码分析5]]></title>
-    <link href="https://amyangfei.me/2013/03/01/tornado-source-analysis-5/"/>
+    <link href="https://amyangfei.github.io/2013/03/01/tornado-source-analysis-5/"/>
     <updated>2013-03-01T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/03/01/tornado-source-analysis-5</id>
+    <id>https://amyangfei.github.io/2013/03/01/tornado-source-analysis-5</id>
     <content type="html"><![CDATA[<p>Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application，源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。</p>
 
 <h3>RequestHandler分析</h3>
@@ -1960,7 +1960,7 @@
 
 <h3>总结</h3>
 
-<p><a href="https://amyangfei.me/2013/01/29/tornado-source-analysis-2/" target="_blank">tornado源码分析2</a> 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection大方框的handle_request椭圆中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。</p>
+<p><a href="https://amyangfei.github.io/2013/01/29/tornado-source-analysis-2/" target="_blank">tornado源码分析2</a> 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection大方框的handle_request椭圆中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -1975,9 +1975,9 @@
   
   <entry>
     <title type="html"><![CDATA[Android运行脚本与定时工具]]></title>
-    <link href="https://amyangfei.me/2013/02/08/android-taskscheduler-and-scripting/"/>
+    <link href="https://amyangfei.github.io/2013/02/08/android-taskscheduler-and-scripting/"/>
     <updated>2013-02-08T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/02/08/android-taskscheduler-and-scripting</id>
+    <id>https://amyangfei.github.io/2013/02/08/android-taskscheduler-and-scripting</id>
     <content type="html"><![CDATA[<p>用惯了crontab，实验室的机器因为某些原因连不上，于是希望在自己的Android手机上完成定时执行一些脚本的任务。google一下找到了 <a href="http://i55m411.appspot.com/?p=594004" target="_blank">android应用实现定时打电话</a> 这样一篇文章，正好满足我的需求。下面做一个简单的总结。</p>
 
 <h3>安装的软件</h3>
@@ -2128,9 +2128,9 @@
   
   <entry>
     <title type="html"><![CDATA[tornado源码分析4]]></title>
-    <link href="https://amyangfei.me/2013/02/05/tornado-source-analysis-4/"/>
+    <link href="https://amyangfei.github.io/2013/02/05/tornado-source-analysis-4/"/>
     <updated>2013-02-05T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/02/05/tornado-source-analysis-4</id>
+    <id>https://amyangfei.github.io/2013/02/05/tornado-source-analysis-4</id>
     <content type="html"><![CDATA[<p>IOStream对socket读写进行了封装，分别提供读、写缓冲区实现对socket的异步读写。当socket被accept之后HTTPServer的_handle_connection会被回调并初始化IOStream对象，进一步通过IOStream提供的功能接口完成socket的读写。文章接下来将关注IOStream实现读写的细节。</p>
 
 <h3>IOStream的初始化</h3>
@@ -2180,7 +2180,7 @@
 </ul>
 
 
-<p><img src="https://amyangfei.me/images/post/20130205iostream_read.png" style="margin-left:22px;"/></p>
+<p><img src="https://amyangfei.github.io/images/post/20130205iostream_read.png" style="margin-left:22px;"/></p>
 
 <ul>
 <li><p>read_until_regex相当于delimiter为某一正则表达式的read_until。</p></li>
@@ -2206,9 +2206,9 @@
   
   <entry>
     <title type="html"><![CDATA[tornado源码分析3]]></title>
-    <link href="https://amyangfei.me/2013/02/03/tornado-source-analysis-3/"/>
+    <link href="https://amyangfei.github.io/2013/02/03/tornado-source-analysis-3/"/>
     <updated>2013-02-03T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/02/03/tornado-source-analysis-3</id>
+    <id>https://amyangfei.github.io/2013/02/03/tornado-source-analysis-3</id>
     <content type="html"><![CDATA[<p>注：在分割线之前是基于 Tornado2.4 的分析。在Tornado3.0+以后IOLoop发生了一些改动，分割线之后有相应的介绍。</p>
 
 <p>IOLoop是基于epoll实现的底层网络I/O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例直接调用此方法即可。</p>
@@ -2456,9 +2456,9 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
   
   <entry>
     <title type="html"><![CDATA[tornado源码分析2]]></title>
-    <link href="https://amyangfei.me/2013/01/29/tornado-source-analysis-2/"/>
+    <link href="https://amyangfei.github.io/2013/01/29/tornado-source-analysis-2/"/>
     <updated>2013-01-29T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/01/29/tornado-source-analysis-2</id>
+    <id>https://amyangfei.github.io/2013/01/29/tornado-source-analysis-2</id>
     <content type="html"><![CDATA[<p>httpserver.py中给出了一个简单的http服务器的demo，代码如下所示：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -2495,7 +2495,7 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 <!-- more -->
 
 
-<p><img src="https://amyangfei.me/images/post/20130128tornado-httpserver.png" style="width:610px;"/></p>
+<p><img src="https://amyangfei.github.io/images/post/20130128tornado-httpserver.png" style="width:610px;"/></p>
 
 <p>服务器的工作流程：首先按照socket->bind->listen顺序创建listen socket监听客户端，并将每个listen socket的fd注册到IOLoop的单例实例中；当listen socket可读时回调_handle_events处理客户端请求；在与客户端通信的过程中使用IOStream封装了读、写缓冲区，实现与客户端的异步读写。</p>
 
@@ -2706,9 +2706,9 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
   
   <entry>
     <title type="html"><![CDATA[tornado源码分析1]]></title>
-    <link href="https://amyangfei.me/2013/01/27/tornado-source-analysis-1/"/>
+    <link href="https://amyangfei.github.io/2013/01/27/tornado-source-analysis-1/"/>
     <updated>2013-01-27T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/01/27/tornado-source-analysis-1</id>
+    <id>https://amyangfei.github.io/2013/01/27/tornado-source-analysis-1</id>
     <content type="html"><![CDATA[<h3>引言</h3>
 
 <p>Tornado是<a href="http://friendfeed.com/" target="_blank">FriendFeed</a>最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在<a href="https://github.com/facebook/tornado" target="_blank">github</a>。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量/数千的客户端连接，适用于实时的Web服务（详细可以参阅<a href="http://www.kegel.com/c10k.html" target="_blank">The C10K problem</a>）。</p>
@@ -2769,10 +2769,10 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
 
 <ol>
 <li>概述</li>
-<li><a href="https://amyangfei.me/2013/01/29/tornado-source-analysis-2/" target="_blank">Tornado HTTP服务器介绍</a></li>
-<li><a href="https://amyangfei.me/2013/02/03/tornado-source-analysis-3/" target="_blank">I/O核心调度模块IOLoop</a></li>
-<li><a href="https://amyangfei.me/2013/02/05/tornado-source-analysis-4/" target="_blank">读写缓冲模块IOStream</a></li>
-<li><a href="https://amyangfei.me/2013/03/01/tornado-source-analysis-5/" target="_blank">核心web框架介绍</a></li>
+<li><a href="https://amyangfei.github.io/2013/01/29/tornado-source-analysis-2/" target="_blank">Tornado HTTP服务器介绍</a></li>
+<li><a href="https://amyangfei.github.io/2013/02/03/tornado-source-analysis-3/" target="_blank">I/O核心调度模块IOLoop</a></li>
+<li><a href="https://amyangfei.github.io/2013/02/05/tornado-source-analysis-4/" target="_blank">读写缓冲模块IOStream</a></li>
+<li><a href="https://amyangfei.github.io/2013/03/01/tornado-source-analysis-5/" target="_blank">核心web框架介绍</a></li>
 <li>未完待续</li>
 </ol>
 
@@ -2785,9 +2785,9 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
   
   <entry>
     <title type="html"><![CDATA[bash subshell变量作用域问题]]></title>
-    <link href="https://amyangfei.me/2013/01/07/abtest-script-and-bash-subshell/"/>
+    <link href="https://amyangfei.github.io/2013/01/07/abtest-script-and-bash-subshell/"/>
     <updated>2013-01-07T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/01/07/abtest-script-and-bash-subshell</id>
+    <id>https://amyangfei.github.io/2013/01/07/abtest-script-and-bash-subshell</id>
     <content type="html"><![CDATA[<p>今天研究apache ab这个测试工具，在网上看到<a href="http://blog.csdn.net/chosen0ne/article/details/7302991" target="_blank">压力测试shell脚本</a>一文介绍了一个封装的bash脚本，用于多次测试返回requests per second的平均值，对脚本进行了简单的改写，将所有的测试输出进行记录。改写脚本在文章的最后。</p>
 
 <p>改写过程中发现这样一个问题，比如写下面的脚本：</p>
@@ -3055,9 +3055,9 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
   
   <entry>
     <title type="html"><![CDATA[how to build this blog]]></title>
-    <link href="https://amyangfei.me/2012/12/30/how-to-build-this-blog/"/>
+    <link href="https://amyangfei.github.io/2012/12/30/how-to-build-this-blog/"/>
     <updated>2012-12-30T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2012/12/30/how-to-build-this-blog</id>
+    <id>https://amyangfei.github.io/2012/12/30/how-to-build-this-blog</id>
     <content type="html"><![CDATA[<p>系统环境Mac OS X 10.8.2，这个博客主要通过jekyll生成静态页面，使用ruby提供的一些扩展插件，比如按月份进行归档等，配置环境的过程如下。</p>
 
 <p>安装ruby，rubygems</p>
@@ -3122,9 +3122,9 @@ heapq维护一个最小堆，记录每个回调函数的超时时间（deadline�
   
   <entry>
     <title type="html"><![CDATA[随机排序算法简介]]></title>
-    <link href="https://amyangfei.me/2012/11/29/shuffle-algorithm/"/>
+    <link href="https://amyangfei.github.io/2012/11/29/shuffle-algorithm/"/>
     <updated>2012-11-29T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2012/11/29/shuffle-algorithm</id>
+    <id>https://amyangfei.github.io/2012/11/29/shuffle-algorithm</id>
     <content type="html"><![CDATA[<p>前几天看了酷壳上的一篇文章<a href="http://coolshell.cn/articles/8593.html" target="_blank">如何测试洗牌程序</a>，之后仔细看了Wikipedia对<a href="http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle" target="_blank">Fisher–Yates shuffle</a>算法的介绍，这里简单的总结一下，基本是翻译Wikipedia。</p>
 
 <h2>Fisher and Yates&#8217; original method</h2>
@@ -3197,7 +3197,7 @@ if __name__ == &#39;__main__&#39;:
 
 <p>该算法同样可以理解成为这样的过程：从1到n个数字中依次随机抽取一个数字，并放到一个新序列的尾端（该算法通过互换数字实现），逐渐形成一个新的序列。计算一下概率：如果某个元素被放入第i（1≤i≤n）个位置，就必须是在前 i-1 次选取中都没有选到它，并且第 i 次恰好选中它。其概率为：</p>
 
-<p><img src="https://amyangfei.me/images/post/20121129probability.png" style=""/></p>
+<p><img src="https://amyangfei.github.io/images/post/20121129probability.png" style=""/></p>
 
 <p>算法中只有一个从1到N-1的循环，循环内操作为常数步，因而算法总的时间复杂度为O(N)，空间复杂度为O(1)。</p>
 
@@ -3238,7 +3238,7 @@ if __name__ == &#39;__main__&#39;:
 
 <p>对于这个算法，我们分析可以出现多少种不同的排列数，从$i=1$开始，每一次交换都可以衍生出$(i+1)$倍的排列数，因而总的排列方案数如下图。在随机函数完全随机的情况下每一种排列都是等概率出现的，因而这种算法得到的是一个随机排序。它的时间复杂度和空间复杂度都是O(N)。</p>
 
-<p><img src="https://amyangfei.me/images/post/20121129sum.png" style=""/></p>
+<p><img src="https://amyangfei.github.io/images/post/20121129sum.png" style=""/></p>
 
 <p>该算法有一个优点就是可以通过不断读取原始数组的下一个元素同时使新的排列数组长度加一，进而生成一个随机排列，即可以对长度未知的序列进行随机排列。实现的伪代码如下：</p>
 
@@ -3271,9 +3271,9 @@ if __name__ == &#39;__main__&#39;:
   
   <entry>
     <title type="html"><![CDATA[A brief introduction to BIDE algorithm]]></title>
-    <link href="https://amyangfei.me/2012/03/26/bide-algorithm/"/>
+    <link href="https://amyangfei.github.io/2012/03/26/bide-algorithm/"/>
     <updated>2012-03-26T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2012/03/26/bide-algorithm</id>
+    <id>https://amyangfei.github.io/2012/03/26/bide-algorithm</id>
     <content type="html"><![CDATA[<h3>背景</h3>
 
 <p>最近在做的数据库活动检测引擎，要实现一个异常行为检测的模块。简单的说异常行为检测就是先确定描述用户访问数据库的行为模型，然后定义一系列描述正常访问数据库的行为，检测过程中一旦用户行为与正常行为轮廓不符，则被认定为攻击行为。在实际系统中，正常行为轮廓会组成正常行为知识库，这个知识库会很大，所以正常行为轮廓不能简单的人工定义，于是一个自动挖掘正常行为知识库的需求被提了出来。</p>
@@ -3339,7 +3339,7 @@ if __name__ == &#39;__main__&#39;:
 
 <p>搜索树：</p>
 
-<p><img src="https://amyangfei.me/images/post/bide_search.png" style="width: 580px;"/></p>
+<p><img src="https://amyangfei.github.io/images/post/bide_search.png" style="width: 580px;"/></p>
 
 <p>一些背景知识：</p>
 
@@ -3364,9 +3364,9 @@ if __name__ == &#39;__main__&#39;:
   
   <entry>
     <title type="html"><![CDATA[Hello world]]></title>
-    <link href="https://amyangfei.me/2012/03/20/hello-world/"/>
+    <link href="https://amyangfei.github.io/2012/03/20/hello-world/"/>
     <updated>2012-03-20T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2012/03/20/hello-world</id>
+    <id>https://amyangfei.github.io/2012/03/20/hello-world</id>
     <content type="html"><![CDATA[<p>似乎应该在这里说些什么。。。</p>
 ]]></content>
   </entry>

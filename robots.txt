@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: https://amyangfei.me/sitemap.xml 
+Sitemap: https://amyangfei.github.io/sitemap.xml 

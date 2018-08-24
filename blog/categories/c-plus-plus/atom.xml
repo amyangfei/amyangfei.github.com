@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: C++ | Amyangfei's Blog]]></title>
-  <link href="https://amyangfei.me/blog/categories/c-plus-plus/atom.xml" rel="self"/>
-  <link href="https://amyangfei.me/"/>
-  <updated>2017-09-01T00:05:56+08:00</updated>
-  <id>https://amyangfei.me/</id>
+  <link href="https://amyangfei.github.io/blog/categories/c-plus-plus/atom.xml" rel="self"/>
+  <link href="https://amyangfei.github.io/"/>
+  <updated>2018-08-24T10:52:28+08:00</updated>
+  <id>https://amyangfei.github.io/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[stl make_heap在llvm和g++下的不同实现]]></title>
-    <link href="https://amyangfei.me/2013/05/05/stl-heap-llvm-gcc/"/>
+    <link href="https://amyangfei.github.io/2013/05/05/stl-heap-llvm-gcc/"/>
     <updated>2013-05-05T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2013/05/05/stl-heap-llvm-gcc</id>
+    <id>https://amyangfei.github.io/2013/05/05/stl-heap-llvm-gcc</id>
     <content type="html"><![CDATA[<p>先来看一段十分简单的使用stl的c++代码，</p>
 
 <p>``` c++</p>

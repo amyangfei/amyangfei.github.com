@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Jekyll | Amyangfei's Blog]]></title>
-  <link href="https://amyangfei.me/blog/categories/jekyll/atom.xml" rel="self"/>
-  <link href="https://amyangfei.me/"/>
-  <updated>2017-09-01T00:05:56+08:00</updated>
-  <id>https://amyangfei.me/</id>
+  <link href="https://amyangfei.github.io/blog/categories/jekyll/atom.xml" rel="self"/>
+  <link href="https://amyangfei.github.io/"/>
+  <updated>2018-08-24T10:52:28+08:00</updated>
+  <id>https://amyangfei.github.io/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[how to build this blog]]></title>
-    <link href="https://amyangfei.me/2012/12/30/how-to-build-this-blog/"/>
+    <link href="https://amyangfei.github.io/2012/12/30/how-to-build-this-blog/"/>
     <updated>2012-12-30T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2012/12/30/how-to-build-this-blog</id>
+    <id>https://amyangfei.github.io/2012/12/30/how-to-build-this-blog</id>
     <content type="html"><![CDATA[<p>系统环境Mac OS X 10.8.2，这个博客主要通过jekyll生成静态页面，使用ruby提供的一些扩展插件，比如按月份进行归档等，配置环境的过程如下。</p>
 
 <p>安装ruby，rubygems</p>

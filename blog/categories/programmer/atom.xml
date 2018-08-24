@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: programmer | Amyangfei's Blog]]></title>
-  <link href="https://amyangfei.me/blog/categories/programmer/atom.xml" rel="self"/>
-  <link href="https://amyangfei.me/"/>
-  <updated>2017-09-01T00:05:56+08:00</updated>
-  <id>https://amyangfei.me/</id>
+  <link href="https://amyangfei.github.io/blog/categories/programmer/atom.xml" rel="self"/>
+  <link href="https://amyangfei.github.io/"/>
+  <updated>2018-08-24T10:52:28+08:00</updated>
+  <id>https://amyangfei.github.io/</id>
   <author>
     <name><![CDATA[amyangfei]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Hello world]]></title>
-    <link href="https://amyangfei.me/2012/03/20/hello-world/"/>
+    <link href="https://amyangfei.github.io/2012/03/20/hello-world/"/>
     <updated>2012-03-20T00:00:00+08:00</updated>
-    <id>https://amyangfei.me/2012/03/20/hello-world</id>
+    <id>https://amyangfei.github.io/2012/03/20/hello-world</id>
     <content type="html"><![CDATA[<p>似乎应该在这里说些什么。。。</p>
 ]]></content>
   </entry>
