@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/favicon/apple-touch-icon.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","version":"8.1.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+<meta name="description" content="注：在分割线之前是基于 Tornado2.4 的分析。在Tornado3.0+以后IOLoop发生了一些改动，分割线之后有相应的介绍。 IOLoop是基于epoll实现的底层网络I&#x2F;O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tornado源码分析3">
+<meta property="og:url" content="http://amyangfei.me/2013/02/03/tornado-source-analysis-3/index.html">
+<meta property="og:site_name" content="Amyangfei&#39;s Blog">
+<meta property="og:description" content="注：在分割线之前是基于 Tornado2.4 的分析。在Tornado3.0+以后IOLoop发生了一些改动，分割线之后有相应的介绍。 IOLoop是基于epoll实现的底层网络I&#x2F;O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2013-02-03T00:00:00.000Z">
+<meta property="article:modified_time" content="2020-12-13T07:05:17.415Z">
+<meta property="article:author" content="amyangfei">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="tornado">
+<meta property="article:tag" content="asynchronous I&#x2F;O">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://amyangfei.me/2013/02/03/tornado-source-analysis-3/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>tornado源码分析3 | Amyangfei's Blog</title>
+  
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Amyangfei's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Amyangfei's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Enjoy Programming</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#IOLoop%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">IOLoop的初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IOLoop%E7%9A%84start%E6%96%B9%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">IOLoop的start方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">amyangfei</p>
+  <div class="site-description" itemprop="description">amyangfei 的个人博客，我在这里记录学习、工作编程过程中遇到的问题，写下自己对技术的心得体会。编程启迪智慧，技术改变世界。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2013/02/03/tornado-source-analysis-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="amyangfei 的个人博客，我在这里记录学习、工作编程过程中遇到的问题，写下自己对技术的心得体会。编程启迪智慧，技术改变世界。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          tornado源码分析3
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2013-02-03 00:00:00" itemprop="dateCreated datePublished" datetime="2013-02-03T00:00:00+00:00">2013-02-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus: </span>
+    
+    <a title="disqus" href="/2013/02/03/tornado-source-analysis-3/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2013/02/03/tornado-source-analysis-3/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>注：在分割线之前是基于 Tornado2.4 的分析。在Tornado3.0+以后IOLoop发生了一些改动，分割线之后有相应的介绍。</p>
+<p>IOLoop是基于epoll实现的底层网络I/O的核心调度模块，用于处理socket相关的连接、响应、异步读写等网络事件。每个Tornado进程都会初始化一个全局唯一的IOLoop实例，在IOLoop中通过静态方法instance()进行封装，获取IOLoop实例直接调用此方法即可。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@staticmethod</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">instance</span>():</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    class MyClass(object):</span></span><br><span class="line"><span class="string">        def __init__(self, io_loop=None):</span></span><br><span class="line"><span class="string">            self.io_loop = io_loop or IOLoop.instance()</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> <span class="built_in">hasattr</span>(IOLoop, <span class="string">&quot;_instance&quot;</span>):</span><br><span class="line">        <span class="keyword">with</span> IOLoop._instance_lock:</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> <span class="built_in">hasattr</span>(IOLoop, <span class="string">&quot;_instance&quot;</span>):</span><br><span class="line">                <span class="comment"># New instance after double check</span></span><br><span class="line">                IOLoop._instance = IOLoop()</span><br><span class="line">    <span class="keyword">return</span> IOLoop._instance</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<p>在上一篇文章中已经分析Tornado服务器启动时会创建监听socket，并将socket的file descriptor注册到IOLoop实例中，IOLoop添加对socket的IOLoop.READ事件监听并传入回调处理函数。当某个socket通过accept接受连接请求后调用注册的回调函数进行读写。接下来主要分析IOLoop对epoll的封装和I/O调度具体实现。</p>
+<p><a href="http://www.kernel.org/doc/man-pages/online/pages/man4/epoll.4.html" target="_blank">epoll</a>是Linux内核中实现的一种可扩展的I/O事件通知机制，是对POISX系统中<a href="http://www.kernel.org/doc/man-pages/online/pages/man2/select.2.html" target="_blank"> select(2) </a> 和<a href="http://www.kernel.org/doc/man-pages/online/pages/man2/poll.2.html" target="_blank"> poll(2) </a>的替代，具有更高的性能和扩展性，FreeBSD中类似的实现是kqueue。Tornado中基于Python C扩展实现的的epoll模块(或kqueue)对epoll(kqueue)的使用进行了封装，使得IOLoop对象可以通过相应的事件处理机制对I/O进行调度。</p>
+<p>IOLoop模块对网络事件类型的封装与epoll一致，分为READ，WRITE， ERROR三类，具体如下所示。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">READ = _EPOLLIN</span><br><span class="line">WRITE = _EPOLLOUT</span><br><span class="line">ERROR = _EPOLLERR | _EPOLLHUP</span><br></pre></td></tr></table></figure>
+
+<h3 id="IOLoop的初始化"><a href="#IOLoop的初始化" class="headerlink" title="IOLoop的初始化"></a>IOLoop的初始化</h3><p>初始化过程中选择epoll的实现方式，Linux平台为epoll，BSD平台为kqueue，其他平台如果安装有C模块扩展的epoll则使用tornado对epoll的封装，否则退化为select。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, impl=<span class="literal">None</span></span>):</span></span><br><span class="line">    self._impl = impl <span class="keyword">or</span> _poll()</span><br><span class="line">    <span class="comment">#省略部分代码</span></span><br><span class="line">    self._waker = Waker()</span><br><span class="line">    self.add_handler(self._waker.fileno(),</span><br><span class="line">                     <span class="keyword">lambda</span> fd, events: self._waker.consume(),</span><br><span class="line">                     self.READ)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_handler</span>(<span class="params">self, fd, handler, events</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Registers the given handler to receive the given events for fd.&quot;&quot;&quot;</span></span><br><span class="line">    self._handlers[fd] = stack_context.wrap(handler)</span><br><span class="line">    self._impl.register(fd, events | self.ERROR)</span><br></pre></td></tr></table></figure>
+
+<p>在IOLoop初始化的过程中创建了一个Waker对象，将Waker对象fd的读端注册到事件循环中并设定相应的回调函数（这样做的好处是当事件循环阻塞而没有响应描述符出现，需要在最大timeout时间之前返回，就可以向这个管道发送一个字符）。Waker的使用：一种是在其他线程向IOLoop添加callback时使用，唤醒IOLoop同时会将控制权转移给IOLoop线程并完成特定请求。唤醒的方法向管道中写入一个字符’x’。另外，在IOLoop的stop函数中会调用self._waker.wake()，通过向管道写入’x’停止事件循环。</p>
+<p>add_handler函数使用了stack_context提供的wrap方法。wrap返回了一个可以直接调用的对象并且保存了传入之前的堆栈信息，在执行时可以恢复，这样就保证了函数的异步调用时具有正确的运行环境。</p>
+<h3 id="IOLoop的start方法"><a href="#IOLoop的start方法" class="headerlink" title="IOLoop的start方法"></a>IOLoop的start方法</h3><p>IOLoop的核心调度集中在start方法中，IOLoop实例对象调用start后开始epoll事件循环机制，该方法会一直运行直到IOLoop对象调用stop函数、当前所有事件循环完成。start方法中主要分三个部分：一个部分是对超时的相关处理；一部分是epoll事件通知阻塞、接收；一部分是对epoll返回I/O事件的处理。</p>
+<ul>
+<li><p>为防止IO event starvation，将回调函数延迟到下一轮事件循环中执行。</p>
+</li>
+<li><p>超时的处理<br>heapq维护一个最小堆，记录每个回调函数的超时时间（deadline）。每次取出deadline最早的回调函数，如果callback标志位为True并且已经超时，通过_run_callback调用函数；如果没有超时需要重新设定poll_timeout的值。</p>
+</li>
+<li><p>通过self._impl.poll(poll_timeout)进行事件阻塞，当有事件通知或超时时poll返回特定的event_pairs。</p>
+</li>
+<li><p>epoll返回通知事件后将新事件加入待处理队列，将就绪事件逐个弹出，通过stack_context.wrap(handler)保存的可执行对象调用事件处理。</p>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    poll_timeout = <span class="number">3600.0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">with</span> self._callback_lock:</span><br><span class="line">        callbacks = self._callbacks</span><br><span class="line">        self._callbacks = []</span><br><span class="line">    <span class="keyword">for</span> callback <span class="keyword">in</span> callbacks:</span><br><span class="line">        self._run_callback(callback)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 超时处理</span></span><br><span class="line">    <span class="keyword">if</span> self._timeouts:</span><br><span class="line">        now = time.time()</span><br><span class="line">        <span class="keyword">while</span> self._timeouts:</span><br><span class="line">            <span class="keyword">if</span> self._timeouts[<span class="number">0</span>].callback <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">                <span class="comment"># the timeout was cancelled</span></span><br><span class="line">                heapq.heappop(self._timeouts)</span><br><span class="line">            <span class="keyword">elif</span> self._timeouts[<span class="number">0</span>].deadline &lt;= now:</span><br><span class="line">                timeout = heapq.heappop(self._timeouts)</span><br><span class="line">                self._run_callback(timeout.callback)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                seconds = self._timeouts[<span class="number">0</span>].deadline - now</span><br><span class="line">                poll_timeout = <span class="built_in">min</span>(seconds, poll_timeout)</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> self._callbacks:</span><br><span class="line">        <span class="comment"># If any callbacks or timeouts called add_callback,</span></span><br><span class="line">        <span class="comment"># we don&#x27;t want to wait in poll() before we run them.</span></span><br><span class="line">        poll_timeout = <span class="number">0.0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> self._running:</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> self._blocking_signal_threshold <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="comment"># clear alarm so it doesn&#x27;t fire while poll is waiting for events.</span></span><br><span class="line">        signal.setitimer(signal.ITIMER_REAL, <span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># epoll阻塞，当有事件通知或超时返回event_pairs</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        event_pairs = self._impl.poll(poll_timeout)</span><br><span class="line">    <span class="keyword">except</span> Exception, e:</span><br><span class="line">        <span class="comment"># 异常处理，省略</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 对epoll返回event_pairs事件的处理</span></span><br><span class="line">    self._events.update(event_pairs)</span><br><span class="line">    <span class="keyword">while</span> self._events:</span><br><span class="line">        fd, events = self._events.popitem()</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            self._handlers[fd](fd, events)</span><br><span class="line">        <span class="keyword">except</span> Exception e:</span><br><span class="line">            <span class="comment"># 异常处理，省略</span></span><br></pre></td></tr></table></figure>
+
+<p>至此IOLoop模块的分析基本完成。下一篇文章将会继续分析IOStream模块。</p>
+<p>————————————————我是分割线—————————————————</p>
+<p>补充于2013年4月30日，介绍Tornado3.0以后IOLoop模块的一些改动。</p>
+<p>1. IOLoop成为util.Configurable的子类，IOLoop 中绝大多数成员方法都作为抽象接口，具体实现由派生类 PollIOLoop 完成。IOLoop实现了 Configurable 中的 configurable_base 和 configurable_default 这两个抽象接口，用于初始化过程中获取类类型和类的实现方法（即 IOLoop 中 poller 的实现方式）。在Tornado3.0+ 中针对不同平台，单独出 poller 相应的实现，EPollIOLoop、KQueueIOLoop、SelectIOLoop 均继承于 PollIOLoop。下边的代码是 configurable_default 方法根据平台选择相应的 epoll 实现。初始化 IOLoop 的过程中会自动根据平台选择合适的 poller 的实现方法。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@classmethod</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">configurable_default</span>(<span class="params">cls</span>):</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">hasattr</span>(select, <span class="string">&quot;epoll&quot;</span>):</span><br><span class="line">        <span class="keyword">from</span> tornado.platform.epoll <span class="keyword">import</span> EPollIOLoop</span><br><span class="line">        <span class="keyword">return</span> EPollIOLoop</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">hasattr</span>(select, <span class="string">&quot;kqueue&quot;</span>):</span><br><span class="line">        <span class="comment"># Python 2.6+ on BSD or Mac</span></span><br><span class="line">        <span class="keyword">from</span> tornado.platform.kqueue <span class="keyword">import</span> KQueueIOLoop</span><br><span class="line">        <span class="keyword">return</span> KQueueIOLoop</span><br><span class="line">    <span class="keyword">from</span> tornado.platform.select <span class="keyword">import</span> SelectIOLoop</span><br><span class="line">    <span class="keyword">return</span> SelectIOLoop</span><br></pre></td></tr></table></figure>
+
+<p>2. 其他有很多细节上的改动，详细可参见官方文档<a href="http://www.tornadoweb.org/en/stable/releases/v3.0.0.html#tornado-ioloop" target="_blank">What’s new in Tornado 3.0</a> </p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="http://kenby.iteye.com/blog/1159621" target="_blank">Tornado源码分析之http服务器篇</a>， <a href="http://www.cnblogs.com/Bozh/archive/2012/07/22/2603976.html" target="_blank">tornado源码分析系列</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"># python</a>
+              <a href="/tags/tornado/" rel="tag"># tornado</a>
+              <a href="/tags/asynchronous-I-O/" rel="tag"># asynchronous I/O</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2013/01/29/tornado-source-analysis-2/" rel="prev" title="tornado源码分析2">
+                  <i class="fa fa-chevron-left"></i> tornado源码分析2
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2013/02/05/tornado-source-analysis-4/" rel="next" title="tornado源码分析4">
+                  tornado源码分析4 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">amyangfei</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://amyangfei.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://amyangfei.me/2013/02/03/tornado-source-analysis-3/";
+    this.page.identifier = "2013/02/03/tornado-source-analysis-3/";
+    this.page.title = "tornado源码分析3";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://amyangfei.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

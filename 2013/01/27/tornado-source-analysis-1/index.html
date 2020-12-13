@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/favicon/apple-touch-icon.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","version":"8.1.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+<meta name="description" content="引言Tornado是FriendFeed最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在github。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量&#x2F;数千的客户端连接，适用于实时的Web服务（详细可以参阅The C10K problem）。 接">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tornado源码分析1">
+<meta property="og:url" content="http://amyangfei.me/2013/01/27/tornado-source-analysis-1/index.html">
+<meta property="og:site_name" content="Amyangfei&#39;s Blog">
+<meta property="og:description" content="引言Tornado是FriendFeed最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在github。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量&#x2F;数千的客户端连接，适用于实时的Web服务（详细可以参阅The C10K problem）。 接">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2013-01-27T00:00:00.000Z">
+<meta property="article:modified_time" content="2020-12-13T07:05:10.748Z">
+<meta property="article:author" content="amyangfei">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="web server framework">
+<meta property="article:tag" content="asynchronous">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://amyangfei.me/2013/01/27/tornado-source-analysis-1/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>tornado源码分析1 | Amyangfei's Blog</title>
+  
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Amyangfei's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Amyangfei's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Enjoy Programming</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tornado%E6%A8%A1%E5%9D%97%E5%88%86%E7%B1%BB"><span class="nav-number">2.</span> <span class="nav-text">Tornado模块分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%E7%BB%93%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">系列文章结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">amyangfei</p>
+  <div class="site-description" itemprop="description">amyangfei 的个人博客，我在这里记录学习、工作编程过程中遇到的问题，写下自己对技术的心得体会。编程启迪智慧，技术改变世界。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2013/01/27/tornado-source-analysis-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="amyangfei 的个人博客，我在这里记录学习、工作编程过程中遇到的问题，写下自己对技术的心得体会。编程启迪智慧，技术改变世界。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          tornado源码分析1
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2013-01-27 00:00:00" itemprop="dateCreated datePublished" datetime="2013-01-27T00:00:00+00:00">2013-01-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus: </span>
+    
+    <a title="disqus" href="/2013/01/27/tornado-source-analysis-1/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2013/01/27/tornado-source-analysis-1/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>Tornado是<a href="http://friendfeed.com/" target="_blank">FriendFeed</a>最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在<a href="https://github.com/facebook/tornado" target="_blank">github</a>。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量/数千的客户端连接，适用于实时的Web服务（详细可以参阅<a href="http://www.kegel.com/c10k.html" target="_blank">The C10K problem</a>）。</p>
+<p>接下来几篇文章将会从Web服务器框架设计、代码实现细节等角度介绍我对Tornado源码的分析。这篇文章作为概述，首先介绍Tornado的模块按功能分类，同时提供后续文章的结构目录。</p>
+<a id="more"></a>
+
+<h3 id="Tornado模块分类"><a href="#Tornado模块分类" class="headerlink" title="Tornado模块分类"></a>Tornado模块分类</h3><ul>
+<li><p><strong>Core web framework</strong></p>
+<ul>
+<li>tornado.web — 包含web框架的大部分主要功能，包含RequestHandler和Application两个重要的类</li>
+<li>tornado.httpserver — 一个无阻塞HTTP服务器的实现</li>
+<li>tornado.template — 模版系统</li>
+<li>tornado.escape — HTML,JSON,URLs等的编码解码和一些字符串操作</li>
+<li>tornado.locale — 国际化支持</li>
+</ul>
+</li>
+<li><p><strong>Asynchronous networking 底层模块</strong></p>
+<ul>
+<li>tornado.ioloop — 核心的I/O循环</li>
+<li>tornado.iostream — 对非阻塞式的 socket 的简单封装，以方便常用读写操作</li>
+<li>tornado.httpclient — 一个无阻塞的HTTP服务器实现</li>
+<li>tornado.netutil — 一些网络应用的实现，主要实现TCPServer类</li>
+</ul>
+</li>
+<li><p><strong>Integration with other services</strong></p>
+<ul>
+<li>tornado.auth — 使用OpenId和OAuth进行第三方登录</li>
+<li>tornado.database — 简单的MySQL服务端封装</li>
+<li>tornado.platform.twisted — 在Tornado上运行为Twisted实现的代码</li>
+<li>tornado.websocket — 实现和浏览器的双向通信</li>
+<li>tornado.wsgi — 与其他python网络框架/服务器的相互操作</li>
+</ul>
+</li>
+<li><p><strong>Utilities</strong></p>
+<ul>
+<li>tornado.autoreload — 生产环境中自动检查代码更新</li>
+<li>tornado.gen — 一个基于生成器的接口，使用该模块保证代码异步运行</li>
+<li>tornado.httputil — 分析HTTP请求内容</li>
+<li>tornado.options — 解析终端参数</li>
+<li>tornado.process — 多进程实现的封装</li>
+<li>tornado.stack_context — 用于异步环境中对回调函数的上下文保存、异常处理</li>
+<li>tornado.testing — 单元测试</li>
+</ul>
+</li>
+</ul>
+<h3 id="系列文章结构"><a href="#系列文章结构" class="headerlink" title="系列文章结构"></a>系列文章结构</h3><ol>
+<li>概述</li>
+<li><a href="/2013/01/29/tornado-source-analysis-2/" target="_blank">Tornado HTTP服务器介绍</a></li>
+<li><a href="/2013/02/03/tornado-source-analysis-3/" target="_blank">I/O核心调度模块IOLoop</a></li>
+<li><a href="/2013/02/05/tornado-source-analysis-4/" target="_blank">读写缓冲模块IOStream</a></li>
+<li><a href="/2013/03/01/tornado-source-analysis-5/" target="_blank">核心web框架介绍</a></li>
+<li>未完待续</li>
+</ol>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="http://www.tornadoweb.org/documentation/index.html" target="_blank">Tornado Documentation</a>, <a href="http://www.tornadoweb.cn/documentation" target="_blank">Tornado Documentation CN</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"># python</a>
+              <a href="/tags/web-server-framework/" rel="tag"># web server framework</a>
+              <a href="/tags/asynchronous/" rel="tag"># asynchronous</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2013/01/07/abtest-script-and-bash-subshell/" rel="prev" title="bash subshell变量作用域问题">
+                  <i class="fa fa-chevron-left"></i> bash subshell变量作用域问题
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2013/01/29/tornado-source-analysis-2/" rel="next" title="tornado源码分析2">
+                  tornado源码分析2 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">amyangfei</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://amyangfei.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://amyangfei.me/2013/01/27/tornado-source-analysis-1/";
+    this.page.identifier = "2013/01/27/tornado-source-analysis-1/";
+    this.page.title = "tornado源码分析1";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://amyangfei.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/favicon/apple-touch-icon.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","version":"8.1.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+<meta name="description" content="本文会介绍如何使用 go 编写 redis loadable modules，并分析编写模块和使用cgo可能遇到的坑。 什么是redis loadable modules可加载模块是redis最新加入的功能，目前需要在unstable分支才可以使用。简单说模块系统是redis的C代码暴露出一些API，定义在头文件redismodule.h中，外部模块引用该头文件即可访问所有的API函数，这些API">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Go 编写 Redis Loadable Modules">
+<meta property="og:url" content="http://amyangfei.me/2016/08/03/redis-module-with-cgo/index.html">
+<meta property="og:site_name" content="Amyangfei&#39;s Blog">
+<meta property="og:description" content="本文会介绍如何使用 go 编写 redis loadable modules，并分析编写模块和使用cgo可能遇到的坑。 什么是redis loadable modules可加载模块是redis最新加入的功能，目前需要在unstable分支才可以使用。简单说模块系统是redis的C代码暴露出一些API，定义在头文件redismodule.h中，外部模块引用该头文件即可访问所有的API函数，这些API">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-08-03T00:00:00.000Z">
+<meta property="article:modified_time" content="2020-12-13T07:06:58.025Z">
+<meta property="article:author" content="amyangfei">
+<meta property="article:tag" content="golang">
+<meta property="article:tag" content="redis">
+<meta property="article:tag" content="redis module">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://amyangfei.me/2016/08/03/redis-module-with-cgo/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>使用 Go 编写 Redis Loadable Modules | Amyangfei's Blog</title>
+  
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Amyangfei's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Amyangfei's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Enjoy Programming</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFredis-loadable-modules"><span class="nav-number">1.</span> <span class="nav-text">什么是redis loadable modules</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E8%BF%87go%E7%BC%96%E5%86%99%E9%80%BB%E8%BE%91%E5%A4%84%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">通过go编写逻辑处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E8%BF%87go%E8%B0%83%E7%94%A8redismodule-h%E5%AE%9A%E4%B9%89%E7%9A%84API"><span class="nav-number">3.</span> <span class="nav-text">通过go调用redismodule.h定义的API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82"><span class="nav-number">4.</span> <span class="nav-text">一些细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Go%E5%92%8CC%E4%B9%8B%E9%97%B4%E4%BC%A0%E9%80%92%E6%8C%87%E9%92%88%E7%9A%84%E8%A7%84%E5%88%99%E5%92%8C%E9%99%90%E5%88%B6"><span class="nav-number">4.1.</span> <span class="nav-text">1. Go和C之间传递指针的规则和限制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">4.2.</span> <span class="nav-text">2. 内存管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Go%E7%9B%B4%E6%8E%A5%E6%98%A0%E5%B0%84C%E7%9A%84%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4"><span class="nav-number">4.3.</span> <span class="nav-text">3. Go直接映射C的内存空间</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">amyangfei</p>
+  <div class="site-description" itemprop="description">amyangfei 的个人博客，我在这里记录学习、工作编程过程中遇到的问题，写下自己对技术的心得体会。编程启迪智慧，技术改变世界。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2016/08/03/redis-module-with-cgo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="amyangfei 的个人博客，我在这里记录学习、工作编程过程中遇到的问题，写下自己对技术的心得体会。编程启迪智慧，技术改变世界。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用 Go 编写 Redis Loadable Modules
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2016-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2016-08-03T00:00:00+00:00">2016-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus: </span>
+    
+    <a title="disqus" href="/2016/08/03/redis-module-with-cgo/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/08/03/redis-module-with-cgo/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>本文会介绍如何使用 go 编写 redis loadable modules，并分析编写模块和使用cgo可能遇到的坑。</p>
+<h2 id="什么是redis-loadable-modules"><a href="#什么是redis-loadable-modules" class="headerlink" title="什么是redis loadable modules"></a>什么是redis loadable modules</h2><p>可加载模块是redis最新加入的功能，目前需要在<code>unstable</code>分支才可以使用。简单说模块系统是redis的C代码暴露出一些API，定义在头文件<a target="_blank" rel="noopener" href="https://github.com/antirez/redis/blob/unstable/src/redismodule.h">redismodule.h</a>中，外部模块引用该头文件即可访问所有的API函数，这些API提供了包括访问redis的字典空间、调用redis命令、向客户端返回数据等诸多功能。外部模块是以动态库的形式被redis server加载并使用，可以在redis server启动时加载，也可以在启动后动态加载。更多的细节可以参考文档<a target="_blank" rel="noopener" href="https://github.com/antirez/redis/blob/unstable/src/modules/INTRO.md">redis module INTRO</a>。</p>
+<p>在此之前想对redis扩展有两种方案：一是利用lua脚本；另一种则需要修改redis源码，类似于<a target="_blank" rel="noopener" href="https://github.com/mattsta/krmt">Kit of Redis Module Tools</a>提供的方案。lua脚本的扩展性有限，并且lua是通过redis的上层API来调用redis命令的，无法直接访问底层的存储数据，调用redis更底层的API；修改源码的方案就更加hack，是没有办法不断与上游分支合并的。</p>
+<a id="more"></a>
+
+<p>显然心的模块系统明显优于以上两种方案，优点包括：</p>
+<ul>
+<li>直接访问redis存储的各种数据结构；</li>
+<li>直接对存储数据的内存进行操作；</li>
+<li>模块仅依赖<code>redismodule.h</code>暴露的接口函数，而不依赖redis本身的实现，因此可以兼容redis的版本升级。</li>
+</ul>
+<p>模块系统也有缺点，比如模块中的代码bug引发的异常会直接导致redis server crash掉；模块的问题譬如引入的内存泄漏，代码执行阻塞都会影响redis服务的正常运行。这些缺点不是模块系统本身的问题，而是这种扩展的灵活性和系统稳定性的权衡，是可以通过优质的扩展模块来避免的。</p>
+<p>使用C来编写redis扩展模块很简单，参考文档<a target="_blank" rel="noopener" href="https://github.com/antirez/redis/blob/unstable/src/modules/INTRO.md">redis module INTRO</a>，你可以在5分钟内学会编写一个redis扩展模块。Redis Lab官方也提供了很多有趣的模块 <a target="_blank" rel="noopener" href="http://redismodules.com/">Module Hub</a>。在文档中同样提到可以用其它语言来编写redis扩展模块。</p>
+<blockquote>
+<p>it will be possible to use C++ or other languages that have C binding functionalities.</p>
+</blockquote>
+<p>go语言的<a target="_blank" rel="noopener" href="https://golang.org/cmd/cgo/">cgo</a>提供了Go和C互相调用的支持，因此本文来尝试通过go语言编写redis的扩展模块。下文所有的代码都可以在<a target="_blank" rel="noopener" href="https://github.com/amyangfei/RedisModules-Go">RedisModules-Go</a>这个仓库找到，仓库里还提供了redis module lab的两个模块<a target="_blank" rel="noopener" href="http://redismodules.com/modules/password/">password</a>，<a target="_blank" rel="noopener" href="http://redismodules.com/modules/graphicsmagick-2/">graphicsmagick</a>的go版本，以及一些简单的benchmark。</p>
+<p>redis扩展模块的形式是很固定的，需要编写且只编写两个部分：注册命令的函数和具体实现命令的函数。我们分两个阶段来编写redis的go扩展模块：第一阶段是通过go编写逻辑代码，即go代码拿到数据、处理、返回处理结果；第二阶段是go代码直接访问redismodule.h提供的API获取数据、处理、返回。先看看第一种类型。</p>
+<h2 id="通过go编写逻辑处理"><a href="#通过go编写逻辑处理" class="headerlink" title="通过go编写逻辑处理"></a>通过go编写逻辑处理</h2><p>基本思路是使用go编写逻辑处理，go的函数接收的输入是C的数据类型，可以是指向C内存空间的指针；在C代码中调用由go编写的逻辑处理函数，具体的调用方式是go代码编译时指定<code>buildmode=c-shared</code>得到动态库和相关头文件，在C代码中引用头文件并调用。最简单的实现代码如下所示：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* ECHO1 &lt;string&gt; - Echo back a string sent from the client */</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Echo1Command</span><span class="params">(RedisModuleCtx *ctx, RedisModuleString **argv, <span class="keyword">int</span> argc)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (argc &lt; <span class="number">2</span>) <span class="keyword">return</span> RedisModule_WrongArity(ctx);</span><br><span class="line">    RedisModule_AutoMemory(ctx);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">size_t</span> len;</span><br><span class="line">    <span class="keyword">char</span> *dst = RedisModule_Strdup(RedisModule_StringPtrLen(argv[<span class="number">1</span>], &amp;len));</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">GoEcho1_return</span> <span class="title">r</span> =</span> GoEcho1(dst);</span><br><span class="line">    RedisModuleString *rm_str = RedisModule_CreateString(ctx, r.r0, r.r1);</span><br><span class="line">    <span class="built_in">free</span>(r.r0);</span><br><span class="line">    RedisModule_Free(dst);</span><br><span class="line"></span><br><span class="line">    RedisModule_ReplyWithString(ctx, rm_str);</span><br><span class="line">    <span class="keyword">return</span> REDISMODULE_OK;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="comment">// #include &lt;stdlib.h&gt;</span></span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;C&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//export GoEcho1</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GoEcho1</span><span class="params">(s *C.char)</span> <span class="params">(*C.char, <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">    gostr := (C.GoString(s) + <span class="string">&quot; from golang1&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> C.CString(gostr), <span class="built_in">len</span>(gostr)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>具体实现中涉及到申请的内存空间是在C的运行环境还是go的运行环境，因为go的运行时提供了gc，而C则需要手动管理内存，因此这其中有很多细节需要注意；同时go和C之间可以传递的数据也有一些限制，后文会详细叙述。</p>
+<h2 id="通过go调用redismodule-h定义的API"><a href="#通过go调用redismodule-h定义的API" class="headerlink" title="通过go调用redismodule.h定义的API"></a>通过go调用redismodule.h定义的API</h2><p>第一步中所做的是提供数据给go代码进行逻辑处理并返回数据，那么如果希望在go代码中也可以调用redismodule.h定义的API，又需要如何处理？</p>
+<p>直观的想通过go调用C代码，在go中直接<code>#include &quot;redismodule.h&quot;</code>就可以了嘛，于是我们编写如下的go代码：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="comment">// #include &quot;redismodule.h&quot;</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">typedef RedisModuleString *(*redis_func) (RedisModuleCtx *ctx, char *ptr, size_t len);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">inline RedisModuleString *redis_bridge_func(redis_func f, RedisModuleCtx *ctx, char *ptr, size_t len)</span></span><br><span class="line"><span class="comment">&#123;</span></span><br><span class="line"><span class="comment">    return f(ctx, ptr, len);</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;C&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//export GoEcho</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GoEcho</span><span class="params">(ctx *C.RedisModuleCtx, s *C.char)</span> *<span class="title">C</span>.<span class="title">RedisModuleString</span></span> &#123;</span><br><span class="line">    gostr := (C.GoString(s) + <span class="string">&quot; from golang&quot;</span>)</span><br><span class="line">    f := C.redis_func(C.RedisModule_CreateString)</span><br><span class="line">    <span class="keyword">return</span> C.redis_bridge_func(f, ctx, C.CString(gostr), C.size_t(<span class="built_in">len</span>(gostr)))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>redismodule.h</code>定义的API函数都是函数指针，由于go不支持直接调用C的函数指针，所以通过通过go的变量保存C的函数指针，并将该变量作为参数调用C的<code>bridge_function</code>，在<code>bridge_function</code>中调用目标函数指针。编译是可以通过的，但实际运行就会crash。通过调试很容易发现<code>C.RedisModule_CreateString</code>的值是<code>nil</code>，它没有指向正确的函数地址。那换一种方式使用一个C的函数来调用<code>RedisModule_CreateString</code>呢？</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">#include &quot;redismodule.h&quot;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">inline RedisModuleString *RedisModule_CreateString_Wrap(RedisModuleCtx *ctx, char *ptr, size_t len) &#123;</span></span><br><span class="line"><span class="comment">    void *getapifuncptr = ((void**)ctx)[0];</span></span><br><span class="line"><span class="comment">    RedisModule_GetApi = (int (*)(const char *, void *)) (unsigned long)getapifuncptr;</span></span><br><span class="line"><span class="comment">    RedisModule_GetApi(&quot;RedisModule_CreateString&quot;, (void **)&amp;RedisModule_CreateString);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    RedisModuleString *rms = RedisModule_CreateString(ctx, ptr, len);</span></span><br><span class="line"><span class="comment">    return rms;</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;C&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//export GoEcho</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GoEcho</span><span class="params">(ctx *C.RedisModuleCtx, s *C.char)</span> *<span class="title">C</span>.<span class="title">RedisModuleString</span></span> &#123;</span><br><span class="line">        gostr := (C.GoString(s) + <span class="string">&quot; from golang version bridge&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> C.RedisModule_CreateString_Wrap(ctx, C.CString(gostr), C.size_t(<span class="built_in">len</span>(gostr)))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实际运行时依然会在调用<code>RedisModule_CreateString</code>函数时crash掉，跟进gdb调试可以看到该函数指针并没有指向正确的内存地址。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">(gdb) l</span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">3</span>       <span class="comment">/*</span></span><br><span class="line"><span class="comment">4       #include &quot;redismodule.h&quot;</span></span><br><span class="line"><span class="comment">5</span></span><br><span class="line"><span class="comment">6       inline RedisModuleString *RedisModule_CreateString_Wrap(RedisModuleCtx *ctx, char *ptr, size_t len) &#123;</span></span><br><span class="line"><span class="comment">7           RedisModuleString *rms = RedisModule_CreateString(ctx, ptr, len);</span></span><br><span class="line"><span class="comment">8           return rms;</span></span><br><span class="line"><span class="comment">9       &#125;</span></span><br><span class="line"><span class="comment">10      */</span></span><br><span class="line"><span class="number">11</span>      <span class="keyword">import</span> <span class="string">&quot;C&quot;</span></span><br><span class="line">(gdb) p RedisModule_CreateString</span><br><span class="line">$<span class="number">1</span> = (RedisModuleString *(*)(RedisModuleCtx *, <span class="keyword">const</span> <span class="keyword">char</span> *, <span class="keyword">size_t</span>)) <span class="number">0x0</span></span><br></pre></td></tr></table></figure>
+<p>那么<code>redismodule.h</code>对外提供的函数指针是在何时指向实际的函数内存地址呢？从<code>redismodule.h</code>文件本身就会得到答案：加载一个外部模块都需要调用<code>RedisModule_Init</code>函数，在这个函数中会通过<code>RedisModuleCtx *ctx</code>变量定位到在redis代码<code>module.c</code>内提供的实际API函数，然后将函数指针指向真正的函数地址。由于在上述的go模块中，没有调用<code>RedisModule_Init</code>，<code>RedisModule_CreateString</code>自然指向的是非法的内存地址。所以简单改动一下代码，主动注册一下函数指针的地址即可在go的模块中调用<code>redismodule.h</code>提供的API。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">#include &quot;redismodule.h&quot;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">inline RedisModuleString *RedisModule_CreateString_Wrap(RedisModuleCtx *ctx, char *ptr, size_t len) &#123;</span></span><br><span class="line"><span class="comment">    void *getapifuncptr = ((void**)ctx)[0];</span></span><br><span class="line"><span class="comment">    RedisModule_GetApi = (int (*)(const char *, void *)) (unsigned long)getapifuncptr;</span></span><br><span class="line"><span class="comment">    RedisModule_GetApi(&quot;RedisModule_CreateString&quot;, (void **)&amp;RedisModule_CreateString);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    RedisModuleString *rms = RedisModule_CreateString(ctx, ptr, len);</span></span><br><span class="line"><span class="comment">    return rms;</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;C&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//export GoEcho</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GoEcho</span><span class="params">(ctx *C.RedisModuleCtx, s *C.char)</span> *<span class="title">C</span>.<span class="title">RedisModuleString</span></span> &#123;</span><br><span class="line">        gostr := (C.GoString(s) + <span class="string">&quot; from golang version bridge&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> C.RedisModule_CreateString_Wrap(ctx, C.CString(gostr), C.size_t(<span class="built_in">len</span>(gostr)))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="一些细节"><a href="#一些细节" class="headerlink" title="一些细节"></a>一些细节</h2><p>编写模块的过程中关于内存使用发现不少有趣的地方。</p>
+<h3 id="1-Go和C之间传递指针的规则和限制"><a href="#1-Go和C之间传递指针的规则和限制" class="headerlink" title="1. Go和C之间传递指针的规则和限制"></a>1. Go和C之间传递指针的规则和限制</h3><p>在<a target="_blank" rel="noopener" href="https://github.com/amyangfei/RedisModules-Go/blob/master/example/basic/go1dot5/hello_module.go">go1.5/hello_module.go</a>这个文件中可以看到export给C的go函数的返回值很多返回了go的指针，在C代码中调用go函数之后可以直接访问go的内存，这在go1.5是支持的，但是从go1.6之后加入了Go和C之间传递指针的限制，明确指出：</p>
+<blockquote>
+<p>A Go function called by C code may not return a Go pointer.</p>
+</blockquote>
+<p>go1.6对go和C的互相调用进行了大量的规范，有编译层面的也有在运行时的检查，详细可以参考<a target="_blank" rel="noopener" href="https://github.com/golang/proposal/blob/master/design/12416-cgo-pointers.md">12416-cgo-pointers</a>。规范的出发点有两点：一是更便于go的内存管理，总所周知go提供了gc，所以有一些破坏了gc规则的使用需要禁止；二是尽可能减少程序运行时内存访问出现的未知错误。</p>
+<p>那么回到我们的redis go模块，如果不能从go函数返回go指针给C代码使用，那么从go如何返回数据给C代码呢？目前有两种，一是返回完整的C数据，二是返回C的指针。以hello.echo模块为例，对应的两种返回形式分别是：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GoEcho1</span><span class="params">(s *C.char)</span> <span class="params">(*C.char, <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">    gostr := (C.GoString(s) + <span class="string">&quot; from golang1&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> C.CString(gostr), <span class="built_in">len</span>(gostr)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GoEcho6</span><span class="params">(s *C.char, length, capacity C.<span class="keyword">int</span>)</span> <span class="params">(unsafe.Pointer, <span class="keyword">int</span>)</span></span> &#123;</span><br><span class="line">    incr := <span class="string">&quot; from golang6&quot;</span></span><br><span class="line">    zslice := cgoutils.ZeroCopySlice(unsafe.Pointer(s), <span class="keyword">int</span>(capacity), <span class="keyword">int</span>(capacity), <span class="literal">false</span>)</span><br><span class="line">    <span class="built_in">copy</span>(zslice.Data[<span class="keyword">int</span>(length):], incr)</span><br><span class="line">    <span class="keyword">return</span> unsafe.Pointer(&amp;zslice.Data[<span class="number">0</span>]), <span class="keyword">int</span>(length) + <span class="built_in">len</span>(incr)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>echo1就是直接通过<code>C.String</code>生成C的<code>char *</code>并进行一次内存复制，将<code>gostr</code>的内容复制到C的内存空间。echo6的例子则是现将从C代码传来的内存地址直接映射到go的slice（这里在C代码已经为待处理的数据申请了足够多的内存空间），然后直接在go中直接操作这部分内存，最后返回这部分内存的C指针。显然，echo6比echo1减少了<code>gostr</code>的一次内存复制。使用较大的echo string进行benchmark可以很明显看到echo6比echo1更快。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Benchmark_Echo1     2000            815435 ns/op</span><br><span class="line">Benchmark_Echo6     2000            575206 ns/op</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-内存管理"><a href="#2-内存管理" class="headerlink" title="2. 内存管理"></a>2. 内存管理</h3><p>在使用cgo时一定需要区分变量是在go的内存空间还是在C的内存空间，尤其注意在go代码中申请的C的数据一定需要手动释放内存，因为go的gc并不会回收这部分内存。所以譬如通过<code>C.Cstring()</code>生成的数据、通过<code>C.malloc()</code>申请的内存在使用后都需要手动回收。</p>
+<h3 id="3-Go直接映射C的内存空间"><a href="#3-Go直接映射C的内存空间" class="headerlink" title="3. Go直接映射C的内存空间"></a>3. Go直接映射C的内存空间</h3><p>在go代码中C的数据类型会映射成为C.x，可以直接访问C数据类型的变量，但是如果想要对变量进行go代码的逻辑操作，就必须先转换成为go的数据类型，譬如希望对一个C的<code>char *</code>进行处理，需要现转换成为go的<code>slice</code>。转换有两种方法：一是直接调用<code>C.GoBytes</code>方法，另一种是利用反射构造<code>slice</code>，具体的使用方法参考<a target="_blank" rel="noopener" href="https://github.com/amyangfei/RedisModules-Go/blob/master/cgoutils/sharemem.go">sharemem.go</a>。使用<code>C.GoBytes</code>会将C数据结构的内存复制到go的内存空间。而第二种方法则是直接映射，没有内存复制。</p>
+<p>在直接映射C内存的使用场景下，对go对象slice的一些操作可以直接作用于C的内存空间，譬如在echo6中使用<code>copy(zslice.Data[int(length):], incr)</code>。这里就需要注意，如果一开始C申请的内存空间不足，但是强制增大go中slice的capacity，然后进行copy操作，结果会发现程序运行中会crash掉。这种用法的问题在于不能区分slice增加的capacity内存是位于C代码还是go代码的运行环境；如果不是copy而是使用slice的append操作，由于capacity不足go的slice会重新申请内存空间，那么对应的内存都位于go的运行环境，与原来C运行环境中的数据就没有关系了。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>后续还会对比使用go和C编写同样的扩展模块在性能方面会有怎样的差距，这里就不再继续讨论。redis计划会在4.0版本中合并模块系统的功能，这还是很值得期待的。使用cgo来完成go和C的交互也十分常见，go标准库本身就有很多地方使用到了cgo来使用C的代码，本文编写的<a target="_blank" rel="noopener" href="https://github.com/amyangfei/RedisModules-Go/tree/master/modules/graphicsmagick">graphicsmagick</a>模块使用的<a target="_blank" rel="noopener" href="https://github.com/gographics/imagick">imagick</a>库本身也是通过cgo对ImageMagick MagickWand C API的封装。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/golang/" rel="tag"># golang</a>
+              <a href="/tags/redis/" rel="tag"># redis</a>
+              <a href="/tags/redis-module/" rel="tag"># redis module</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2016/01/30/redis-queue-rethink/" rel="prev" title="RQ (Redis Queue) 使用的一些思考">
+                  <i class="fa fa-chevron-left"></i> RQ (Redis Queue) 使用的一些思考
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">amyangfei</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://amyangfei.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://amyangfei.me/2016/08/03/redis-module-with-cgo/";
+    this.page.identifier = "2016/08/03/redis-module-with-cgo/";
+    this.page.title = "使用 Go 编写 Redis Loadable Modules";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://amyangfei.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>
