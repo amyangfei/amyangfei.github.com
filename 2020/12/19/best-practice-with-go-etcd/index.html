@@ -31,8 +31,9 @@
 <meta property="og:description" content="Etcd is a distributed reliable key-value store written by golang and native golang client binding is provided in its official repository, which makes it very convenient as well as robust to write gola">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-12-19T00:00:00.000Z">
-<meta property="article:modified_time" content="2020-12-19T15:32:06.331Z">
+<meta property="article:modified_time" content="2020-12-20T09:09:53.240Z">
 <meta property="article:author" content="amyangfei">
+<meta property="article:tag" content="source code reading">
 <meta property="article:tag" content="golang">
 <meta property="article:tag" content="etcd">
 <meta name="twitter:card" content="summary">
@@ -170,7 +171,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <section class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Consume-data-from-the-watch-response-chan-ASAP"><span class="nav-number">1.</span> <span class="nav-text">Consume data from the watch response chan ASAP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tips-for-using-a-lease-Session"><span class="nav-number">2.</span> <span class="nav-text">Tips for using a lease Session</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Consume-data-from-the-watch-response-chan-ASAP"><span class="nav-number">1.</span> <span class="nav-text">Consume data from the watch response chan ASAP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tips-for-using-a-lease-Session"><span class="nav-number">2.</span> <span class="nav-text">Tips for using a lease Session</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary"><span class="nav-number">3.</span> <span class="nav-text">Summary</span></a></li></ol></div>
         </section>
         <!--/noindex-->
 
@@ -195,7 +196,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">25</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -280,7 +281,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <p>Etcd is a distributed reliable key-value store written by golang and native golang client binding is provided in its official repository, which makes it very convenient as well as robust to write golang code to communicate with etcd server. Here robust means the etcd client should guarantee correctness and high availability under faulty conditions, more details can be found in <a target="_blank" rel="noopener" href="https://etcd.io/docs/v3.4.0/learning/design-client/">etcd official client design document</a>. This article summaries some best practises with etcd client library from some lessons I learned from production environment.</p>
+        <p>Etcd is a distributed reliable key-value store written by golang and native golang client binding is provided in its official repository, which makes it very convenient as well as robust to write golang code to communicate with etcd server. Here robust means the etcd client should guarantee correctness and high availability under faulty conditions, more details can be found in <a target="_blank" rel="noopener" href="https://etcd.io/docs/v3.4.0/learning/design-client/">etcd official client design document</a>. This article summaries some best practises with etcd client library from the lessons I learned from production environment. To explain some implementation mechanism I will also link to etcd source code (mainly based on branch release-3.4).</p>
 <h2 id="Consume-data-from-the-watch-response-chan-ASAP"><a href="#Consume-data-from-the-watch-response-chan-ASAP" class="headerlink" title="Consume data from the watch response chan ASAP"></a>Consume data from the watch response chan ASAP</h2><p><a target="_blank" rel="noopener" href="https://etcd.io/docs/v3.4.0/learning/api/#watch-streams">Watch</a> works with a bi-directional gRPC stream between watch client and etcd server, the most common way to use watch is as follows, receive keyspace changed result from the watch chan and consume these KV events one by one.</p>
 <a id="more"></a>
 
@@ -295,7 +296,15 @@
 
 <p>From etcd source we can know each <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/release-3.4/clientv3/watch.go#L219"><code>watcherStream</code></a> holds <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/watch.go#L234-L235">an unlimited <code>WatchResponse</code> buffer</a>, and watched result is <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/watch.go#L234-L235">appended to this buffer</a> no matter how large it is. So if the watched keyspace keeps changing, and the consume speed from the watch chan is slow, large amount of <code>WatchResponse</code> objects will be accumulated in etcd client. This is the lesson we learn from this case, when using etcd watch, we should consume data from the watch response chan as soon as possible in order to keep the keyspace change notification up to date, and prevent unnecessary memory consumption.</p>
 <p>Besides if a watch client just wants to subscribe the keyspace change notification, but doesn’t care about the content of key and value, is there any <code>OpOption</code> in etcd client library to ignore key or value. Unfortunately, there is no such option for watch API in golang etcd library currently.</p>
-<h2 id="Tips-for-using-a-lease-Session"><a href="#Tips-for-using-a-lease-Session" class="headerlink" title="Tips for using a lease Session"></a>Tips for using a lease Session</h2>
+<h2 id="Tips-for-using-a-lease-Session"><a href="#Tips-for-using-a-lease-Session" class="headerlink" title="Tips for using a lease Session"></a>Tips for using a lease Session</h2><p><a target="_blank" rel="noopener" href="https://etcd.io/docs/v3.4.0/learning/api/#lease-api">Lease</a> is a mechanism for detecting client liveness in etcd. The etcd golang library defines an <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/release-3.4/clientv3/lease.go#L108"><code>Lease</code> interface</a> and provides a <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L136"><code>KeepAlive</code></a> API which will try to keep the given lease alive forever. The <code>KeepAlive</code> API returns a <code>*LeaseKeepAliveResponse</code> chan, we can read from this chan to know the latest TTL for given leaseID. The common way to create a new Lease and set keepalive for it is as follows.</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ignore error handling</span></span><br><span class="line">cli, err := clientv3.New(clientv3.config&#123;endpoints: []<span class="keyword">string</span>&#123;<span class="string">&quot;127.0.0.1:2379&quot;</span>&#125;&#125;)</span><br><span class="line">leaseResp, err := cli.Grant(ctx, <span class="number">10</span> <span class="comment">/*ttl*/</span>)</span><br><span class="line">ch, err := cli.KeepAlive(ctx, leaseResp.ID)</span><br><span class="line"></span><br><span class="line"><span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="keyword">select</span> &#123;</span><br><span class="line">        <span class="keyword">case</span> &lt;-ctx.Done():</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        <span class="keyword">case</span> resp := &lt;-ch:</span><br><span class="line">            <span class="comment">// process lease response</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;()</span><br></pre></td></tr></table></figure>
+
+<p>Note the response chan size of <code>KeepAlive</code> has a <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L267">buffer size of 16</a>, if the channel is not consumed promptly the channel may become full. After channel is full, the lease client will continue sending keepalive requests to the etcd server, but will <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L519-L532">drop responses</a> until there is capacity on the channel to send more responses.</p>
+<p>If we don’t want to maintain the keepalive for a lease manually, the etcd golang library also provides a powerful <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/concurrency/session.go#L28">Leased Session</a> encapsulation. When creating a session via <code>NewSession</code> API, it grants a new Lease and setup <code>KeepAlive</code> for the binding client automatically, more details can be found in <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/concurrency/session.go#L38-L72">the etcd source code</a>.</p>
+<p>Lease TTL is the most important option when we interact with Lease, it is necessary to know how keepalive works with TTL. The first question is how often will a client send the keepalive request to etcd server. It is easy to find in source code, the lessor uses a time barrier mechanism to determine when to send keepalive message. For each time a keepalive response is received, the lessor sets the <code>nextKeepAlive</code> time to <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L517"><code>1/3</code> of keepalive TTL</a>. Besides after each round of keepalive request the <code>sendKeepAliveLoop</code> will <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L580">sleep 500ms</a> before next keepalive round.</p>
+<p>There is another question, what will happen when network is not stable between etcd client and etcd server. In this scenario the keepalive request message could be blocked because there is no sufficient flow control to schedule message with the gRPC transport, and the lease could be timeout, the timeout will be detected in the <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L537"><code>deadlineLoop</code></a>.</p>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>The etcd source code has good reability, detail comments and full completed test cases, and I have also learned many use tips from the etcd source code. If you also use etcd golang library in your code, I strongly recommend reading the source code of etcd to known exactly how it works and what do we need to pay attention to.</p>
+
     </div>
 
     
@@ -304,6 +313,7 @@
 
     <footer class="post-footer">
           <div class="post-tags">
+              <a href="/tags/source-code-reading/" rel="tag"># source code reading</a>
               <a href="/tags/golang/" rel="tag"># golang</a>
               <a href="/tags/etcd/" rel="tag"># etcd</a>
           </div>
