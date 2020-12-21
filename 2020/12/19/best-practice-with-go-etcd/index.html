@@ -31,7 +31,7 @@
 <meta property="og:description" content="Etcd is a distributed reliable key-value store written by golang and native golang client binding is provided in its official repository, which makes it very convenient as well as robust to write gola">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-12-19T00:00:00.000Z">
-<meta property="article:modified_time" content="2020-12-20T09:09:53.240Z">
+<meta property="article:modified_time" content="2020-12-21T14:51:17.531Z">
 <meta property="article:author" content="amyangfei">
 <meta property="article:tag" content="source code reading">
 <meta property="article:tag" content="golang">
@@ -290,14 +290,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Symbols count in article: </span>
-      <span>6.6k</span>
+      <span>7.1k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>8 mins.</span>
+      <span>9 mins.</span>
     </span>
 </div>
 
@@ -328,8 +328,9 @@
 
 <p>Note the response chan size of <code>KeepAlive</code> has a <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L267">buffer size of 16</a>, if the channel is not consumed promptly the channel may become full. After channel is full, the lease client will continue sending keepalive requests to the etcd server, but will <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L519-L532">drop responses</a> until there is capacity on the channel to send more responses.</p>
 <p>If we don’t want to maintain the keepalive for a lease manually, the etcd golang library also provides a powerful <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/concurrency/session.go#L28">Leased Session</a> encapsulation. When creating a session via <code>NewSession</code> API, it grants a new Lease and setup <code>KeepAlive</code> for the binding client automatically, more details can be found in <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/concurrency/session.go#L38-L72">the etcd source code</a>.</p>
-<p>Lease TTL is the most important option when we interact with Lease, it is necessary to know how keepalive works with TTL. The first question is how often will a client send the keepalive request to etcd server. It is easy to find in source code, the lessor uses a time barrier mechanism to determine when to send keepalive message. For each time a keepalive response is received, the lessor sets the <code>nextKeepAlive</code> time to <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L517"><code>1/3</code> of keepalive TTL</a>. Besides after each round of keepalive request the <code>sendKeepAliveLoop</code> will <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L580">sleep 500ms</a> before next keepalive round.</p>
+<p>Lease TTL is the most important option when we interact with Lease, it is necessary to know how keepalive works with TTL. The first question is how often will a client send the keepalive request to etcd server. It is easy to find in source code, the lessor uses a time barrier mechanism to determine when to send keepalive message. For each time a keepalive response is received, the lessor sets the <code>nextKeepAlive</code> time to <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L517"><code>1/3</code> of keepalive TTL</a>. After each round of keepalive request the <code>sendKeepAliveLoop</code> will <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L580">sleep 500ms</a> before next keepalive round.</p>
 <p>There is another question, what will happen when network is not stable between etcd client and etcd server. In this scenario the keepalive request message could be blocked because there is no sufficient flow control to schedule message with the gRPC transport, and the lease could be timeout, the timeout will be detected in the <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/clientv3/lease.go#L537"><code>deadlineLoop</code></a>.</p>
+<p>Lease TTL should be set carefully, according to <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/issues/6025">the discussion in github</a>, the minimum TTL needs to be larger than the election timeout of etcd server, which is 1s by default, and can be 3-5s usually. What’s more, etcd server has a minimum lease TTL restriction, <a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/lease/lessor.go#L283-L285">any requests for shorter TTLs will be extended to the minimum TTL</a>. The value of minimum lease TTL is based on <code>election-timeout</code> of etcd server, and it equals to <code>math.Ceil(3 * election-timeout / 2)</code>(<a target="_blank" rel="noopener" href="https://github.com/etcd-io/etcd/blob/8a03d2e9614b8192ebaa5a25ef92f6ff62e3593c/etcdserver/server.go#L539">ref</a>). For example, if <code>election-timeout</code> is 3s, the minium lease TTL is <code>math.Ceil(3 * 3 / 2) = 5</code>s.</p>
 <h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>The etcd source code has good reability, detail comments and full completed test cases, and I have also learned many use tips from the etcd source code. If you also use etcd golang library in your code, I strongly recommend reading the source code of etcd to known exactly how it works and what do we need to pay attention to.</p>
 
     </div>
@@ -408,20 +409,6 @@
     <i class="fa fa-heart"></i>
   </span>
   <span class="author" itemprop="copyrightHolder">amyangfei</span>
-</div>
-<div class="wordcount">
-  <span class="post-meta-item">
-    <span class="post-meta-item-icon">
-      <i class="fa fa-chart-line"></i>
-    </span>
-    <span title="Symbols count total">69k</span>
-  </span>
-  <span class="post-meta-item">
-    <span class="post-meta-item-icon">
-      <i class="fa fa-coffee"></i>
-    </span>
-    <span title="Reading time total">1:23</span>
-  </span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
   </div>
