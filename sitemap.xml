@@ -4,7 +4,7 @@
   <url>
     <loc>http://amyangfei.me/2020/12/27/thinking-about-etcd-lease/</loc>
     
-    <lastmod>2020-12-27</lastmod>
+    <lastmod>2021-01-01</lastmod>
     
   </url>
   
@@ -179,7 +179,7 @@
 
   <url>
     <loc>http://amyangfei.me/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -187,175 +187,175 @@
   
   <url>
     <loc>http://amyangfei.me/tags/android/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/python/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/task-scheduler/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/source-code-reading/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/tornado/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/asynchronous-programming/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/golang/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/etcd/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/algorithm/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/frequent-sequence-mining/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/jekyll/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/ruby/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/redis/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/job-queue/</loc>
-    <lastmod>2020-12-30</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/ssh/</loc>
-    <lastmod>2020-12-30</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/proxy/</loc>
-    <lastmod>2020-12-30</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/c/</loc>
-    <lastmod>2020-12-30</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/stl/</loc>
-    <lastmod>2020-12-30</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/llvm/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/redis-module/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/ssh/</loc>
+    <lastmod>2021-01-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/proxy/</loc>
+    <lastmod>2021-01-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/c/</loc>
+    <lastmod>2021-01-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/stl/</loc>
+    <lastmod>2021-01-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/llvm/</loc>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/web-server-framework/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/asynchronous/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/asynchronous-I-O/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/web-framework/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/virtualization/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
@@ -364,14 +364,14 @@
   
   <url>
     <loc>http://amyangfei.me/categories/program/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/categories/others/</loc>
-    <lastmod>2020-12-30</lastmod>
+    <lastmod>2021-01-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
