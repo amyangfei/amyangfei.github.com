@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>http://amyangfei.me/2020/12/27/thinking-about-etcd-lease/</loc>
-    <lastmod>2021-01-02</lastmod>
+    <loc>http://amyangfei.me/2020/12/19/best-practice-with-go-etcd/</loc>
+    <lastmod>2021-01-03</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2020/12/19/best-practice-with-go-etcd/</loc>
-    <lastmod>2020-12-21</lastmod>
+    <loc>http://amyangfei.me/2020/12/27/thinking-about-etcd-lease/</loc>
+    <lastmod>2021-01-03</lastmod>
   </url>
   <url>
     <loc>http://amyangfei.me/2013/11/06/apscheduler-source-analyse/</loc>
