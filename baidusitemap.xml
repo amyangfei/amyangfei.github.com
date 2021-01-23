@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://amyangfei.me/2021/01/23/streaming-systems/</loc>
+    <lastmod>2021-01-23</lastmod>
+  </url>
+  <url>
     <loc>http://amyangfei.me/2020/12/19/best-practice-with-go-etcd/</loc>
     <lastmod>2021-01-03</lastmod>
   </url>
