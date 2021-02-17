@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/favicon/apple-touch-icon.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","version":"8.1.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+<meta name="description" content="It is well known in golang that when allocating storage for a new variable and no explicit initialization is provided, the variable is given to a default value, either zero value for primitive types o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nil and zero value in Golang">
+<meta property="og:url" content="http://amyangfei.me/2021/02/17/golang-nil-panic/index.html">
+<meta property="og:site_name" content="Amyangfei&#39;s Blog">
+<meta property="og:description" content="It is well known in golang that when allocating storage for a new variable and no explicit initialization is provided, the variable is given to a default value, either zero value for primitive types o">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-02-16T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-02-17T07:10:53.890Z">
+<meta property="article:author" content="amyangfei">
+<meta property="article:tag" content="golang">
+<meta property="article:tag" content="static analysis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://amyangfei.me/2021/02/17/golang-nil-panic/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>Nil and zero value in Golang | Amyangfei's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30252000-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-30252000-1');
+      }
+    </script>
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Amyangfei's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Amyangfei's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Enjoy Programming</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <section class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Try-to-check-nil-pointer-panic-before-runtime"><span class="nav-number">1.</span> <span class="nav-text">Try to check nil pointer panic before runtime</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Compiler-checkers"><span class="nav-number">1.1.</span> <span class="nav-text">Compiler checkers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Static-analysis-tools"><span class="nav-number">1.2.</span> <span class="nav-text">Static analysis tools</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Be-careful-when-checking-nil-interface"><span class="nav-number">2.</span> <span class="nav-text">Be careful when checking nil interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary"><span class="nav-number">3.</span> <span class="nav-text">Summary</span></a></li></ol></div>
+        </section>
+        <!--/noindex-->
+
+        <section class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">amyangfei</p>
+  <div class="site-description" itemprop="description">我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">25</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/amyangfei" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;amyangfei" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/amyangfei" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;amyangfei" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+
+
+
+        </section>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2021/02/17/golang-nil-panic/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Nil and zero value in Golang
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-02-17 00:00:00" itemprop="dateCreated datePublished" datetime="2021-02-17T00:00:00+08:00">2021-02-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="Symbols count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Symbols count in article: </span>
+      <span>5k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>5 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>It is well known in golang that when allocating storage for a new variable and no explicit initialization is provided, the variable is given to a default value, either <strong>zero value</strong> for primitive types or <strong>nil</strong> for nullable types such as pointers, functions, maps etc. More details can be found in <a target="_blank" rel="noopener" href="https://golang.org/ref/spec#The_zero_value">go sepc</a>. Some of the nullable types can cause panic when accessing them without initialization. Some examples are as follows.</p>
+<a id="more"></a>
+
+<p>Access a nil pointer</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> p *<span class="keyword">int</span></span><br><span class="line">*p = <span class="number">2</span> <span class="comment">// panic: runtime error: invalid memory address or nil pointer dereference</span></span><br></pre></td></tr></table></figure>
+
+<p>Assignment to entry in nil map</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> m <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span></span><br><span class="line">m[<span class="string">&quot;foo&quot;</span>] = <span class="string">&quot;bar&quot;</span> <span class="comment">// panic: assignment to entry in nil map</span></span><br></pre></td></tr></table></figure>
+
+<p>Access to a nil interface</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> p error</span><br><span class="line">error.Error() <span class="comment">// panic: runtime error: invalid memory address or nil pointer dereference</span></span><br></pre></td></tr></table></figure>
+
+<p>Golang developers have to pay attention to check whether a nullable structure has been initialized before using it. This has been discussed in many articles, such as <a target="_blank" rel="noopener" href="https://bluxte.net/musings/2018/04/10/go-good-bad-ugly/#zero-values-that-panic">Go: the Good, the Bad and the Ugly</a> and <a target="_blank" rel="noopener" href="https://nilsmagnus.github.io/post/nillability-in-go/">Nillability and zero-values in go</a>. Since this check is a lot of burden to developers, is there any way to check the potential risk, such as compile time check or static analysis tool.</p>
+<h2 id="Try-to-check-nil-pointer-panic-before-runtime"><a href="#Try-to-check-nil-pointer-panic-before-runtime" class="headerlink" title="Try to check nil pointer panic before runtime"></a>Try to check nil pointer panic before runtime</h2><h3 id="Compiler-checkers"><a href="#Compiler-checkers" class="headerlink" title="Compiler checkers"></a>Compiler checkers</h3><p>In Go1 the compiler can’t detect nil pointer since it is legal to pass a <strong>nil</strong> variable when a pointer, interface, function or anything nullable types is needed. <a target="_blank" rel="noopener" href="https://getstream.io/blog/fixing-the-billion-dollar-mistake-in-go-by-borrowing-from-rust/#solution">This article</a> proposes a solution to check nil pointer during compile time by borrowing a pointer type that can never be nil, which is like the idea used in Rust and C++. Code sample is as follows.</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> myNumber <span class="keyword">struct</span> &#123;</span><br><span class="line">    n <span class="keyword">int</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestNil</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> number *myNumber</span><br><span class="line">    plusOne(number) <span class="comment">// compile error: cannot use *myNumber as &amp;myNumber, *myNumber can be nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestPointer</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> number *myNumber = &amp;myNumber&#123;n: <span class="number">5</span>&#125;</span><br><span class="line">    plusOne(number) <span class="comment">// compile error: cannot use *myNumber as &amp;myNumber, *myNumber can be nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestNonNilablePointer</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> number &amp;myNumber = &amp;myNumber&#123;n: <span class="number">5</span>&#125;</span><br><span class="line">    plusOne(number)</span><br><span class="line">    fmt.Println(number.n) <span class="comment">// output: 6</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Static-analysis-tools"><a href="#Static-analysis-tools" class="headerlink" title="Static analysis tools"></a>Static analysis tools</h3><p><a target="_blank" rel="noopener" href="https://golangci-lint.run/">golangci-lint</a> is a Go linters aggregator, it includes many linters, some useful static analysis tools are also integrated, is it possible to find the nil pointer problem via it? Let’s run linters with the following code</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">        <span class="string">&quot;fmt&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">funcRecover</span><span class="params">(f <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">        <span class="keyword">if</span> err := <span class="built_in">recover</span>(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">                fmt.Printf(<span class="string">&quot;func: %s, panic: %s\n&quot;</span>, f, err)</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">test1</span><span class="params">(m1 <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> funcRecover(<span class="string">&quot;test1&quot;</span>)</span><br><span class="line">        m1[<span class="string">&quot;foo&quot;</span>] = <span class="string">&quot;bar&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">test2</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> funcRecover(<span class="string">&quot;test2&quot;</span>)</span><br><span class="line">        <span class="keyword">var</span> m2 <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span></span><br><span class="line">        m2[<span class="string">&quot;foo&quot;</span>] = <span class="string">&quot;bar&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">test3</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> funcRecover(<span class="string">&quot;test3&quot;</span>)</span><br><span class="line">        <span class="keyword">var</span> err error</span><br><span class="line">        fmt.Println(err.Error())</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">test4</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">defer</span> funcRecover(<span class="string">&quot;test4&quot;</span>)</span><br><span class="line">        <span class="keyword">var</span> i *<span class="keyword">int</span></span><br><span class="line">        *i = <span class="number">12</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">var</span> m <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span></span><br><span class="line">        test1(m)</span><br><span class="line">        test2()</span><br><span class="line">        test3()</span><br><span class="line">        test4()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>From the result of lint, we can see only one possible nil variable access is detected. What’s more, the <code>SA5000</code> detector is only concerned with local variables that don’t escape, global variables or function call with nil map access also don’t work. The static check detail can be found in <a target="_blank" rel="noopener" href="https://github.com/dominikh/go-tools/blob/b9870cd46be0932ed7caa95b567e096c932f9a00/staticcheck/lint.go#L1916-L1936">source code of staticcheck tool</a>.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">➜  ./golangci-lint-1.36.0-linux-amd64/golangci-lint run niltype.go</span><br><span class="line">niltype.go:21:2: SA5000: assignment to nil map (staticcheck)</span><br><span class="line">        m2[<span class="string">&quot;foo&quot;</span>] = <span class="string">&quot;bar&quot;</span></span><br><span class="line">        ^</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">➜  go run niltype.go</span><br><span class="line">func: test1, panic: assignment to entry <span class="keyword">in</span> nil map</span><br><span class="line">func: test2, panic: assignment to entry <span class="keyword">in</span> nil map</span><br><span class="line">func: test3, panic: runtime error: invalid memory address or nil pointer dereference</span><br><span class="line">func: test4, panic: runtime error: invalid memory address or nil pointer dereference</span><br></pre></td></tr></table></figure>
+
+<h2 id="Be-careful-when-checking-nil-interface"><a href="#Be-careful-when-checking-nil-interface" class="headerlink" title="Be careful when checking nil interface"></a>Be careful when checking nil interface</h2><p>Interface in Go contains both type and value, when checking whether nil with an interface, there are two cases</p>
+<ol>
+<li>Interface has nullable type(like pointer, map, etc) and value is nil</li>
+<li>Interface itself has a nil type.</li>
+</ol>
+<p>Let’s use the following code as an example to explain the above two cases.</p>
+<figure class="highlight golang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">        <span class="string">&quot;fmt&quot;</span></span><br><span class="line">        <span class="string">&quot;reflect&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> MyError <span class="keyword">struct</span> &#123;</span><br><span class="line">        Err error</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(me MyError)</span> <span class="title">Error</span><span class="params">()</span> <span class="title">string</span></span> &#123;</span><br><span class="line">        <span class="keyword">return</span> me.Err.Error()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">check</span><span class="params">(err error)</span></span> &#123;</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">                fmt.Printf(<span class="string">&quot;type: %v value: %s\n&quot;</span>, reflect.TypeOf(err), err.(*MyError))</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                fmt.Printf(<span class="string">&quot;type: %v value: nil\n&quot;</span>, reflect.TypeOf(err))</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">var</span> e *MyError</span><br><span class="line">        check(e)</span><br><span class="line">        check(<span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>When passing a nil pointer of <code>MyError</code> to function check, the <code>err</code> contains type <code>*MyError</code> and nil value.</li>
+<li>When passing a nil to function check directly, the <code>err</code> isa nil type itself.</li>
+</ol>
+<p>So when we check the <code>nil</code> of an interface passed from some other place, either returned by a function or passed in from the function parameter, we must be aware there exist two cases. If we don’t want to check whether it is a nil type or only nil value, we can put the check logic before golang type inference, in the above example, we can check whether it is a nil <code>*MyError</code> type before calling function <code>check</code>.</p>
+<p>Besides, if we have to check the nil of an interface, the article <a target="_blank" rel="noopener" href="https://mangatmodi.medium.com/go-check-nil-interface-the-right-way-d142776edef1">Go: Check Nil interface the right way</a> has a detailed introduction about it.</p>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>To summarize, in every case that we don’t want a nil structure, we must check it manually, there is no easy way to detect nil pointers automatically in golang, and we must be carefull when checking nil with an interface because ther interface could be nil type or not-nil type but nil value.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/golang/" rel="tag"># golang</a>
+              <a href="/tags/static-analysis/" rel="tag"># static analysis</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/01/23/streaming-systems/" rel="prev" title="Compare concepts described in Streaming Systems and real usage in a cdc project">
+                  <i class="fa fa-chevron-left"></i> Compare concepts described in Streaming Systems and real usage in a cdc project
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">amyangfei</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://amyangfei.me/2021/02/17/golang-nil-panic/";
+    this.page.identifier = "2021/02/17/golang-nil-panic/";
+    this.page.title = "Nil and zero value in Golang";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://amyangfei.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

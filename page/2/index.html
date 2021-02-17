@@ -180,7 +180,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">25</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -191,7 +191,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -241,6 +241,114 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2013/11/06/apscheduler-source-analyse/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2013/11/06/apscheduler-source-analyse/" class="post-title-link" itemprop="url">APScheduler 源码阅读笔记</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2013-11-06 00:00:00" itemprop="dateCreated datePublished" datetime="2013-11-06T00:00:00+08:00">2013-11-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="Symbols count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Symbols count in article: </span>
+      <span>3.8k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>3 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>APScheduler 是由 python 实现的一个轻量级任务调度器，它可以按照一定间隔（IntervalTrigger）、指定时间（2.1中的SimpleTrigger/3.0中的DateTrigger）或者以类似 cron（CronTrigger） 的形式触发待执行任务（即调用函数或者调用 python 的 callable 对象）。现在 pypi 上的稳定版是 <a href="https://pypi.python.org/pypi/APScheduler/2.1.1" target="_blank">APScheduler 2.1.1</a>，3.0 版本在 class Scheduler 中移除了针对不同 trigger 的 add_trigger_job() 接口，统一为 add_job()，但是底层实现变化不大。我主要看了 2.1.1 的代码。代码很简洁，加起来一共2049行。</p>
+<h3 id="模块组织"><a href="#模块组织" class="headerlink" title="模块组织"></a>模块组织</h3><ul>
+<li><p><strong>Scheduler</strong>  调度器的核心部分，负责对 job 的管理和调度，用户使用添加/移除任务，启动调度器都通过 Scheduler 提供的接口完成。</p>
+</li>
+<li><p><strong>Job</strong>  封装了需要调度的任务，每一个 Job 实例是在 Scheduler 添加 job 时被初始化，具体的初始化参数决定了调度被触发的形式（3类不同的trigger）。</p>
+</li>
+<li><p><strong>Trigger</strong>  包含 SimpleTrigger，IntervalTrigger和 CronTrigger 三个类。Trigger 的作用就是计算下一次触发任务的时间。</p>
+</li>
+<li><p><strong>JobStore</strong>  抽象基类，针对任务存储的介质有多个实现，包括基于内存（RAMJobStore）、使用shelve的简单持久化存储（ShelveJobStore）、使用数据库存储（RedisJobStore，MongoDBJobStore）等。如果不指定参数默认使用 RAMJobStore，使用持久化的 JobStore 的目的是在 Scheduler 重启之后能够恢复原有的任务调度。</p>
+</li>
+</ul>
+<h3 id="底层实现"><a href="#底层实现" class="headerlink" title="底层实现"></a>底层实现</h3><p>从分析 Scheduler 类入手，首先看项目中自带的example：</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2013/11/06/apscheduler-source-analyse/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
     <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2013/09/06/xenserver-use-tip/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -265,7 +373,7 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2013-09-06 00:00:00" itemprop="dateCreated datePublished" datetime="2013-09-06T00:00:00+00:00">2013-09-06</time>
+      <time title="Created: 2013-09-06 00:00:00" itemprop="dateCreated datePublished" datetime="2013-09-06T00:00:00+08:00">2013-09-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -364,7 +472,7 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2013-06-17 00:00:00" itemprop="dateCreated datePublished" datetime="2013-06-17T00:00:00+00:00">2013-06-17</time>
+      <time title="Created: 2013-06-17 00:00:00" itemprop="dateCreated datePublished" datetime="2013-06-17T00:00:00+08:00">2013-06-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -467,7 +575,7 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2013-05-05 00:00:00" itemprop="dateCreated datePublished" datetime="2013-05-05T00:00:00+00:00">2013-05-05</time>
+      <time title="Created: 2013-05-05 00:00:00" itemprop="dateCreated datePublished" datetime="2013-05-05T00:00:00+08:00">2013-05-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -568,7 +676,7 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2013-03-01 00:00:00" itemprop="dateCreated datePublished" datetime="2013-03-01T00:00:00+00:00">2013-03-01</time>
+      <time title="Created: 2013-03-01 00:00:00" itemprop="dateCreated datePublished" datetime="2013-03-01T00:00:00+08:00">2013-03-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -676,7 +784,7 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2013-02-08 00:00:00" itemprop="dateCreated datePublished" datetime="2013-02-08T00:00:00+00:00">2013-02-08</time>
+      <time title="Created: 2013-02-08 00:00:00" itemprop="dateCreated datePublished" datetime="2013-02-08T00:00:00+08:00">2013-02-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -783,7 +891,7 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2013-02-05 00:00:00" itemprop="dateCreated datePublished" datetime="2013-02-05T00:00:00+00:00">2013-02-05</time>
+      <time title="Created: 2013-02-05 00:00:00" itemprop="dateCreated datePublished" datetime="2013-02-05T00:00:00+08:00">2013-02-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -887,7 +995,7 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2013-02-03 00:00:00" itemprop="dateCreated datePublished" datetime="2013-02-03T00:00:00+00:00">2013-02-03</time>
+      <time title="Created: 2013-02-03 00:00:00" itemprop="dateCreated datePublished" datetime="2013-02-03T00:00:00+08:00">2013-02-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -986,7 +1094,7 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2013-01-29 00:00:00" itemprop="dateCreated datePublished" datetime="2013-01-29T00:00:00+00:00">2013-01-29</time>
+      <time title="Created: 2013-01-29 00:00:00" itemprop="dateCreated datePublished" datetime="2013-01-29T00:00:00+08:00">2013-01-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1086,7 +1194,7 @@
       </span>
       <span class="post-meta-item-text">Posted on</span>
 
-      <time title="Created: 2013-01-27 00:00:00" itemprop="dateCreated datePublished" datetime="2013-01-27T00:00:00+00:00">2013-01-27</time>
+      <time title="Created: 2013-01-27 00:00:00" itemprop="dateCreated datePublished" datetime="2013-01-27T00:00:00+08:00">2013-01-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1129,105 +1237,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2013/01/27/tornado-source-analysis-1/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2013/01/07/abtest-script-and-bash-subshell/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="amyangfei">
-      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Amyangfei's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2013/01/07/abtest-script-and-bash-subshell/" class="post-title-link" itemprop="url">bash subshell变量作用域问题</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2013-01-07 00:00:00" itemprop="dateCreated datePublished" datetime="2013-01-07T00:00:00+00:00">2013-01-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
-        </span>
-    </span>
-
-  
-      </div>
-      <div class="post-meta">
-    <span class="post-meta-item" title="Symbols count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Symbols count in article: </span>
-      <span>2.8k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>3 mins.</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>今天研究apache ab这个测试工具，在网上看到<a href="http://blog.csdn.net/chosen0ne/article/details/7302991" target="_blank">压力测试shell脚本</a>一文介绍了一个封装的bash脚本，用于多次测试返回requests per second的平均值，对脚本进行了简单的改写，将所有的测试输出进行记录。改写脚本在文章的最后。</p>
-<p>改写过程中发现这样一个问题，比如写下面的脚本：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">result=<span class="string">&quot;&quot;</span></span><br><span class="line">cat abtest_temp.log | <span class="keyword">while</span> <span class="built_in">read</span> LINE</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    result=`<span class="built_in">echo</span> <span class="variable">$LINE</span> | grep <span class="string">&#x27;Requests per second:&#x27;</span>`</span><br><span class="line">    <span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$result</span>&quot;</span> != <span class="string">&quot;&quot;</span> ]</span><br><span class="line">    <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">break</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;result is &quot;</span><span class="variable">$&#123;result&#125;</span></span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2013/01/07/abtest-script-and-bash-subshell/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
