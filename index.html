@@ -285,7 +285,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Symbols count in article: </span>
-      <span>6.5k</span>
+      <span>6.8k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
@@ -303,12 +303,12 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>Recently I met a <code>context deadline exceeded</code> error when using gRPC client when to call <code>DialContext</code> to a gRPC server, it was in a customer’s internal environment. After some investigation we found out the root cause, the gRPC client was behind an HTTP proxy and the proxy has no permission to access the gRPC server. It is a common trouble shooting, however I am interested in how we can force a program to use http or socks proxy, I will dive into some methods and compare their pros and cons.</p>
-<h2 id="Ways-to-enable-a-proxy"><a href="#Ways-to-enable-a-proxy" class="headerlink" title="Ways to enable a proxy"></a>Ways to enable a proxy</h2><p>There exist many ways to let an application use a proxy, these ways can be classified into several types as follows, and I will talk about these methods briefly.</p>
+          <p>Recently I met a <code>context deadline exceeded</code> error when using gRPC client to call <code>DialContext</code> to a gRPC server, which was in a customer’s internal environment. After some investigation I found out the root cause, the gRPC client was behind an HTTP proxy and the proxy has no permission to access the gRPC server. It is a common trouble shooting, however I am interested in how we can force a program to use http or socks proxy, I will dive into it and compare the pros and cons among different solutions.</p>
+<h2 id="Ways-to-enable-a-proxy"><a href="#Ways-to-enable-a-proxy" class="headerlink" title="Ways to enable a proxy"></a>Ways to enable a proxy</h2><p>There exist many ways to let an application use a proxy, these ways can be classified into three types as follows, and I will talk about these methods briefly.</p>
 <ul>
 <li>Explicit environment variable to active transport feature which is builtin in the application.</li>
-<li>Using hook method to hijack network calls from the application.</li>
-<li>Using network packet hijacking way such as the kernel netfilter module to inspect and modify packets.</li>
+<li>Use a hook method to hijack network calls from the application, without changing the program code.</li>
+<li>Use a network packet hijacking way such as the kernel netfilter module to inspect and modify network packets.</li>
 </ul>
           <!--noindex-->
             <div class="post-button">
