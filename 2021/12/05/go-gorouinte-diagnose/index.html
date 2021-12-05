@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/favicon/apple-touch-icon.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="Go runtime provides a convenient way to dump stack traces of all current goroutines via pprof, which can save developers a lot time to diagnose the programming problems including deadlock, goroutine p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Best practises for goroutine inspection in golang">
+<meta property="og:url" content="http://amyangfei.me/2021/12/05/go-gorouinte-diagnose/index.html">
+<meta property="og:site_name" content="Amyangfei&#39;s Blog">
+<meta property="og:description" content="Go runtime provides a convenient way to dump stack traces of all current goroutines via pprof, which can save developers a lot time to diagnose the programming problems including deadlock, goroutine p">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-12-04T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-12-05T11:35:54.356Z">
+<meta property="article:author" content="amyangfei">
+<meta property="article:tag" content="golang">
+<meta property="article:tag" content="goroutine">
+<meta property="article:tag" content="system diagnose">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://amyangfei.me/2021/12/05/go-gorouinte-diagnose/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://amyangfei.me/2021/12/05/go-gorouinte-diagnose/","path":"2021/12/05/go-gorouinte-diagnose/","title":"Best practises for goroutine inspection in golang"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Best practises for goroutine inspection in golang | Amyangfei's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30252000-1"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-30252000-1","only_pageview":false}</script>
+  <script src="/js/third-party/analytics/google-analytics.js"></script>
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="Amyangfei's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Amyangfei's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Enjoy Programming</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Group-the-goroutines"><span class="nav-number">1.</span> <span class="nav-text">Group the goroutines</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Understand-the-information-in-a-stack-trace"><span class="nav-number">2.</span> <span class="nav-text">Understand the information in a stack trace</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Understand-the-goroutine-state"><span class="nav-number">3.</span> <span class="nav-text">Understand the goroutine state</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Waiting-time"><span class="nav-number">3.1.</span> <span class="nav-text">Waiting time</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Common-patterns-for-diagnosing"><span class="nav-number">4.</span> <span class="nav-text">Common patterns for diagnosing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">5.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">amyangfei</p>
+  <div class="site-description" itemprop="description">我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/amyangfei" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;amyangfei" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/amyangfei" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;amyangfei" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2021/12/05/go-gorouinte-diagnose/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Best practises for goroutine inspection in golang
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-12-05 00:00:00" itemprop="dateCreated datePublished" datetime="2021-12-05T00:00:00+08:00">2021-12-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Symbols count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Symbols count in article: </span>
+      <span>7.5k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>7 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Go runtime provides a convenient way to dump stack traces of all current goroutines via <a target="_blank" rel="noopener" href="https://pkg.go.dev/runtime/pprof#Profile">pprof</a>, which can save developers a lot time to diagnose the programming problems including deadlock, goroutine pause(such as IO wait, blocking chan receive etc.), goroutine leak. In a long running go process, there could be thousands of goroutines, it takes some time to find the susceptible stack trace from large amount of lines, this article concludes some common methods to discovery suspectable stack trace/goroutine quickly.</p>
+<span id="more"></span>
+
+<h2 id="Group-the-goroutines"><a href="#Group-the-goroutines" class="headerlink" title="Group the goroutines"></a>Group the goroutines</h2><p>When dumping the goroutines via <code>/debug/pprof/goroutine?debug=1</code>, the goroutine information is grouped by stack trace signature, goroutines with the same stack trace are listed in a same group, such as following</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">3</span> @ <span class="number">0x43b705</span> <span class="number">0x46f298</span> <span class="number">0x46f26e</span> <span class="number">0x47c8b9</span> <span class="number">0xa428fd</span> <span class="number">0x473521</span></span><br><span class="line">#    <span class="number">0x46f26d</span>    sync.runtime_notifyListWait+<span class="number">0xcd</span>                                           runtime/sema.<span class="keyword">go</span>:<span class="number">513</span></span><br><span class="line">#    <span class="number">0x47c8b8</span>    sync.(*Cond).Wait+<span class="number">0x98</span>                                                     sync/cond.<span class="keyword">go</span>:<span class="number">56</span></span><br><span class="line">#    <span class="number">0xa428fc</span>    google.golang.org/grpc/internal/transport.(*http2Client).keepalive+<span class="number">0x35c</span>   google.golang.org/grpc@v1<span class="number">.40</span><span class="number">.0</span>/internal/transport/http2_client.<span class="keyword">go</span>:<span class="number">1373</span></span><br></pre></td></tr></table></figure>
+
+<p>However the <code>debug=1</code> dump doesn’t contain some critical information, including the goroutine state, the parameter signature of each function call, as well as the goroutine ID. The <code>debut=2</code> mode will carry more information but the stack traces will be listed one by one. Given a sample <code>debug=2</code> mode <a target="_blank" rel="noopener" href="https://github.com/amyangfei/amyangfei.github.com/files/7655479/goroutines.tar.gz">goroutine dump</a>, it contains 4724 goroutines. It is convenient to use <a target="_blank" rel="noopener" href="https://github.com/linuxerwang/goroutine-inspect">goroutine-inspect</a> to analyze the goroutine dump, such as load the sample dump file, it will group the goroutines by state, as following:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># of goroutines: <span class="number">4724</span></span><br><span class="line"></span><br><span class="line">        IO wait: <span class="number">25</span></span><br><span class="line">   <span class="keyword">chan</span> receive: <span class="number">590</span></span><br><span class="line">       runnable: <span class="number">79</span></span><br><span class="line">        running: <span class="number">1</span></span><br><span class="line">         <span class="keyword">select</span>: <span class="number">3249</span></span><br><span class="line">     semacquire: <span class="number">711</span></span><br><span class="line"> sync.Cond.Wait: <span class="number">68</span></span><br><span class="line">        syscall: <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/linuxerwang/goroutine-inspect">goroutine-inspect</a> provides many ways for goroutine analysis, such as using <code>dedup</code> to fold goroutines with the same stack trace, this group way works the same as <code>debug=1</code> in pprof. It also supports to query goroutines via <a target="_blank" rel="noopener" href="https://github.com/Knetic/govaluate">govaluate expression evaluation</a>, the supported query patterns can be found in <a target="_blank" rel="noopener" href="https://github.com/linuxerwang/goroutine-inspect#properties-of-a-goroutine-dump-item">Properties of a Goroutine Dump Item</a>.</p>
+<h2 id="Understand-the-information-in-a-stack-trace"><a href="#Understand-the-information-in-a-stack-trace" class="headerlink" title="Understand the information in a stack trace"></a>Understand the information in a stack trace</h2><p>A stack trace contains not only the call stack of packages and functions, but also the function parameter signatures, including memory address, structure information(such as len or capacity, etc.). A more detailed analysis can be found in this article, <a target="_blank" rel="noopener" href="https://www.ardanlabs.com/blog/2015/01/stack-traces-in-go.html">Stack Traces In Go</a>. Apart from the stack trace and parameter signature, goroutine state is the most important part to locate stuck issues, such as network IO blocking, channel receive blocking etc.</p>
+<h2 id="Understand-the-goroutine-state"><a href="#Understand-the-goroutine-state" class="headerlink" title="Understand the goroutine state"></a>Understand the goroutine state</h2><p>As a matter of fact, the state listed in pprof goroutine dump combines the runtime G status and the waiting reason of blocking G. The G status is defined in <a target="_blank" rel="noopener" href="https://github.com/golang/go/blob/go1.16.11/src/runtime/runtime2.go#L15-L86">go runtime with 9 states</a>, they are</p>
+<ul>
+<li><code>idle</code>: goroutine was just allocated and has not yet been initialized.</li>
+<li><code>runnable</code>: goroutine is on a run queue. It is not currently executing user code. The stack is not owned.</li>
+<li><code>running</code>: goroutine may execute user code. The stack is owned by this goroutine. It is not on a run queue. It is assigned an M and a P (g.m and g.m.p are valid).</li>
+<li><code>syscall</code>: goroutine is executing a system call. It is not executing user code. The stack is owned by this goroutine. It is not on a run queue. It is assigned an M.</li>
+<li><code>waiting</code>: goroutine is blocked in the runtime.</li>
+<li><code>moribund_unused</code>: currently unused, but hardcoded in gdb scripts.</li>
+<li><code>dead</code>: goroutine is currently unused. It may be just exited, on a free list, or just being initialized.</li>
+<li><code>enqueue_unused</code>: currently unused.</li>
+<li><code>copystack</code>: goroutine’s stack is being moved.</li>
+<li><code>preempted</code>: goroutine stopped itself for a suspendG preemption.</li>
+</ul>
+<p>And the wait reasons are the reason a goroutine is in waiting status, which are defined in <a target="_blank" rel="noopener" href="https://github.com/golang/go/blob/8faefcbfce6d2b2875ab74d81bb4e94b2e3adaf5/src/runtime/runtime2.go#L1014-L1042">go runtime</a> too. The most common patterns we can observe from goroutine dump are G status(including <code>runnable</code>, <code>running</code>, <code>syscall</code>) and many kinds of wait reasons, and wait reasons are often the key information to locate problems.</p>
+<h3 id="Waiting-time"><a href="#Waiting-time" class="headerlink" title="Waiting time"></a>Waiting time</h3><p>When a goroutine is blocking for long time, the goroutine dump will have blocing duration record, as the first line <code>goroutine 1 [IO wait, 11 minutes]:</code> in following goroutine dump. This stack trace is triggered by a MySQL database ping operation via a TCP proxy, but adding a delay in the response from TCP proxy to program, which can be treated as a Network IO blocking case.</p>
+<details class="note info no-icon"><summary><p>A network IO blocking goroutine dump</p>
+</summary>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">goroutine <span class="number">1</span> [IO wait, <span class="number">11</span> minutes]:</span><br><span class="line">internal/poll.runtime_pollWait(<span class="number">0x261bfb8</span>, <span class="number">0x72</span>, <span class="number">0xffffffffffffffff</span>)</span><br><span class="line">        runtime/netpoll.<span class="keyword">go</span>:<span class="number">222</span> +<span class="number">0x55</span></span><br><span class="line">internal/poll.(*pollDesc).wait(<span class="number">0xc000148698</span>, <span class="number">0x72</span>, <span class="number">0x1000</span>, <span class="number">0x1000</span>, <span class="number">0xffffffffffffffff</span>)</span><br><span class="line">        internal/poll/fd_poll_runtime.<span class="keyword">go</span>:<span class="number">87</span> +<span class="number">0x45</span></span><br><span class="line">internal/poll.(*pollDesc).waitRead(...)</span><br><span class="line">        internal/poll/fd_poll_runtime.<span class="keyword">go</span>:<span class="number">92</span></span><br><span class="line">internal/poll.(*FD).Read(<span class="number">0xc000148680</span>, <span class="number">0xc000162000</span>, <span class="number">0x1000</span>, <span class="number">0x1000</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>)</span><br><span class="line">        internal/poll/fd_unix.<span class="keyword">go</span>:<span class="number">166</span> +<span class="number">0x1d5</span></span><br><span class="line">net.(*netFD).Read(<span class="number">0xc000148680</span>, <span class="number">0xc000162000</span>, <span class="number">0x1000</span>, <span class="number">0x1000</span>, <span class="number">0x230b100</span>, <span class="number">0x20300000000000</span>, <span class="number">0x24fffff</span>)</span><br><span class="line">        net/fd_posix.<span class="keyword">go</span>:<span class="number">55</span> +<span class="number">0x4f</span></span><br><span class="line">net.(*conn).Read(<span class="number">0xc0000100a0</span>, <span class="number">0xc000162000</span>, <span class="number">0x1000</span>, <span class="number">0x1000</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>)</span><br><span class="line">        net/net.<span class="keyword">go</span>:<span class="number">183</span> +<span class="number">0x91</span></span><br><span class="line">github.com/<span class="keyword">go</span>-sql-driver/mysql.(*buffer).fill(<span class="number">0xc0001126c0</span>, <span class="number">0x4</span>, <span class="number">0x2049f60</span>, <span class="number">0x2049f60</span>)</span><br><span class="line">        github.com/<span class="keyword">go</span>-sql-driver/mysql@v1<span class="number">.6</span><span class="number">.0</span>/buffer.<span class="keyword">go</span>:<span class="number">90</span> +<span class="number">0x142</span></span><br><span class="line">github.com/<span class="keyword">go</span>-sql-driver/mysql.(*buffer).readNext(<span class="number">0xc0001126c0</span>, <span class="number">0x4</span>, <span class="number">0x2049f60</span>, <span class="number">0x0</span>, <span class="number">0x203000</span>, <span class="number">0xc00010f830</span>, <span class="number">0x0</span>)</span><br><span class="line">        github.com/<span class="keyword">go</span>-sql-driver/mysql@v1<span class="number">.6</span><span class="number">.0</span>/buffer.<span class="keyword">go</span>:<span class="number">119</span> +<span class="number">0x9c</span></span><br><span class="line">github.com/<span class="keyword">go</span>-sql-driver/mysql.(*mysqlConn).readPacket(<span class="number">0xc0001126c0</span>, <span class="number">0x2049f60</span>, <span class="number">0xc00010f948</span>, <span class="number">0x100f09b</span>, <span class="number">0x2040108</span>, <span class="number">0x133bd59</span>)</span><br><span class="line">        github.com/<span class="keyword">go</span>-sql-driver/mysql@v1<span class="number">.6</span><span class="number">.0</span>/packets.<span class="keyword">go</span>:<span class="number">32</span> +<span class="number">0x91</span></span><br><span class="line">github.com/<span class="keyword">go</span>-sql-driver/mysql.(*mysqlConn).readHandshakePacket(<span class="number">0xc0001126c0</span>, <span class="number">0x1000</span>, <span class="number">0x1000</span>, <span class="number">0xc000162000</span>, <span class="number">0x0</span>, <span class="number">0x135d292</span>, <span class="number">0xf</span>, <span class="number">0x13b6d48</span>)</span><br><span class="line">        github.com/<span class="keyword">go</span>-sql-driver/mysql@v1<span class="number">.6</span><span class="number">.0</span>/packets.<span class="keyword">go</span>:<span class="number">188</span> +<span class="number">0x45</span></span><br><span class="line">github.com/<span class="keyword">go</span>-sql-driver/mysql.(*connector).Connect(<span class="number">0xc000010098</span>, <span class="number">0x13b51d0</span>, <span class="number">0xc00001a0c0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>, <span class="number">0x0</span>)</span><br><span class="line">        github.com/<span class="keyword">go</span>-sql-driver/mysql@v1<span class="number">.6</span><span class="number">.0</span>/connector.<span class="keyword">go</span>:<span class="number">81</span> +<span class="number">0x44b</span></span><br><span class="line">database/sql.(*DB).conn(<span class="number">0xc000079450</span>, <span class="number">0x13b51d0</span>, <span class="number">0xc00001a0c0</span>, <span class="number">0x13b2601</span>, <span class="number">0xc000010098</span>, <span class="number">0x0</span>, <span class="number">0x0</span>)</span><br><span class="line">        database/sql/sql.<span class="keyword">go</span>:<span class="number">1301</span> +<span class="number">0x184</span></span><br><span class="line">database/sql.(*DB).PingContext(<span class="number">0xc000079450</span>, <span class="number">0x13b51d0</span>, <span class="number">0xc00001a0c0</span>, <span class="number">0x2e</span>, <span class="number">0xc000079450</span>)</span><br><span class="line">        database/sql/sql.<span class="keyword">go</span>:<span class="number">799</span> +<span class="number">0x90</span></span><br><span class="line">database/sql.(*DB).Ping(...)</span><br><span class="line">        database/sql/sql.<span class="keyword">go</span>:<span class="number">817</span></span><br><span class="line">main.queryMySQL(<span class="number">0x0</span>, <span class="number">0x0</span>)</span><br><span class="line">        command-line-arguments/main.<span class="keyword">go</span>:<span class="number">20</span> +<span class="number">0xe9</span></span><br><span class="line">main.main()</span><br><span class="line">        command-line-arguments/main.<span class="keyword">go</span>:<span class="number">45</span> +<span class="number">0x3e</span></span><br></pre></td></tr></table></figure>
+</details>
+
+<p>But when using waiting time to diagnose blocking issues, we should pay attention to the blocking duration is not counted from the very beginning of the process. Given the following code snippet as an example and dump golang routines every one minute, we will find the waiting time will be observed after 4 minutes. Besides if the blocking code is terminated by some cancel mechanism such as <code>context.WithTimeout</code> and retried later in a new goroutine, the waiting duration won’t be accumulated, so it is not enough to detect blocking issues just relying on the waiting time. It is better to start with the goroutine state and be familiar with some common patterns.</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">        <span class="string">&quot;net/http&quot;</span></span><br><span class="line">        _ <span class="string">&quot;net/http/pprof&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">//go:noinline</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sendBlock</span><span class="params">(ch <span class="keyword">chan</span>&lt;- <span class="keyword">bool</span>)</span></span> &#123;</span><br><span class="line">        ch &lt;- <span class="literal">true</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">                http.ListenAndServe(<span class="string">&quot;0.0.0.0:9200&quot;</span>, <span class="literal">nil</span>)</span><br><span class="line">        &#125;()</span><br><span class="line">        ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">bool</span>)</span><br><span class="line">        sendBlock(ch)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">➜ grep -E --with-filename <span class="string">&quot;goroutine [0-9]+ \[chan send&quot;</span> goroutines*</span><br><span class="line">goroutines.2021-12-05.18:59:32.log:goroutine 1 [chan send]:</span><br><span class="line">goroutines.2021-12-05.19:00:32.log:goroutine 1 [chan send]:</span><br><span class="line">goroutines.2021-12-05.19:01:32.log:goroutine 1 [chan send]:</span><br><span class="line">goroutines.2021-12-05.19:02:32.log:goroutine 1 [chan send]:</span><br><span class="line">goroutines.2021-12-05.19:03:32.log:goroutine 1 [chan send, 2 minutes]:</span><br><span class="line">goroutines.2021-12-05.19:04:32.log:goroutine 1 [chan send, 3 minutes]:</span><br><span class="line">goroutines.2021-12-05.19:05:32.log:goroutine 1 [chan send, 4 minutes]:</span><br><span class="line">goroutines.2021-12-05.19:06:32.log:goroutine 1 [chan send, 5 minutes]:</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">goroutine <span class="number">1</span> [<span class="keyword">chan</span> send, <span class="number">11</span> minutes]:</span><br><span class="line">main.sendBlock(<span class="number">0xc000110240</span>)</span><br><span class="line">        command-line-arguments/select_on_chan_block.<span class="keyword">go</span>:<span class="number">10</span> +<span class="number">0x37</span></span><br><span class="line">main.main()</span><br><span class="line">        command-line-arguments/select_on_chan_block.<span class="keyword">go</span>:<span class="number">18</span> +<span class="number">0x5c</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Common-patterns-for-diagnosing"><a href="#Common-patterns-for-diagnosing" class="headerlink" title="Common patterns for diagnosing"></a>Common patterns for diagnosing</h2><p>To be added.</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://pkg.go.dev/runtime/pprof#Profile">golang official docs about pprof</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/linuxerwang/goroutine-inspect">goroutine-inspect, an interactive tool to analyze Golang goroutine dump</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.ardanlabs.com/blog/2015/01/stack-traces-in-go.html">Stack Traces In Go, talking about information the stack trace provides, including how to identify the value for each parameter that was passed into each function</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/DataDog/go-profiler-notes">go-profiler-notes, summarize of go profiler</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/golang/" rel="tag"># golang</a>
+              <a href="/tags/goroutine/" rel="tag"># goroutine</a>
+              <a href="/tags/system-diagnose/" rel="tag"># system diagnose</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/10/07/memory-models/" rel="prev" title="Memory models notes">
+                  <i class="fa fa-chevron-left"></i> Memory models notes
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments" id="disqus_thread">
+    <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+  </div>
+  
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">amyangfei</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="disqus" type="application/json">{"enable":true,"shortname":"amyangfei","count":false,"i18n":{"disqus":"disqus"}}</script>
+<script src="/js/third-party/comments/disqus.js"></script>
+
+</body>
+</html>

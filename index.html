@@ -134,7 +134,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-count">29</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -144,7 +144,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-count">36</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -184,6 +184,102 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2021/12/05/go-gorouinte-diagnose/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/12/05/go-gorouinte-diagnose/" class="post-title-link" itemprop="url">Best practises for goroutine inspection in golang</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-12-05 00:00:00" itemprop="dateCreated datePublished" datetime="2021-12-05T00:00:00+08:00">2021-12-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Symbols count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Symbols count in article: </span>
+      <span>7.5k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>7 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Go runtime provides a convenient way to dump stack traces of all current goroutines via <a target="_blank" rel="noopener" href="https://pkg.go.dev/runtime/pprof#Profile">pprof</a>, which can save developers a lot time to diagnose the programming problems including deadlock, goroutine pause(such as IO wait, blocking chan receive etc.), goroutine leak. In a long running go process, there could be thousands of goroutines, it takes some time to find the susceptible stack trace from large amount of lines, this article concludes some common methods to discovery suspectable stack trace/goroutine quickly.</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/12/05/go-gorouinte-diagnose/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
     
@@ -1041,103 +1137,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2016/01/30/redis-queue-rethink/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2015/01/24/ssh-and-proxy/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="amyangfei">
-      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Amyangfei's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2015/01/24/ssh-and-proxy/" class="post-title-link" itemprop="url">SSH through different kinds of proxy</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2015-01-24 00:00:00" itemprop="dateCreated datePublished" datetime="2015-01-24T00:00:00+08:00">2015-01-24</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Symbols count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Symbols count in article: </span>
-      <span>6.4k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>6 mins.</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>有时候因为网络、安全等原因，我们不能通过 ssh 直接连接到目标主机，而是需要通过代理服务器或跳板机实现连接。本文总结通过代理或跳板机使用 ssh 的各种方法，并且分析这些方法的基本原理。</p>
-<p>我们设定本地主机的地址为 homepc，绑定有公网 ip；运行有各类代理的代理服务器或跳板机地址为 proxy-server，proxy-server 上绑定一个公网 ip，同时绑定一个内网 ip（假定为10.0.10.252）；需要连接的目标主机 target-server，绑定内网 ip（假定为 10.0.10.25）。所有的用户名、登录用户名使用 apple。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2015/01/24/ssh-and-proxy/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
