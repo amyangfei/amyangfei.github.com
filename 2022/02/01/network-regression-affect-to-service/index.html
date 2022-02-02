@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/favicon/apple-touch-icon.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="In recent work my team devoted in a cross region data replication solution, a simplified abstraction of the workload is as follows  gRPC service ——(bidirectional gRPC stream)——&gt; data transfer servi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dive into the network regression affection to network service">
+<meta property="og:url" content="http://amyangfei.me/2022/02/01/network-regression-affect-to-service/index.html">
+<meta property="og:site_name" content="Amyangfei&#39;s Blog">
+<meta property="og:description" content="In recent work my team devoted in a cross region data replication solution, a simplified abstraction of the workload is as follows  gRPC service ——(bidirectional gRPC stream)——&gt; data transfer servi">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-01-31T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-02-02T10:37:18.359Z">
+<meta property="article:author" content="amyangfei">
+<meta property="article:tag" content="performance">
+<meta property="article:tag" content="TCP">
+<meta property="article:tag" content="network chaos">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://amyangfei.me/2022/02/01/network-regression-affect-to-service/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://amyangfei.me/2022/02/01/network-regression-affect-to-service/","path":"2022/02/01/network-regression-affect-to-service/","title":"Dive into the network regression affection to network service"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Dive into the network regression affection to network service | Amyangfei's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30252000-1"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-30252000-1","only_pageview":false}</script>
+  <script src="/js/third-party/analytics/google-analytics.js"></script>
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="Amyangfei's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Amyangfei's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Enjoy Programming</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Comparing-different-workloads"><span class="nav-number">1.</span> <span class="nav-text">Comparing different workloads</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Potential-solutions-to-increase-throughput"><span class="nav-number">2.</span> <span class="nav-text">Potential solutions to increase throughput</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-relay-service-solution"><span class="nav-number">2.1.</span> <span class="nav-text">The relay service solution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tuning-the-network-with-kcptun"><span class="nav-number">2.2.</span> <span class="nav-text">Tuning the network with kcptun</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Advices-about-system-performance"><span class="nav-number">3.</span> <span class="nav-text">Advices about system performance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">4.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">amyangfei</p>
+  <div class="site-description" itemprop="description">我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/amyangfei" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;amyangfei" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/amyangfei" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;amyangfei" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2022/02/01/network-regression-affect-to-service/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Dive into the network regression affection to network service
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-02-01 00:00:00" itemprop="dateCreated datePublished" datetime="2022-02-01T00:00:00+08:00">2022-02-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Symbols count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Symbols count in article: </span>
+      <span>6.8k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>6 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>In recent work my team devoted in a cross region data replication solution, a simplified abstraction of the workload is as follows</p>
+<blockquote>
+<p>gRPC service ——(bidirectional gRPC stream)——&gt; data transfer service ——(translate to SQL and write to downstream MySQL)——&gt; downstream MySQL</p>
+</blockquote>
+<p>The gRPC service and downstream MySQL are located in different AWS regions(such as one in EU, and the other one in US East), and the average network latency between these two regions is 70ms. We have a choice to deploy the data transfer service in either gRPC service side or downstream MySQL side. After a series of tests we observed that deploying data transfer service in the downstream(the downstream MySQL) side has <strong>much larger throughput</strong> than deploying it in the upstream(the gRPC service) side. This case does not happen by accident, it has a deep reason and deserves to dive into. This article will analyze the root cause, find potential solutions and give some advice about such scenarios.</p>
+<span id="more"></span>
+
+<h2 id="Comparing-different-workloads"><a href="#Comparing-different-workloads" class="headerlink" title="Comparing different workloads"></a>Comparing different workloads</h2><p>Intuitively the impact of network regression (including latency, packet loss etc.) is different in the above scenario, gRPC stream has no regression when having 75ms latency, while MySQL execution throughput drops a lot. In this section I will compare several workloads under network regression. The experiment was conducted in the same IDC server, and the network regression was simulated by <a target="_blank" rel="noopener" href="https://github.com/chaos-mesh/chaosd">chaos</a>. Besides I simulated the network latency and packet loss, which are the most common network regression in the real world. The simulated workloads are as follows:</p>
+<ol>
+<li><p>The first one is a simple sysbench insert workload, writing data to MySQL.</p>
+</li>
+<li><p>The second one is to simulate a gRPC bidirectional stream between client and server, the client starts N workers, each one sets up a gRPC stream and receives data from gRPC server. The client will collect received data and report throughput every 10 seconds. The benchmark code can be found in <a target="_blank" rel="noopener" href="https://github.com/amyangfei/grpc-test/tree/master/cmd">grpc-test</a>.</p>
+</li>
+<li><p>The third one is another MySQL usage scenario, but it has elastic workers compared to sysbench workload. Elastic worker means when the write to MySQL is slow, the program will spawn more workers to write to MySQL. Each worker writes simple insert SQL to MySQL, and there is no wait condition among workers, which means the worker can run concurrently and transactions in MySQL have no lock contention. The benchmark code can be found in <a target="_blank" rel="noopener" href="https://github.com/amyangfei/grpc-test/blob/master/cmd/elastic_mysql_main.go">elastic_mysql</a>, besides the max pending workers in this experiment is <code>worker size * max pending per worker = 20 * 120 = 2400</code>.</p>
+</li>
+</ol>
+<p>The benchmark result is as follows, note the absolute value of throughput is not essential, but we should pay attention to the throughput change when network regression happens.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>normal network</th>
+<th>latency+50ms</th>
+<th>latency+75ms</th>
+<th>latency+100ms</th>
+<th>packet loss 5%</th>
+<th>packet loss 10%</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>sysbench insert</td>
+<td>1898</td>
+<td>208</td>
+<td>141</td>
+<td>102</td>
+<td>406</td>
+<td>240</td>
+</tr>
+<tr>
+<td>gRPC bi-stream</td>
+<td>17.28M</td>
+<td>17.28M</td>
+<td>15.67M</td>
+<td>13.18M</td>
+<td>16.02M</td>
+<td>12.42M</td>
+</tr>
+<tr>
+<td>elastic MySQL worker (qps/pending workers)</td>
+<td>3998/128</td>
+<td>3997/623</td>
+<td>3816/2256</td>
+<td>3091/2322</td>
+<td>3997/219</td>
+<td>3999/377</td>
+</tr>
+</tbody></table>
+<p>It is easy to draw some conclusions from the above benchmark result</p>
+<ul>
+<li><p>The network regression(either latency or packet loss) impact on throughput in sysbench workload is significant. As for the reasons, in sysbench workload the throughput is decided by the thread count (which is a fixed number and configured by <code>--threads</code> when running sysbench) and throughput of a single thread. Each single thread executes transaction serially in a loop until meeting some exit condition(ref: <a target="_blank" rel="noopener" href="https://github.com/akopytov/sysbench/blob/master/src/lua/internal/sysbench.lua#L29-L55">internal/sysbench.lua:thread_run</a>). So in the sysbench workload, when response from MySQL is slowed down by network regression, the worker thread will waste a lot of time waiting for SQL execution response and leads to severe regression of throughput.</p>
+</li>
+<li><p>The network regression impact on throughput in gRPC bi-stream workload is not significant, which is achieved by the throughput optimization on high latency connections. gRPC-go implements a <a target="_blank" rel="noopener" href="https://grpc.io/blog/grpc-go-perf-improvements/#bdp-estimation-and-dynamic-flow-control-window">BDP estimation and dynamic flow control window</a> feature. This feature calculates the current BDP (Bandwidth Delay Product (BDP) is the bandwidth of a network connection times its round-trip latency. This effectively tells us how many bytes can be “on the wire” at a given moment, if full utilization is achieved) and bandwidth sample and decides if the flow control windows should go up (<a target="_blank" rel="noopener" href="https://docs.google.com/document/d/1Eq4eBEbNt1rc8EYuwqsduQd1ZfcBOCYt9HVSBa--m-E/pub">algorithm</a>). There exists a long <a target="_blank" rel="noopener" href="https://github.com/grpc/grpc-go/issues/1043">grpc-go issue#1043</a> that discusses this topic, which deserves to take a look.</p>
+</li>
+<li><p>The network regression has no impact on throughput in elastic worker workload when the worker doesn’t reach the upper limit. Since more workers can be spawned when some pending executions are not returned, the SQL execution bandwidth (from the point view of server side) will be fully used, without time wasted in waiting for response to arrive at the client side. Compared with the gRPC scenario, the elastic worker is another kind of dynamic window.</p>
+</li>
+</ul>
+<h2 id="Potential-solutions-to-increase-throughput"><a href="#Potential-solutions-to-increase-throughput" class="headerlink" title="Potential solutions to increase throughput"></a>Potential solutions to increase throughput</h2><p>Coming back to the scenario that is mentioned at the beginning of the article, our solution is to put the data transfer service in the same region with the downstream MySQL, but whether there exists other solutions? There may or may not, which is based on the cost of system modification, this section will talk about two potential solutions, one solution is to relay the data via a suitable protocol, and the other one is trying to tune the network via some networking tunnel.</p>
+<h3 id="The-relay-service-solution"><a href="#The-relay-service-solution" class="headerlink" title="The relay service solution"></a>The relay service solution</h3><p>This solution is straightforward, it still deploys data transfer service in the upstream region, but it doesn’t execute SQLs directly to downstream MySQL, instead it works as a relay service, it works as a gRPC server that serves gRPC stream with translated SQLs, in the downstream we deploy another consumer service to receives translated SQLs from the relay service, and the consumer writes SQLs to the downstream MySQL. This solution has several advantages, as well as several disadvantages</p>
+<ul>
+<li>Advantages<ul>
+<li>Reduce throughput loss with the help of good performance of gRPC on high latency network.</li>
+<li>Reduce network bandwidth between upstream and downstream regions, because the data transferred is the minimal SQL data.</li>
+</ul>
+</li>
+<li>Disadvantages<ul>
+<li>Long data links will introduce larger latency.</li>
+<li>More components will introduce more costs, both in development and system maintenance.</li>
+</ul>
+</li>
+</ul>
+<h3 id="Tuning-the-network-with-kcptun"><a href="#Tuning-the-network-with-kcptun" class="headerlink" title="Tuning the network with kcptun"></a>Tuning the network with kcptun</h3><p>kcptun is a tunnel based on <a target="_blank" rel="noopener" href="https://github.com/skywind3000/kcp/blob/master/README.en.md">KCP</a> with N:M multiplexing and FEC(Forward error correction) for transfer error correction. KCP can achieve the transmission effect of a reduction of the average latency by 30% to 40% and reduction of the maximum delay by a factor of three, at the cost of 10% to 20% more bandwidth wasted than TCP. kcptun can be used in some cross-region scenarios to accelerate TCP stream, in order to verify whether kcptun can help the above scenario, I test the sysbench workload with kcptun again. The basic topology is as follows</p>
+<blockquote>
+<p>sysbench client -&gt; kcptun client -&gt; (network with latency injection) -&gt; kcptun server -&gt; MySQL</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>latency 10ms</th>
+<th>latency 25ms</th>
+<th>latency 75ms</th>
+<th>packet loss 5%</th>
+<th>packet loss 10%</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL direct write</td>
+<td>869</td>
+<td>405</td>
+<td>141</td>
+<td>259</td>
+<td>144</td>
+</tr>
+<tr>
+<td>MySQL write via kcptun</td>
+<td>855</td>
+<td>405</td>
+<td>141</td>
+<td>270</td>
+<td>148</td>
+</tr>
+</tbody></table>
+<p>From the test result, we can see if the network has pure latency, kcptun doesn’t make any sense to improve throughput, and if packet loss exists, using kcptun increases 3%-4% throughput in the sysbench insert scenario. Comparing to the throughput regression, using kuptun is not the silver bullet for such MySQL write scenario.</p>
+<h2 id="Advices-about-system-performance"><a href="#Advices-about-system-performance" class="headerlink" title="Advices about system performance"></a>Advices about system performance</h2><ul>
+<li>The performance of a system should be estimated. It is important to abstract the architecture and estimate the performance indicators based on known knowledge.</li>
+<li>If the estimation is beyond precocious, try to write a minimal demo to simulate the workload.</li>
+<li>The deployment topology is worth thinking deeply before running the system in a production environment.</li>
+<li>There always exist tradeoffs in software systems, we can add enough metrics to the system and tune the performance and resource usage dynamically.</li>
+</ul>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://grpc.io/blog/grpc-go-perf-improvements/">gRPC-Go performance Improvements</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.google.com/document/d/1Eq4eBEbNt1rc8EYuwqsduQd1ZfcBOCYt9HVSBa--m-E/pub">HTTP/2 Receive Window Auto-Tuning</a></li>
+<li><a target="_blank" rel="noopener" href="https://ably.com/blog/grpc-stream-performance">The Mysterious Gotcha of gRPC Stream Performance</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/performance/" rel="tag"># performance</a>
+              <a href="/tags/TCP/" rel="tag"># TCP</a>
+              <a href="/tags/network-chaos/" rel="tag"># network chaos</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/12/05/go-gorouinte-diagnose/" rel="prev" title="Best practises for goroutine inspection in golang">
+                  <i class="fa fa-chevron-left"></i> Best practises for goroutine inspection in golang
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments" id="disqus_thread">
+    <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+  </div>
+  
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">amyangfei</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="disqus" type="application/json">{"enable":true,"shortname":"amyangfei","count":false,"i18n":{"disqus":"disqus"}}</script>
+<script src="/js/third-party/comments/disqus.js"></script>
+
+</body>
+</html>
