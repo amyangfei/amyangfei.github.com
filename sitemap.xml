@@ -277,20 +277,6 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/tags/algorithm/</loc>
-    <lastmod>2022-02-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/frequent-sequence-mining/</loc>
-    <lastmod>2022-02-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>http://amyangfei.me/tags/golang/</loc>
     <lastmod>2022-02-05</lastmod>
     <changefreq>daily</changefreq>
@@ -299,6 +285,20 @@
   
   <url>
     <loc>http://amyangfei.me/tags/etcd/</loc>
+    <lastmod>2022-02-05</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/algorithm/</loc>
+    <lastmod>2022-02-05</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/frequent-sequence-mining/</loc>
     <lastmod>2022-02-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -333,14 +333,7 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/tags/jekyll/</loc>
-    <lastmod>2022-02-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/ruby/</loc>
+    <loc>http://amyangfei.me/tags/static-analysis/</loc>
     <lastmod>2022-02-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -361,7 +354,14 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/tags/static-analysis/</loc>
+    <loc>http://amyangfei.me/tags/jekyll/</loc>
+    <lastmod>2022-02-05</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/ruby/</loc>
     <lastmod>2022-02-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -445,20 +445,6 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/tags/web-server-framework/</loc>
-    <lastmod>2022-02-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/asynchronous/</loc>
-    <lastmod>2022-02-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>http://amyangfei.me/tags/streaming-system/</loc>
     <lastmod>2022-02-05</lastmod>
     <changefreq>daily</changefreq>
@@ -474,6 +460,20 @@
   
   <url>
     <loc>http://amyangfei.me/tags/book-reading-notes/</loc>
+    <lastmod>2022-02-05</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/web-server-framework/</loc>
+    <lastmod>2022-02-05</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/asynchronous/</loc>
     <lastmod>2022-02-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
