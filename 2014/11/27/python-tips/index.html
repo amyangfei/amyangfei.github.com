@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
-<meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 5.4.1">
 
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
@@ -19,16 +18,17 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
-<meta name="description" content="整理 python 使用的一些技巧，以及一些可能被忽略的细节，很多在文档可以查找到的内容将不会过多的描述，更多以外链的形式存在。 注意: 以下讨论主要为 Python2.7 版本， Python 3 的内容有待跟进">
-<meta property="og:type" content="article">
+<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.10.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+  <meta name="description" content="整理 python 使用的一些技巧，以及一些可能被忽略的细节，很多在文档可以查找到的内容将不会过多的描述，更多以外链的形式存在。 注意: 以下讨论主要为 Python2.7 版本， Python 3 的内容有待跟进">
+<meta property="og:type" content="website">
 <meta property="og:title" content="python 拾遗">
 <meta property="og:url" content="http://amyangfei.me/2014/11/27/python-tips/index.html">
 <meta property="og:site_name" content="Amyangfei&#39;s Blog">
 <meta property="og:description" content="整理 python 使用的一些技巧，以及一些可能被忽略的细节，很多在文档可以查找到的内容将不会过多的描述，更多以外链的形式存在。 注意: 以下讨论主要为 Python2.7 版本， Python 3 的内容有待跟进">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2014-11-26T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-12-13T07:04:49.339Z">
+<meta property="article:modified_time" content="2022-02-19T06:30:27.604Z">
 <meta property="article:author" content="amyangfei">
 <meta property="article:tag" content="python">
 <meta name="twitter:card" content="summary">
@@ -46,6 +46,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30252000-1"></script>
   <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-30252000-1","only_pageview":false}</script>
   <script src="/js/third-party/analytics/google-analytics.js"></script>
+
 
 
 
@@ -74,7 +75,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">Amyangfei's Blog</h1>
+      <p class="site-title">Amyangfei's Blog</p>
       <i class="logo-line"></i>
     </a>
       <p class="site-subtitle" itemprop="description">Enjoy Programming</p>
@@ -262,8 +263,8 @@
 <p>注意: 以下讨论主要为 Python2.7 版本， Python 3 的内容有待跟进</p>
 <span id="more"></span>
 
-<h3 id="import"><a href="#import" class="headerlink" title="import"></a>import</h3><p>python 的 import 通过调用 <code>__import__(name[, globals[, locals[, fromlist[, level]]]])</code> 这个函数实现，借助这个函数可以通过 python 模块的名字动态引用模块。来自tornado 的 <a href="http://tornado.readthedocs.org/en/latest/_modules/tornado/util.html#import_object" target="_blank">import_object</a> 是一个很简洁的封装。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">import_object</span>(<span class="params">name</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Imports an object by name.</span></span><br><span class="line"><span class="string">    import_object(&#x27;x&#x27;) is equivalent to &#x27;import x&#x27;.</span></span><br><span class="line"><span class="string">    import_object(&#x27;x.y.z&#x27;) is equivalent to &#x27;from x.y import z&#x27;.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> name.count(<span class="string">&#x27;.&#x27;</span>) == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">__import__</span>(name, <span class="literal">None</span>, <span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line">    parts = name.split(<span class="string">&#x27;.&#x27;</span>)</span><br><span class="line">    obj = <span class="built_in">__import__</span>(<span class="string">&#x27;.&#x27;</span>.join(parts[:-<span class="number">1</span>]), <span class="literal">None</span>, <span class="literal">None</span>, [parts[-<span class="number">1</span>]], <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">getattr</span>(obj, parts[-<span class="number">1</span>])</span><br><span class="line">    <span class="keyword">except</span> AttributeError:</span><br><span class="line">        <span class="keyword">raise</span> ImportError(<span class="string">&quot;No module named %s&quot;</span> % parts[-<span class="number">1</span>])</span><br></pre></td></tr></table></figure>
+<h3 id="import"><a href="#import" class="headerlink" title="import"></a>import</h3><p>python 的 import 通过调用 <code>_<em>import</em>_(name[, globals[, locals[, fromlist[, level]]]])</code> 这个函数实现，借助这个函数可以通过 python 模块的名字动态引用模块。来自tornado 的 <a href="http://tornado.readthedocs.org/en/latest/_modules/tornado/util.html#import_object" target="_blank">import_object</a> 是一个很简洁的封装。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">import_object</span>(<span class="params">name</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Imports an object by name.</span></span><br><span class="line"><span class="string">    import_object(&#x27;x&#x27;) is equivalent to &#x27;import x&#x27;.</span></span><br><span class="line"><span class="string">    import_object(&#x27;x.y.z&#x27;) is equivalent to &#x27;from x.y import z&#x27;.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> name.count(<span class="string">&#x27;.&#x27;</span>) == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">__import__</span>(name, <span class="literal">None</span>, <span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line">    parts = name.split(<span class="string">&#x27;.&#x27;</span>)</span><br><span class="line">    obj = <span class="built_in">__import__</span>(<span class="string">&#x27;.&#x27;</span>.join(parts[:-<span class="number">1</span>]), <span class="literal">None</span>, <span class="literal">None</span>, [parts[-<span class="number">1</span>]], <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">getattr</span>(obj, parts[-<span class="number">1</span>])</span><br><span class="line">    <span class="keyword">except</span> AttributeError:</span><br><span class="line">        <span class="keyword">raise</span> ImportError(<span class="string">&quot;No module named %s&quot;</span> % parts[-<span class="number">1</span>])</span><br></pre></td></tr></table></figure>
 
 <p>除此之外，我们还可以利用 python2.7 开始提供的 <a href="https://docs.python.org/2/library/importlib.html" target="_blank">importlib.import_module</a> （<a href="http://svn.python.org/projects/python/trunk/Lib/importlib/__init__.py" target="_blank">实现代码</a>）来进行动态引用。例如：<code>importlib.import_module('tornado.httpclient')</code></p>
 <h3 id="reload"><a href="#reload" class="headerlink" title="reload"></a>reload</h3><p>当 reload 一个 python 模块之后有两处不会使用新的模块的值：</p>
@@ -273,7 +274,7 @@
 <li><p>其他模块引用该模块的对象，这些引用不会绑定到新的对象上。</p>
 </li>
 </ol>
-<p><a href="https://github.com/jparise/python-reloader" target="_blank">python-reloader</a> 是一个很有趣的项目，它将 <code>__builtin__.__import__</code> 修改为自定义的 <code>_import</code> 函数，新的 <code>_import</code> 在原有调用 <code>__import__(name[, globals[, locals[, fromlist[, level]]]])</code> 的同时记录下引用模块之间的依赖关系。python-reloader 实现的是 reload 一个模块之后，reload 该模块所依赖的所有模块，而不是 reload 所有依赖该模块的模块。说起来很绕，这里 <a href="https://github.com/jparise/python-reloader/issues/14" target="_blank">issue(It should reload dependants instead of dependencies)</a>有很好的讨论。在实际运行的系统中动态 reload 模块可能并非一种很好的选择。</p>
+<p><a href="https://github.com/jparise/python-reloader" target="_blank">python-reloader</a> 是一个很有趣的项目，它将 <code>__builtin__.__import__</code> 修改为自定义的 <code>_import</code> 函数，新的 <code>_import</code> 在原有调用 <code>_<em>import</em>_(name[, globals[, locals[, fromlist[, level]]]])</code> 的同时记录下引用模块之间的依赖关系。python-reloader 实现的是 reload 一个模块之后，reload 该模块所依赖的所有模块，而不是 reload 所有依赖该模块的模块。说起来很绕，这里 <a href="https://github.com/jparise/python-reloader/issues/14" target="_blank">issue(It should reload dependants instead of dependencies)</a>有很好的讨论。在实际运行的系统中动态 reload 模块可能并非一种很好的选择。</p>
 <h3 id="Catching-an-exception-while-using-‘with’"><a href="#Catching-an-exception-while-using-‘with’" class="headerlink" title="Catching an exception while using ‘with’"></a>Catching an exception while using ‘with’</h3><p>当我们使用 with 表达式并且需要捕捉异常的时候，我们可以这样做：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>( <span class="string">&quot;foo.txt&quot;</span> ) <span class="keyword">as</span> f :</span><br><span class="line">        <span class="built_in">print</span> f.readlines()</span><br><span class="line"><span class="keyword">except</span> EnvironmentError: <span class="comment"># parent of IOError, OSError</span></span><br><span class="line">    <span class="built_in">print</span> <span class="string">&#x27;oops&#x27;</span></span><br></pre></td></tr></table></figure>
 

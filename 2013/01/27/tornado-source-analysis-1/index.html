@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
-<meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 5.4.1">
 
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
@@ -19,16 +18,17 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
-<meta name="description" content="引言Tornado是FriendFeed最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在github。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量&#x2F;数千的客户端连接，适用于实时的Web服务（详细可以参阅The C10K problem）。 接">
-<meta property="og:type" content="article">
+<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.10.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+  <meta name="description" content="引言Tornado是FriendFeed最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在github。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量&#x2F;数千的客户端连接，适用于实时的Web服务（详细可以参阅The C10K proble">
+<meta property="og:type" content="website">
 <meta property="og:title" content="tornado源码分析1">
 <meta property="og:url" content="http://amyangfei.me/2013/01/27/tornado-source-analysis-1/index.html">
 <meta property="og:site_name" content="Amyangfei&#39;s Blog">
-<meta property="og:description" content="引言Tornado是FriendFeed最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在github。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量&#x2F;数千的客户端连接，适用于实时的Web服务（详细可以参阅The C10K problem）。 接">
+<meta property="og:description" content="引言Tornado是FriendFeed最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在github。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量&#x2F;数千的客户端连接，适用于实时的Web服务（详细可以参阅The C10K proble">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2013-01-26T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-12-13T07:05:10.748Z">
+<meta property="article:modified_time" content="2022-02-19T06:30:27.604Z">
 <meta property="article:author" content="amyangfei">
 <meta property="article:tag" content="python">
 <meta property="article:tag" content="web server framework">
@@ -48,6 +48,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30252000-1"></script>
   <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-30252000-1","only_pageview":false}</script>
   <script src="/js/third-party/analytics/google-analytics.js"></script>
+
 
 
 
@@ -76,7 +77,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">Amyangfei's Blog</h1>
+      <p class="site-title">Amyangfei's Blog</p>
       <i class="logo-line"></i>
     </a>
       <p class="site-subtitle" itemprop="description">Enjoy Programming</p>
@@ -260,7 +261,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>Tornado是<a href="http://friendfeed.com/" target="_blank">FriendFeed</a>最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在<a href="https://github.com/facebook/tornado" target="_blank">github</a>。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量/数千的客户端连接，适用于实时的Web服务（详细可以参阅<a href="http://www.kegel.com/c10k.html" target="_blank">The C10K problem</a>）。</p>
+        <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>Tornado是<a href="http://friendfeed.com/" target="_blank">FriendFeed</a>最早使用的一款由python编写的轻量级、无阻塞式Web服务器，还包括一些相关的工具和优化。现已由Facebook开源在<a href="https://github.com/facebook/tornado" target="_blank">github</a>。得益于无阻塞IO和epoll（or kqueue in FreeBSD, Mac OS X）的使用，Tornado每秒可以处理大量&#x2F;数千的客户端连接，适用于实时的Web服务（详细可以参阅<a href="http://www.kegel.com/c10k.html" target="_blank">The C10K problem</a>）。</p>
 <p>接下来几篇文章将会从Web服务器框架设计、代码实现细节等角度介绍我对Tornado源码的分析。这篇文章作为概述，首先介绍Tornado的模块按功能分类，同时提供后续文章的结构目录。</p>
 <span id="more"></span>
 
@@ -276,7 +277,7 @@
 </li>
 <li><p><strong>Asynchronous networking 底层模块</strong></p>
 <ul>
-<li>tornado.ioloop — 核心的I/O循环</li>
+<li>tornado.ioloop — 核心的I&#x2F;O循环</li>
 <li>tornado.iostream — 对非阻塞式的 socket 的简单封装，以方便常用读写操作</li>
 <li>tornado.httpclient — 一个无阻塞的HTTP服务器实现</li>
 <li>tornado.netutil — 一些网络应用的实现，主要实现TCPServer类</li>
@@ -288,7 +289,7 @@
 <li>tornado.database — 简单的MySQL服务端封装</li>
 <li>tornado.platform.twisted — 在Tornado上运行为Twisted实现的代码</li>
 <li>tornado.websocket — 实现和浏览器的双向通信</li>
-<li>tornado.wsgi — 与其他python网络框架/服务器的相互操作</li>
+<li>tornado.wsgi — 与其他python网络框架&#x2F;服务器的相互操作</li>
 </ul>
 </li>
 <li><p><strong>Utilities</strong></p>
@@ -306,7 +307,7 @@
 <h3 id="系列文章结构"><a href="#系列文章结构" class="headerlink" title="系列文章结构"></a>系列文章结构</h3><ol>
 <li>概述</li>
 <li><a href="/2013/01/29/tornado-source-analysis-2/" target="_blank">Tornado HTTP服务器介绍</a></li>
-<li><a href="/2013/02/03/tornado-source-analysis-3/" target="_blank">I/O核心调度模块IOLoop</a></li>
+<li><a href="/2013/02/03/tornado-source-analysis-3/" target="_blank">I&#x2F;O核心调度模块IOLoop</a></li>
 <li><a href="/2013/02/05/tornado-source-analysis-4/" target="_blank">读写缓冲模块IOStream</a></li>
 <li><a href="/2013/03/01/tornado-source-analysis-5/" target="_blank">核心web框架介绍</a></li>
 <li>未完待续</li>

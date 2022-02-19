@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
-<meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 5.4.1">
 
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
@@ -19,8 +18,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
-<meta name="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
+<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.10.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+  <meta name="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Amyangfei&#39;s Blog">
 <meta property="og:url" content="http://amyangfei.me/page/2/index.html">
@@ -44,6 +44,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30252000-1"></script>
   <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-30252000-1","only_pageview":false}</script>
   <script src="/js/third-party/analytics/google-analytics.js"></script>
+
 
 
 
@@ -186,7 +187,6 @@
     <div class="main-inner index posts-expand">
 
     
-    
 
 
 <div class="post-block">
@@ -256,7 +256,7 @@
     
     <div class="post-body" itemprop="articleBody">
           <p>最近使用了 <a target="_blank" rel="noopener" href="http://python-rq.org/">rq</a> 这个简单的队列处理库，其中有一些任务需要使用MySQL的连接或者redis的连接，对此有一些思考。</p>
-<h2 id="MySQL-redis的连接复用"><a href="#MySQL-redis的连接复用" class="headerlink" title="MySQL/redis的连接复用"></a>MySQL/redis的连接复用</h2><p>rq 提供了两种 worker 模型：基于 <code>fork</code> 的 worker 模型和直接在主线程执行任务的 worker 模型。基于 fork 的 worker 在执行任务之前先 fork 一个子进程，在子进程中执行具体的任务，父进程等待子进程执行返回。在基于 fork 的 worker 模型下，如果在父进程有一个 MySQL/redis 连接，由于子进程会继承父进程的地址空间，具有相同的打开文件、socket、管道等，所以子进程中也有同样的 MySQL/redis 连接，那么在这种情况下这个连接可以直接使用么？通过以下代码简单测试一下，连接 MySQL 使用 <a target="_blank" rel="noopener" href="https://github.com/bdarnell/torndb">torndb</a> ，连接 redis 使用 <a target="_blank" rel="noopener" href="https://github.com/andymccurdy/redis-py">redis-py</a>：</p>
+<h2 id="MySQL-x2F-redis的连接复用"><a href="#MySQL-x2F-redis的连接复用" class="headerlink" title="MySQL&#x2F;redis的连接复用"></a>MySQL&#x2F;redis的连接复用</h2><p>rq 提供了两种 worker 模型：基于 <code>fork</code> 的 worker 模型和直接在主线程执行任务的 worker 模型。基于 fork 的 worker 在执行任务之前先 fork 一个子进程，在子进程中执行具体的任务，父进程等待子进程执行返回。在基于 fork 的 worker 模型下，如果在父进程有一个 MySQL&#x2F;redis 连接，由于子进程会继承父进程的地址空间，具有相同的打开文件、socket、管道等，所以子进程中也有同样的 MySQL&#x2F;redis 连接，那么在这种情况下这个连接可以直接使用么？通过以下代码简单测试一下，连接 MySQL 使用 <a target="_blank" rel="noopener" href="https://github.com/bdarnell/torndb">torndb</a> ，连接 redis 使用 <a target="_blank" rel="noopener" href="https://github.com/andymccurdy/redis-py">redis-py</a>：</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2016/01/30/redis-queue-rethink/#more" rel="contents">
@@ -282,7 +282,6 @@
 
 
 
-    
     
 
 
@@ -380,7 +379,6 @@
 
 
     
-    
 
 
 <div class="post-block">
@@ -477,7 +475,6 @@
 
 
     
-    
 
 
 <div class="post-block">
@@ -573,7 +570,6 @@
 
 
 
-    
     
 
 
@@ -676,7 +672,6 @@
 
 
     
-    
 
 
 <div class="post-block">
@@ -745,9 +740,9 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>APScheduler 是由 python 实现的一个轻量级任务调度器，它可以按照一定间隔（IntervalTrigger）、指定时间（2.1中的SimpleTrigger/3.0中的DateTrigger）或者以类似 cron（CronTrigger） 的形式触发待执行任务（即调用函数或者调用 python 的 callable 对象）。现在 pypi 上的稳定版是 <a href="https://pypi.python.org/pypi/APScheduler/2.1.1" target="_blank">APScheduler 2.1.1</a>，3.0 版本在 class Scheduler 中移除了针对不同 trigger 的 add_trigger_job() 接口，统一为 add_job()，但是底层实现变化不大。我主要看了 2.1.1 的代码。代码很简洁，加起来一共2049行。</p>
+          <h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>APScheduler 是由 python 实现的一个轻量级任务调度器，它可以按照一定间隔（IntervalTrigger）、指定时间（2.1中的SimpleTrigger&#x2F;3.0中的DateTrigger）或者以类似 cron（CronTrigger） 的形式触发待执行任务（即调用函数或者调用 python 的 callable 对象）。现在 pypi 上的稳定版是 <a href="https://pypi.python.org/pypi/APScheduler/2.1.1" target="_blank">APScheduler 2.1.1</a>，3.0 版本在 class Scheduler 中移除了针对不同 trigger 的 add_trigger_job() 接口，统一为 add_job()，但是底层实现变化不大。我主要看了 2.1.1 的代码。代码很简洁，加起来一共2049行。</p>
 <h3 id="模块组织"><a href="#模块组织" class="headerlink" title="模块组织"></a>模块组织</h3><ul>
-<li><p><strong>Scheduler</strong>  调度器的核心部分，负责对 job 的管理和调度，用户使用添加/移除任务，启动调度器都通过 Scheduler 提供的接口完成。</p>
+<li><p><strong>Scheduler</strong>  调度器的核心部分，负责对 job 的管理和调度，用户使用添加&#x2F;移除任务，启动调度器都通过 Scheduler 提供的接口完成。</p>
 </li>
 <li><p><strong>Job</strong>  封装了需要调度的任务，每一个 Job 实例是在 Scheduler 添加 job 时被初始化，具体的初始化参数决定了调度被触发的形式（3类不同的trigger）。</p>
 </li>
@@ -782,7 +777,6 @@
 
 
 
-    
     
 
 
@@ -880,7 +874,6 @@
 
 
 
-    
     
 
 
@@ -983,7 +976,6 @@
 
 
     
-    
 
 
 <div class="post-block">
@@ -1053,10 +1045,10 @@
     
     <div class="post-body" itemprop="articleBody">
           <p>先来看一段十分简单的使用stl的c++代码，</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; vec;</span><br><span class="line">    <span class="keyword">int</span> len = <span class="number">5</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= len; ++i)</span><br><span class="line">        vec.push_back(i);</span><br><span class="line">    make_heap(vec.begin(), vec.end());</span><br><span class="line">    <span class="keyword">for</span> (<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;::iterator iter = vec.begin(); iter != vec.end(); iter++) &#123;</span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; *iter &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; vec;</span><br><span class="line">    <span class="type">int</span> len = <span class="number">5</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt;= len; ++i)</span><br><span class="line">        vec.<span class="built_in">push_back</span>(i);</span><br><span class="line">    <span class="built_in">make_heap</span>(vec.<span class="built_in">begin</span>(), vec.<span class="built_in">end</span>());</span><br><span class="line">    <span class="keyword">for</span> (vector&lt;<span class="type">int</span>&gt;::iterator iter = vec.<span class="built_in">begin</span>(); iter != vec.<span class="built_in">end</span>(); iter++) &#123;</span><br><span class="line">        cout &lt;&lt; *iter &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>发现在 xcode 中运行和在 mac terminal 中利用 g++ 编译运行结果不一样，分别为：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">xcode-default : 5 4 2 1 3</span><br><span class="line">terminal-g++  : 5 4 3 1 2</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">xcode-default : 5 4 2 1 3</span><br><span class="line">terminal-g++  : 5 4 3 1 2</span><br></pre></td></tr></table></figure>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2013/05/05/stl-heap-llvm-gcc/#more" rel="contents">
@@ -1082,7 +1074,6 @@
 
 
 
-    
     
 
 
@@ -1155,13 +1146,13 @@
           <p>Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application，源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。</p>
 <h3 id="RequestHandler分析"><a href="#RequestHandler分析" class="headerlink" title="RequestHandler分析"></a>RequestHandler分析</h3><p>RequestHandler提供了一个针对http请求处理的基类封装，方法比较多，主要有以下功能：</p>
 <ol>
-<li><p>提供了GET/HEAD/POST/DELETE/PATCH/PUT/OPTIONS等方法的功能接口，具体开发时RequestHandler的子类重写这些方法以支持不同需求的请求处理。</p>
+<li><p>提供了GET&#x2F;HEAD&#x2F;POST&#x2F;DELETE&#x2F;PATCH&#x2F;PUT&#x2F;OPTIONS等方法的功能接口，具体开发时RequestHandler的子类重写这些方法以支持不同需求的请求处理。</p>
 </li>
 <li><p>提供对http请求的处理方法，包括对headers，页面元素，cookie的处理。</p>
 </li>
 <li><p>提供对请求响应的一些列功能，包括redirect，write（将数据写入输出缓冲区），渲染模板（render, reander_string）等</p>
 </li>
-<li><p>其他的一些辅助功能，如结束请求/响应，刷新输出缓冲区，对用户授权相关处理等。</p>
+<li><p>其他的一些辅助功能，如结束请求&#x2F;响应，刷新输出缓冲区，对用户授权相关处理等。</p>
 </li>
 </ol>
           <!--noindex-->

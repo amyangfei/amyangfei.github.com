@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
-<meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 5.4.1">
 
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
@@ -19,16 +18,17 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
-<meta name="description" content="I have read the first part of book Streaming Systems recently and learned quite a lot of high level concepts and many useful tips about streaming systems. Many topics that this book discusses are very">
-<meta property="og:type" content="article">
+<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.10.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+  <meta name="description" content="I have read the first part of book Streaming Systems recently and learned quite a lot of high level concepts and many useful tips about streaming systems. Many topics that this book discusses are very">
+<meta property="og:type" content="website">
 <meta property="og:title" content="Compare concepts described in Streaming Systems and real usage in a cdc project">
 <meta property="og:url" content="http://amyangfei.me/2021/01/23/streaming-systems/index.html">
 <meta property="og:site_name" content="Amyangfei&#39;s Blog">
 <meta property="og:description" content="I have read the first part of book Streaming Systems recently and learned quite a lot of high level concepts and many useful tips about streaming systems. Many topics that this book discusses are very">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-01-22T16:00:00.000Z">
-<meta property="article:modified_time" content="2021-01-24T09:42:31.402Z">
+<meta property="article:modified_time" content="2022-02-19T06:30:27.604Z">
 <meta property="article:author" content="amyangfei">
 <meta property="article:tag" content="streaming system">
 <meta property="article:tag" content="change data capture">
@@ -48,6 +48,7 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30252000-1"></script>
   <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-30252000-1","only_pageview":false}</script>
   <script src="/js/third-party/analytics/google-analytics.js"></script>
+
 
 
 
@@ -76,7 +77,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">Amyangfei's Blog</h1>
+      <p class="site-title">Amyangfei's Blog</p>
       <i class="logo-line"></i>
     </a>
       <p class="site-subtitle" itemprop="description">Enjoy Programming</p>
@@ -249,7 +250,7 @@
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>9 mins.</span>
+      <span>10 mins.</span>
     </span>
 </div>
 
@@ -283,7 +284,7 @@
 <h3 id="Accumulation"><a href="#Accumulation" class="headerlink" title="Accumulation"></a>Accumulation</h3><blockquote>
 <p>An accumulation mode specifies the relationship between multiple results that are observed for the same window. There exists multiple ways to refine or relate results, including discarding, accumulating or accumulating and retracting.</p>
 </blockquote>
-<p>Different accumulations have different semantics, and will output different results with the same window/watermark strategy. However in CDC no specific accumulation is used, since the row changed event in CDC is atomistic, the only existing results relate maybe transaction oriented events grouping, which means events in the same window can be grouped by transaction identification(events with the same start-ts will be treated in a same transaction).</p>
+<p>Different accumulations have different semantics, and will output different results with the same window&#x2F;watermark strategy. However in CDC no specific accumulation is used, since the row changed event in CDC is atomistic, the only existing results relate maybe transaction oriented events grouping, which means events in the same window can be grouped by transaction identification(events with the same start-ts will be treated in a same transaction).</p>
 <h2 id="Tradeoffs-in-streaming-systems"><a href="#Tradeoffs-in-streaming-systems" class="headerlink" title="Tradeoffs in streaming systems"></a>Tradeoffs in streaming systems</h2><p>In this part I will focus on some key indicators in streaming systems and how to make a good tradeoff among these indicators.</p>
 <h3 id="Latency-and-precision"><a href="#Latency-and-precision" class="headerlink" title="Latency and precision"></a>Latency and precision</h3><p>In theory, the strategy with watermark has a direct impact on latency. Besides the stages of data flow and how watermarks propagating is implemented also have a big impact on latency. As for precision, it is mostly decided by watermark mechanism.</p>
 <p>As discussed in part one, perfect watermark can ensure a 100% precision of results materializing, well perfect watermark is impractical for many real world distributed input sources. However in some known scenarios, it is possible to define a perfect watermark, such as</p>
