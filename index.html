@@ -135,7 +135,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-count">31</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -145,7 +145,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-count">40</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -185,6 +185,101 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2022/02/20/diagnose-slow-sudo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/02/20/diagnose-slow-sudo/" class="post-title-link" itemprop="url">An investigation into slow sudo command</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-02-20 00:00:00" itemprop="dateCreated datePublished" datetime="2022-02-20T00:00:00+08:00">2022-02-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Symbols count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Symbols count in article: </span>
+      <span>4.9k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>4 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>In recent days I created a new virtual machine with ubuntu 20.04, but I found the terminal command with <code>sudo</code> took a long time, almost 3 seconds each time. When I seach <code>sudo command slow</code> in Google, the first two search results are both from stackflow and suggest adding an entry <code>127.0.0.1 hostname</code> to <code>/etc/hosts</code> file. I checked <code>/etc/hosts</code> and found the entry <code>127.0.0.1 hostname</code> exists (in fact I made a mistake here, which I will describe later). This article describes the investigation into this issue in timeline.</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/02/20/diagnose-slow-sudo/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1056,105 +1151,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2016/08/03/redis-module-with-cgo/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="amyangfei">
-      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Amyangfei's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2016/08/03/redis-module-with-cgo/" class="post-title-link" itemprop="url">使用 Go 编写 Redis Loadable Modules</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2016-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2016-08-03T00:00:00+08:00">2016-08-03</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Symbols count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Symbols count in article: </span>
-      <span>7.5k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>7 mins.</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>本文会介绍如何使用 go 编写 redis loadable modules，并分析编写模块和使用cgo可能遇到的坑。</p>
-<h2 id="什么是redis-loadable-modules"><a href="#什么是redis-loadable-modules" class="headerlink" title="什么是redis loadable modules"></a>什么是redis loadable modules</h2><p>可加载模块是redis最新加入的功能，目前需要在<code>unstable</code>分支才可以使用。简单说模块系统是redis的C代码暴露出一些API，定义在头文件<a target="_blank" rel="noopener" href="https://github.com/antirez/redis/blob/unstable/src/redismodule.h">redismodule.h</a>中，外部模块引用该头文件即可访问所有的API函数，这些API提供了包括访问redis的字典空间、调用redis命令、向客户端返回数据等诸多功能。外部模块是以动态库的形式被redis server加载并使用，可以在redis server启动时加载，也可以在启动后动态加载。更多的细节可以参考文档<a target="_blank" rel="noopener" href="https://github.com/antirez/redis/blob/unstable/src/modules/INTRO.md">redis module INTRO</a>。</p>
-<p>在此之前想对redis扩展有两种方案：一是利用lua脚本；另一种则需要修改redis源码，类似于<a target="_blank" rel="noopener" href="https://github.com/mattsta/krmt">Kit of Redis Module Tools</a>提供的方案。lua脚本的扩展性有限，并且lua是通过redis的上层API来调用redis命令的，无法直接访问底层的存储数据，调用redis更底层的API；修改源码的方案就更加hack，是没有办法不断与上游分支合并的。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/08/03/redis-module-with-cgo/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
   </nav>
 
 </div>

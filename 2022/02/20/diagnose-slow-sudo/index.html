@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 5.4.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/favicon/apple-touch-icon.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.10.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
+
+  <meta name="description" content="In recent days I created a new virtual machine with ubuntu 20.04, but I found the terminal command with sudo took a long time, almost 3 seconds each time. When I seach sudo command slow in Google, the">
+<meta property="og:type" content="website">
+<meta property="og:title" content="An investigation into slow sudo command">
+<meta property="og:url" content="http://amyangfei.me/2022/02/20/diagnose-slow-sudo/index.html">
+<meta property="og:site_name" content="Amyangfei&#39;s Blog">
+<meta property="og:description" content="In recent days I created a new virtual machine with ubuntu 20.04, but I found the terminal command with sudo took a long time, almost 3 seconds each time. When I seach sudo command slow in Google, the">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-02-19T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-02-20T06:11:56.864Z">
+<meta property="article:author" content="amyangfei">
+<meta property="article:tag" content="strace">
+<meta property="article:tag" content="dns">
+<meta property="article:tag" content="system diagnose">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://amyangfei.me/2022/02/20/diagnose-slow-sudo/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://amyangfei.me/2022/02/20/diagnose-slow-sudo/","path":"2022/02/20/diagnose-slow-sudo/","title":"An investigation into slow sudo command"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>An investigation into slow sudo command | Amyangfei's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30252000-1"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-30252000-1","only_pageview":false}</script>
+  <script src="/js/third-party/analytics/google-analytics.js"></script>
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="Amyangfei's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Amyangfei's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Enjoy Programming</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Investigation-process"><span class="nav-number">1.</span> <span class="nav-text">Investigation process</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary"><span class="nav-number">2.</span> <span class="nav-text">Summary</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">3.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">amyangfei</p>
+  <div class="site-description" itemprop="description">我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/amyangfei" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;amyangfei" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/amyangfei" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;amyangfei" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → atom.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2022/02/20/diagnose-slow-sudo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          An investigation into slow sudo command
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-02-20 00:00:00" itemprop="dateCreated datePublished" datetime="2022-02-20T00:00:00+08:00">2022-02-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Symbols count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Symbols count in article: </span>
+      <span>4.9k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>4 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>In recent days I created a new virtual machine with ubuntu 20.04, but I found the terminal command with <code>sudo</code> took a long time, almost 3 seconds each time. When I seach <code>sudo command slow</code> in Google, the first two search results are both from stackflow and suggest adding an entry <code>127.0.0.1 hostname</code> to <code>/etc/hosts</code> file. I checked <code>/etc/hosts</code> and found the entry <code>127.0.0.1 hostname</code> exists (in fact I made a mistake here, which I will describe later). This article describes the investigation into this issue in timeline.</p>
+<span id="more"></span>
+
+<h2 id="Investigation-process"><a href="#Investigation-process" class="headerlink" title="Investigation process"></a>Investigation process</h2><p>Firstly I use the strace to record system calls information of a <code>sudo</code> command.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo strace -r -T -o sudo_strace.log -e trace=all sudo <span class="built_in">echo</span> hi</span><br></pre></td></tr></table></figure>
+
+<p>From the output of strace I find a suspicious point, <code>poll</code> read from <code>fd=4</code> costs 2.915s, based on the context of this system call, it is a DNS resolution for hostname <code>ubuntuwork.internal.xxx</code>. There exist several questions</p>
+<ol>
+<li>Why the DNS resolution for hostname doesn’t use host table directly</li>
+<li>Why there is a DNS resolution for <code>ubuntuwork.internal.xxx</code></li>
+<li>Why sudo command has a DNS resolution for hostname</li>
+<li>Is there a DNS cache working</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0.000103</span> socket(AF_INET, SOCK_DGRAM|SOCK_CLOEXEC|SOCK_NONBLOCK, IPPROTO_IP) = <span class="number">4</span> &lt;<span class="number">0.000043</span>&gt;</span><br><span class="line"><span class="number">0.000090</span> setsockopt(<span class="number">4</span>, SOL_IP, IP_RECVERR, [<span class="number">1</span>], <span class="number">4</span>) = <span class="number">0</span> &lt;<span class="number">0.000035</span>&gt;</span><br><span class="line"><span class="number">0.000085</span> connect(<span class="number">4</span>, &#123;sa_family=AF_INET, sin_port=htons(<span class="number">53</span>), sin_addr=inet_addr(<span class="string">&quot;127.0.0.53&quot;</span>)&#125;, <span class="number">16</span>) = <span class="number">0</span> &lt;<span class="number">0.000041</span>&gt;</span><br><span class="line"><span class="number">0.000093</span> poll([&#123;fd=<span class="number">4</span>, events=POLLOUT&#125;], <span class="number">1</span>, <span class="number">0</span>) = <span class="number">1</span> ([&#123;fd=<span class="number">4</span>, revents=POLLOUT&#125;]) &lt;<span class="number">0.000034</span>&gt;</span><br><span class="line"><span class="number">0.000087</span> sendmmsg(<span class="number">4</span>, [&#123;msg_hdr=&#123;msg_name=<span class="literal">NULL</span>, msg_namelen=<span class="number">0</span>, msg_iov=[&#123;iov_base=<span class="string">&quot;C\324\1 \0\1\0\0\0\0\0\1\nubuntuwork\10internal&quot;</span>..., iov_len=<span class="number">60</span>&#125;], msg_iovlen=<span class="number">1</span>, msg_controllen=<span class="number">0</span>, msg_flags=<span class="number">0</span>&#125;, msg_len=<span class="number">60</span>&#125;, &#123;msg_hdr=&#123;msg_name=<span class="literal">NULL</span>, msg_namelen=<span class="number">0</span>, msg_iov=[&#123;iov_base=<span class="string">&quot;\242\310\1 \0\1\0\0\0\0\0\1\nubuntuwork\10internal&quot;</span>..., iov_len=<span class="number">60</span>&#125;], msg_iovlen=<span class="number">1</span>, msg_controllen=<span class="number">0</span>, msg_flags=<span class="number">0</span>&#125;, msg_len=<span class="number">60</span>&#125;], <span class="number">2</span>, MSG_NOSIGNAL) = <span class="number">2</span> &lt;<span class="number">0.000355</span>&gt;</span><br><span class="line"><span class="number">0.000546</span> poll([&#123;fd=<span class="number">4</span>, events=POLLIN&#125;], <span class="number">1</span>, <span class="number">5000</span>) = <span class="number">1</span> ([&#123;fd=<span class="number">4</span>, revents=POLLIN&#125;]) &lt;<span class="number">2.915181</span>&gt;</span><br><span class="line"><span class="number">2.915528</span> ioctl(<span class="number">4</span>, FIONREAD, [<span class="number">60</span>])  = <span class="number">0</span> &lt;<span class="number">0.000168</span>&gt;</span><br><span class="line"><span class="number">0.000382</span> recvfrom(<span class="number">4</span>, <span class="string">&quot;C\324\201\203\0\1\0\0\0\0\0\1\nubuntuwork\10internal&quot;</span>..., <span class="number">2048</span>, <span class="number">0</span>, &#123;sa_family=AF_INET, sin_port=htons(<span class="number">53</span>), sin_addr=inet_addr(<span class="string">&quot;127.0.0.53&quot;</span>)&#125;, [<span class="number">28</span>-&gt;<span class="number">16</span>]) = <span class="number">60</span> &lt;<span class="number">0.000062</span>&gt;</span><br><span class="line"><span class="number">0.000185</span> poll([&#123;fd=<span class="number">4</span>, events=POLLIN&#125;], <span class="number">1</span>, <span class="number">2083</span>) = <span class="number">1</span> ([&#123;fd=<span class="number">4</span>, revents=POLLIN&#125;]) &lt;<span class="number">0.000057</span>&gt;</span><br><span class="line"><span class="number">0.000140</span> ioctl(<span class="number">4</span>, FIONREAD, [<span class="number">60</span>])  = <span class="number">0</span> &lt;<span class="number">0.000078</span>&gt;</span><br><span class="line"><span class="number">0.000170</span> brk(<span class="number">0x5582dd4ce000</span>)       = <span class="number">0x5582dd4ce000</span> &lt;<span class="number">0.000060</span>&gt;</span><br><span class="line"><span class="number">0.000142</span> recvfrom(<span class="number">4</span>, <span class="string">&quot;\242\310\201\203\0\1\0\0\0\0\0\1\nubuntuwork\10internal&quot;</span>..., <span class="number">65536</span>, <span class="number">0</span>, &#123;sa_family=AF_INET, sin_port=htons(<span class="number">53</span>), sin_addr=inet_addr(<span class="string">&quot;127.0.0.53&quot;</span>)&#125;, [<span class="number">28</span>-&gt;<span class="number">16</span>]) = <span class="number">60</span> &lt;<span class="number">0.000066</span>&gt;</span><br><span class="line"><span class="number">0.000390</span> close(<span class="number">4</span>)                  = <span class="number">0</span> &lt;<span class="number">0.000085</span>&gt;</span><br><span class="line"><span class="number">0.000159</span> brk(<span class="number">0x5582dd4be000</span>)       = <span class="number">0x5582dd4be000</span> &lt;<span class="number">0.000061</span>&gt;</span><br><span class="line"><span class="number">0.000112</span> socket(AF_INET, SOCK_DGRAM|SOCK_CLOEXEC|SOCK_NONBLOCK, IPPROTO_IP) = <span class="number">4</span> &lt;<span class="number">0.000041</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>For the first question, I re-check the hosts file and hostname, and find the mistake in hostname setting. From <a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man7/hostname.7.html">hostname(7)</a> we can see valid characters for hostnames are ASCII(7) letters from a to z, the digits from 0 to 9, and the hyphen (-). Since the underscore is invalid character in hostname, the system call <code>gethostbyname</code> will return <code>ubuntuwork</code> and it is not listed in host table. The DNS resolution procedure will first query host table, if the query item is not found, system will continue to check the <code>search</code> domain.</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">➜  hostname</span><br><span class="line">ubuntuwork</span><br><span class="line"></span><br><span class="line">➜  <span class="built_in">cat</span> /etc/hosts</span><br><span class="line">127.0.0.1 localhost ubuntu_work</span><br><span class="line">127.0.1.1 ubuntu_work</span><br><span class="line"></span><br><span class="line">➜  <span class="built_in">cat</span> /etc/hostname</span><br><span class="line">ubuntu_work</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>By default, the search field in <code>/etc/resolv.conf</code> is empty but it can be configured with one or more search domains. After I check the <code>/etc/resolv.conf</code> I find <code>internal.xxx</code> in the search field. That explains why there is a DNS resolution for <code>ubuntuwork.internal.xxx</code>. There is another question, why does the dns lookup for a <code>no such name</code> host cost so much time?</li>
+</ol>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">nameserver</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.53</span></span><br><span class="line"><span class="string">options</span> <span class="string">edns0</span> <span class="string">trust-ad</span></span><br><span class="line"><span class="string">search</span> <span class="string">internal.xxx</span></span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li><p>For the third question, in order for sudo to know whether this rule should be applied, it needs to lookup the host it is running on. More details are explained in a stackoverflow answer <a target="_blank" rel="noopener" href="https://superuser.com/a/429890">sudo command trying to search for hostname</a>.</p>
+</li>
+<li><p>Is there a DNS cache for linux server? The answer is no in OS-level unless a caching service such as Systemd-Resolved, DNSMasq, or Nscd is installed and running. In ubuntu 20.04 systemd-resolved is enabled by default, and I check the cached items by following commands. The <code>USR1</code> signal will not stop the service but tells systemd-resolved to write all the current cache entries (and some other information) to the system log. After checking the output file for cached items by searching <code>CACHE:</code>. <code>ubuntuwork</code> is not in the cached items, which explains why the <code>sudo</code> is slow each time.</p>
+</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo killall -USR1 systemd-resolved</span><br><span class="line">$ sudo journalctl -u systemd-resolved &gt; ./dns-cache.txt</span><br></pre></td></tr></table></figure>
+
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>After I have figured out the root cause, I find either of the following ways can workaround and make the <code>sudo</code> run normally.</p>
+<ul>
+<li>Add an entry of <code>127.0.0.1 ubuntuwork</code> to <code>/etc/hosts</code></li>
+<li>Remove the <code>search</code> line in <code>/etc/resolv.conf</code></li>
+</ul>
+<p>And actually, I should correct the hostname, such as renaming hostname from <code>ubuntuwork</code> to <code>ubuntu-work</code> and add corresponding entry to <code>/etc/hosts</code>.</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man7/hostname.7.html">hostname(7) man page</a></li>
+<li><a target="_blank" rel="noopener" href="https://superuser.com/a/429890">Sudo command trying to search for hostname</a></li>
+<li><a target="_blank" rel="noopener" href="http://manpages.ubuntu.com/manpages/focal/man8/systemd-resolved.service.8.html">systemd-resolved man page</a></li>
+<li><a target="_blank" rel="noopener" href="https://askubuntu.com/a/1281629">How can I see systemd-resolve dns cache?</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/strace/" rel="tag"># strace</a>
+              <a href="/tags/dns/" rel="tag"># dns</a>
+              <a href="/tags/system-diagnose/" rel="tag"># system diagnose</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/02/01/network-regression-affect-to-service/" rel="prev" title="Dive into the network regression affection to network service">
+                  <i class="fa fa-chevron-left"></i> Dive into the network regression affection to network service
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments" id="disqus_thread">
+    <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+  </div>
+  
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">amyangfei</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="disqus" type="application/json">{"enable":true,"shortname":"amyangfei","count":false,"i18n":{"disqus":"disqus"}}</script>
+<script src="/js/third-party/comments/disqus.js"></script>
+
+</body>
+</html>

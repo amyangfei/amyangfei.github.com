@@ -135,7 +135,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-count">31</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -145,7 +145,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-count">40</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -185,6 +185,103 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2016/08/03/redis-module-with-cgo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2016/08/03/redis-module-with-cgo/" class="post-title-link" itemprop="url">使用 Go 编写 Redis Loadable Modules</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2016-08-03 00:00:00" itemprop="dateCreated datePublished" datetime="2016-08-03T00:00:00+08:00">2016-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Symbols count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Symbols count in article: </span>
+      <span>7.5k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>7 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>本文会介绍如何使用 go 编写 redis loadable modules，并分析编写模块和使用cgo可能遇到的坑。</p>
+<h2 id="什么是redis-loadable-modules"><a href="#什么是redis-loadable-modules" class="headerlink" title="什么是redis loadable modules"></a>什么是redis loadable modules</h2><p>可加载模块是redis最新加入的功能，目前需要在<code>unstable</code>分支才可以使用。简单说模块系统是redis的C代码暴露出一些API，定义在头文件<a target="_blank" rel="noopener" href="https://github.com/antirez/redis/blob/unstable/src/redismodule.h">redismodule.h</a>中，外部模块引用该头文件即可访问所有的API函数，这些API提供了包括访问redis的字典空间、调用redis命令、向客户端返回数据等诸多功能。外部模块是以动态库的形式被redis server加载并使用，可以在redis server启动时加载，也可以在启动后动态加载。更多的细节可以参考文档<a target="_blank" rel="noopener" href="https://github.com/antirez/redis/blob/unstable/src/modules/INTRO.md">redis module INTRO</a>。</p>
+<p>在此之前想对redis扩展有两种方案：一是利用lua脚本；另一种则需要修改redis源码，类似于<a target="_blank" rel="noopener" href="https://github.com/mattsta/krmt">Kit of Redis Module Tools</a>提供的方案。lua脚本的扩展性有限，并且lua是通过redis的上层API来调用redis命令的，无法直接访问底层的存储数据，调用redis更底层的API；修改源码的方案就更加hack，是没有办法不断与上游分支合并的。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2016/08/03/redis-module-with-cgo/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1074,114 +1171,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2013/03/01/tornado-source-analysis-5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="amyangfei">
-      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Amyangfei's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2013/03/01/tornado-source-analysis-5/" class="post-title-link" itemprop="url">tornado源码分析5</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2013-03-01 00:00:00" itemprop="dateCreated datePublished" datetime="2013-03-01T00:00:00+08:00">2013-03-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Symbols count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Symbols count in article: </span>
-      <span>2.2k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>2 mins.</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application，源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。</p>
-<h3 id="RequestHandler分析"><a href="#RequestHandler分析" class="headerlink" title="RequestHandler分析"></a>RequestHandler分析</h3><p>RequestHandler提供了一个针对http请求处理的基类封装，方法比较多，主要有以下功能：</p>
-<ol>
-<li><p>提供了GET&#x2F;HEAD&#x2F;POST&#x2F;DELETE&#x2F;PATCH&#x2F;PUT&#x2F;OPTIONS等方法的功能接口，具体开发时RequestHandler的子类重写这些方法以支持不同需求的请求处理。</p>
-</li>
-<li><p>提供对http请求的处理方法，包括对headers，页面元素，cookie的处理。</p>
-</li>
-<li><p>提供对请求响应的一些列功能，包括redirect，write（将数据写入输出缓冲区），渲染模板（render, reander_string）等</p>
-</li>
-<li><p>其他的一些辅助功能，如结束请求&#x2F;响应，刷新输出缓冲区，对用户授权相关处理等。</p>
-</li>
-</ol>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2013/03/01/tornado-source-analysis-5/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="Previous page"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="Previous page"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
   </nav>
 
 </div>

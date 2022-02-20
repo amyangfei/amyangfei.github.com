@@ -6,7 +6,7 @@
   <link href="http://amyangfei.me/atom.xml" rel="self"/>
   
   <link href="http://amyangfei.me/"/>
-  <updated>2022-02-19T06:30:27.604Z</updated>
+  <updated>2022-02-20T06:11:56.864Z</updated>
   <id>http://amyangfei.me/</id>
   
   <author>
@@ -15,6 +15,31 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>An investigation into slow sudo command</title>
+    <link href="http://amyangfei.me/2022/02/20/diagnose-slow-sudo/"/>
+    <id>http://amyangfei.me/2022/02/20/diagnose-slow-sudo/</id>
+    <published>2022-02-19T16:00:00.000Z</published>
+    <updated>2022-02-20T06:11:56.864Z</updated>
+    
+    <content type="html"><![CDATA[<p>In recent days I created a new virtual machine with ubuntu 20.04, but I found the terminal command with <code>sudo</code> took a long time, almost 3 seconds each time. When I seach <code>sudo command slow</code> in Google, the first two search results are both from stackflow and suggest adding an entry <code>127.0.0.1 hostname</code> to <code>/etc/hosts</code> file. I checked <code>/etc/hosts</code> and found the entry <code>127.0.0.1 hostname</code> exists (in fact I made a mistake here, which I will describe later). This article describes the investigation into this issue in timeline.</p><span id="more"></span><h2 id="Investigation-process"><a href="#Investigation-process" class="headerlink" title="Investigation process"></a>Investigation process</h2><p>Firstly I use the strace to record system calls information of a <code>sudo</code> command.</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo strace -r -T -o sudo_strace.log -e trace=all sudo <span class="built_in">echo</span> hi</span><br></pre></td></tr></table></figure><p>From the output of strace I find a suspicious point, <code>poll</code> read from <code>fd=4</code> costs 2.915s, based on the context of this system call, it is a DNS resolution for hostname <code>ubuntuwork.internal.xxx</code>. There exist several questions</p><ol><li>Why the DNS resolution for hostname doesn’t use host table directly</li><li>Why there is a DNS resolution for <code>ubuntuwork.internal.xxx</code></li><li>Why sudo command has a DNS resolution for hostname</li><li>Is there a DNS cache working</li></ol><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0.000103</span> socket(AF_INET, SOCK_DGRAM|SOCK_CLOEXEC|SOCK_NONBLOCK, IPPROTO_IP) = <span class="number">4</span> &lt;<span class="number">0.000043</span>&gt;</span><br><span class="line"><span class="number">0.000090</span> setsockopt(<span class="number">4</span>, SOL_IP, IP_RECVERR, [<span class="number">1</span>], <span class="number">4</span>) = <span class="number">0</span> &lt;<span class="number">0.000035</span>&gt;</span><br><span class="line"><span class="number">0.000085</span> connect(<span class="number">4</span>, &#123;sa_family=AF_INET, sin_port=htons(<span class="number">53</span>), sin_addr=inet_addr(<span class="string">&quot;127.0.0.53&quot;</span>)&#125;, <span class="number">16</span>) = <span class="number">0</span> &lt;<span class="number">0.000041</span>&gt;</span><br><span class="line"><span class="number">0.000093</span> poll([&#123;fd=<span class="number">4</span>, events=POLLOUT&#125;], <span class="number">1</span>, <span class="number">0</span>) = <span class="number">1</span> ([&#123;fd=<span class="number">4</span>, revents=POLLOUT&#125;]) &lt;<span class="number">0.000034</span>&gt;</span><br><span class="line"><span class="number">0.000087</span> sendmmsg(<span class="number">4</span>, [&#123;msg_hdr=&#123;msg_name=<span class="literal">NULL</span>, msg_namelen=<span class="number">0</span>, msg_iov=[&#123;iov_base=<span class="string">&quot;C\324\1 \0\1\0\0\0\0\0\1\nubuntuwork\10internal&quot;</span>..., iov_len=<span class="number">60</span>&#125;], msg_iovlen=<span class="number">1</span>, msg_controllen=<span class="number">0</span>, msg_flags=<span class="number">0</span>&#125;, msg_len=<span class="number">60</span>&#125;, &#123;msg_hdr=&#123;msg_name=<span class="literal">NULL</span>, msg_namelen=<span class="number">0</span>, msg_iov=[&#123;iov_base=<span class="string">&quot;\242\310\1 \0\1\0\0\0\0\0\1\nubuntuwork\10internal&quot;</span>..., iov_len=<span class="number">60</span>&#125;], msg_iovlen=<span class="number">1</span>, msg_controllen=<span class="number">0</span>, msg_flags=<span class="number">0</span>&#125;, msg_len=<span class="number">60</span>&#125;], <span class="number">2</span>, MSG_NOSIGNAL) = <span class="number">2</span> &lt;<span class="number">0.000355</span>&gt;</span><br><span class="line"><span class="number">0.000546</span> poll([&#123;fd=<span class="number">4</span>, events=POLLIN&#125;], <span class="number">1</span>, <span class="number">5000</span>) = <span class="number">1</span> ([&#123;fd=<span class="number">4</span>, revents=POLLIN&#125;]) &lt;<span class="number">2.915181</span>&gt;</span><br><span class="line"><span class="number">2.915528</span> ioctl(<span class="number">4</span>, FIONREAD, [<span class="number">60</span>])  = <span class="number">0</span> &lt;<span class="number">0.000168</span>&gt;</span><br><span class="line"><span class="number">0.000382</span> recvfrom(<span class="number">4</span>, <span class="string">&quot;C\324\201\203\0\1\0\0\0\0\0\1\nubuntuwork\10internal&quot;</span>..., <span class="number">2048</span>, <span class="number">0</span>, &#123;sa_family=AF_INET, sin_port=htons(<span class="number">53</span>), sin_addr=inet_addr(<span class="string">&quot;127.0.0.53&quot;</span>)&#125;, [<span class="number">28</span>-&gt;<span class="number">16</span>]) = <span class="number">60</span> &lt;<span class="number">0.000062</span>&gt;</span><br><span class="line"><span class="number">0.000185</span> poll([&#123;fd=<span class="number">4</span>, events=POLLIN&#125;], <span class="number">1</span>, <span class="number">2083</span>) = <span class="number">1</span> ([&#123;fd=<span class="number">4</span>, revents=POLLIN&#125;]) &lt;<span class="number">0.000057</span>&gt;</span><br><span class="line"><span class="number">0.000140</span> ioctl(<span class="number">4</span>, FIONREAD, [<span class="number">60</span>])  = <span class="number">0</span> &lt;<span class="number">0.000078</span>&gt;</span><br><span class="line"><span class="number">0.000170</span> brk(<span class="number">0x5582dd4ce000</span>)       = <span class="number">0x5582dd4ce000</span> &lt;<span class="number">0.000060</span>&gt;</span><br><span class="line"><span class="number">0.000142</span> recvfrom(<span class="number">4</span>, <span class="string">&quot;\242\310\201\203\0\1\0\0\0\0\0\1\nubuntuwork\10internal&quot;</span>..., <span class="number">65536</span>, <span class="number">0</span>, &#123;sa_family=AF_INET, sin_port=htons(<span class="number">53</span>), sin_addr=inet_addr(<span class="string">&quot;127.0.0.53&quot;</span>)&#125;, [<span class="number">28</span>-&gt;<span class="number">16</span>]) = <span class="number">60</span> &lt;<span class="number">0.000066</span>&gt;</span><br><span class="line"><span class="number">0.000390</span> close(<span class="number">4</span>)                  = <span class="number">0</span> &lt;<span class="number">0.000085</span>&gt;</span><br><span class="line"><span class="number">0.000159</span> brk(<span class="number">0x5582dd4be000</span>)       = <span class="number">0x5582dd4be000</span> &lt;<span class="number">0.000061</span>&gt;</span><br><span class="line"><span class="number">0.000112</span> socket(AF_INET, SOCK_DGRAM|SOCK_CLOEXEC|SOCK_NONBLOCK, IPPROTO_IP) = <span class="number">4</span> &lt;<span class="number">0.000041</span>&gt;</span><br></pre></td></tr></table></figure><ol><li>For the first question, I re-check the hosts file and hostname, and find the mistake in hostname setting. From <a href="https://man7.org/linux/man-pages/man7/hostname.7.html">hostname(7)</a> we can see valid characters for hostnames are ASCII(7) letters from a to z, the digits from 0 to 9, and the hyphen (-). Since the underscore is invalid character in hostname, the system call <code>gethostbyname</code> will return <code>ubuntuwork</code> and it is not listed in host table. The DNS resolution procedure will first query host table, if the query item is not found, system will continue to check the <code>search</code> domain.</li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">➜  hostname</span><br><span class="line">ubuntuwork</span><br><span class="line"></span><br><span class="line">➜  <span class="built_in">cat</span> /etc/hosts</span><br><span class="line">127.0.0.1 localhost ubuntu_work</span><br><span class="line">127.0.1.1 ubuntu_work</span><br><span class="line"></span><br><span class="line">➜  <span class="built_in">cat</span> /etc/hostname</span><br><span class="line">ubuntu_work</span><br></pre></td></tr></table></figure><ol start="2"><li>By default, the search field in <code>/etc/resolv.conf</code> is empty but it can be configured with one or more search domains. After I check the <code>/etc/resolv.conf</code> I find <code>internal.xxx</code> in the search field. That explains why there is a DNS resolution for <code>ubuntuwork.internal.xxx</code>. There is another question, why does the dns lookup for a <code>no such name</code> host cost so much time?</li></ol><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">nameserver</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.53</span></span><br><span class="line"><span class="string">options</span> <span class="string">edns0</span> <span class="string">trust-ad</span></span><br><span class="line"><span class="string">search</span> <span class="string">internal.xxx</span></span><br></pre></td></tr></table></figure><ol start="3"><li><p>For the third question, in order for sudo to know whether this rule should be applied, it needs to lookup the host it is running on. More details are explained in a stackoverflow answer <a href="https://superuser.com/a/429890">sudo command trying to search for hostname</a>.</p></li><li><p>Is there a DNS cache for linux server? The answer is no in OS-level unless a caching service such as Systemd-Resolved, DNSMasq, or Nscd is installed and running. In ubuntu 20.04 systemd-resolved is enabled by default, and I check the cached items by following commands. The <code>USR1</code> signal will not stop the service but tells systemd-resolved to write all the current cache entries (and some other information) to the system log. After checking the output file for cached items by searching <code>CACHE:</code>. <code>ubuntuwork</code> is not in the cached items, which explains why the <code>sudo</code> is slow each time.</p></li></ol><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo killall -USR1 systemd-resolved</span><br><span class="line">$ sudo journalctl -u systemd-resolved &gt; ./dns-cache.txt</span><br></pre></td></tr></table></figure><h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>After I have figured out the root cause, I find either of the following ways can workaround and make the <code>sudo</code> run normally.</p><ul><li>Add an entry of <code>127.0.0.1 ubuntuwork</code> to <code>/etc/hosts</code></li><li>Remove the <code>search</code> line in <code>/etc/resolv.conf</code></li></ul><p>And actually, I should correct the hostname, such as renaming hostname from <code>ubuntuwork</code> to <code>ubuntu-work</code> and add corresponding entry to <code>/etc/hosts</code>.</p><h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul><li><a href="https://man7.org/linux/man-pages/man7/hostname.7.html">hostname(7) man page</a></li><li><a href="https://superuser.com/a/429890">Sudo command trying to search for hostname</a></li><li><a href="http://manpages.ubuntu.com/manpages/focal/man8/systemd-resolved.service.8.html">systemd-resolved man page</a></li><li><a href="https://askubuntu.com/a/1281629">How can I see systemd-resolve dns cache?</a></li></ul>]]></content>
+    
+    
+    <summary type="html">&lt;p&gt;In recent days I created a new virtual machine with ubuntu 20.04, but I found the terminal command with &lt;code&gt;sudo&lt;/code&gt; took a long time, almost 3 seconds each time. When I seach &lt;code&gt;sudo command slow&lt;/code&gt; in Google, the first two search results are both from stackflow and suggest adding an entry &lt;code&gt;127.0.0.1 hostname&lt;/code&gt; to &lt;code&gt;/etc/hosts&lt;/code&gt; file. I checked &lt;code&gt;/etc/hosts&lt;/code&gt; and found the entry &lt;code&gt;127.0.0.1 hostname&lt;/code&gt; exists (in fact I made a mistake here, which I will describe later). This article describes the investigation into this issue in timeline.&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="program" scheme="http://amyangfei.me/categories/program/"/>
+    
+    
+    <category term="strace" scheme="http://amyangfei.me/tags/strace/"/>
+    
+    <category term="dns" scheme="http://amyangfei.me/tags/dns/"/>
+    
+    <category term="system diagnose" scheme="http://amyangfei.me/tags/system-diagnose/"/>
+    
+  </entry>
   
   <entry>
     <title>Dive into the network regression affection to network service</title>
@@ -64,9 +89,9 @@
     
     <category term="golang" scheme="http://amyangfei.me/tags/golang/"/>
     
-    <category term="goroutine" scheme="http://amyangfei.me/tags/goroutine/"/>
-    
     <category term="system diagnose" scheme="http://amyangfei.me/tags/system-diagnose/"/>
+    
+    <category term="goroutine" scheme="http://amyangfei.me/tags/goroutine/"/>
     
   </entry>
   
@@ -242,11 +267,11 @@
     <category term="program" scheme="http://amyangfei.me/categories/program/"/>
     
     
-    <category term="source code reading" scheme="http://amyangfei.me/tags/source-code-reading/"/>
-    
     <category term="golang" scheme="http://amyangfei.me/tags/golang/"/>
     
     <category term="etcd" scheme="http://amyangfei.me/tags/etcd/"/>
+    
+    <category term="source code reading" scheme="http://amyangfei.me/tags/source-code-reading/"/>
     
   </entry>
   
@@ -426,9 +451,9 @@
     
     <category term="python" scheme="http://amyangfei.me/tags/python/"/>
     
-    <category term="task scheduler" scheme="http://amyangfei.me/tags/task-scheduler/"/>
-    
     <category term="source code reading" scheme="http://amyangfei.me/tags/source-code-reading/"/>
+    
+    <category term="task scheduler" scheme="http://amyangfei.me/tags/task-scheduler/"/>
     
   </entry>
   
@@ -512,42 +537,6 @@
     <category term="stl" scheme="http://amyangfei.me/tags/stl/"/>
     
     <category term="llvm" scheme="http://amyangfei.me/tags/llvm/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>tornado源码分析5</title>
-    <link href="http://amyangfei.me/2013/03/01/tornado-source-analysis-5/"/>
-    <id>http://amyangfei.me/2013/03/01/tornado-source-analysis-5/</id>
-    <published>2013-02-28T16:00:00.000Z</published>
-    <updated>2022-02-19T06:30:27.604Z</updated>
-    
-    <content type="html"><![CDATA[<p>Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application，源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。</p><h3 id="RequestHandler分析"><a href="#RequestHandler分析" class="headerlink" title="RequestHandler分析"></a>RequestHandler分析</h3><p>RequestHandler提供了一个针对http请求处理的基类封装，方法比较多，主要有以下功能：</p><ol><li><p>提供了GET&#x2F;HEAD&#x2F;POST&#x2F;DELETE&#x2F;PATCH&#x2F;PUT&#x2F;OPTIONS等方法的功能接口，具体开发时RequestHandler的子类重写这些方法以支持不同需求的请求处理。</p></li><li><p>提供对http请求的处理方法，包括对headers，页面元素，cookie的处理。</p></li><li><p>提供对请求响应的一些列功能，包括redirect，write（将数据写入输出缓冲区），渲染模板（render, reander_string）等</p></li><li><p>其他的一些辅助功能，如结束请求&#x2F;响应，刷新输出缓冲区，对用户授权相关处理等。</p></li></ol><span id="more"></span><h3 id="Application分析"><a href="#Application分析" class="headerlink" title="Application分析"></a>Application分析</h3><p>源代码中的注释写的非常好：A collection of request handlers that make up a web application. Instances of this class are <strong>callable</strong> and can be passed directly to HTTPServer to serve the application. 该类初始化的第一个参数接受一个(regexp, request_class)形式的列表，指定了针对不同URL请求所采取的处理方法，包括对静态文件请求的处理（web.StaticFileHandler）。Application类中实现 <a href="http://docs.python.org/2/reference/datamodel.html#object.__call__" target="_blank">__call__</a> 函数，这样该类就成为可调用的对象，由HTTPServer来进行调用。比如下边是httpserver.py中HTTPConection类的代码，该处request_callback即为Application对象。</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">_on_headers</span>(<span class="params">self, data</span>):</span><br><span class="line"><span class="comment"># some codes...</span></span><br><span class="line">self.request_callback(self._request)</span><br><span class="line"></span><br></pre></td></tr></table></figure><p>__call__函数会遍历Application的handlers列表，匹配到相应的URL后通过handler._execute进行相应处理；如果没有匹配的URL，则会调用ErrorHandler。</p><p>在Application初始时有一个debug参数，当debug&#x3D;True时，运行程序时当有代码、模块发生修改，程序会自动重新加载，即实现了auto-reload功能。该功能在autoreload.py文件中实现，是否需要reload的检查在每次接收到http请求时进行，基本原理是检查每一个sys.modules以及_watched_files所包含的模块在程序中所保存的最近修改时间和文件系统中的最近修改时间是否一致，如果不一致，则整个程序重新加载。</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_reload_on_update</span>(<span class="params">modify_times</span>):</span><br><span class="line"><span class="keyword">for</span> module <span class="keyword">in</span> sys.modules.values():</span><br><span class="line">        <span class="comment"># module test and some path handles</span></span><br><span class="line">        _check_file(modify_times, path)</span><br><span class="line">    <span class="keyword">for</span> path <span class="keyword">in</span> _watched_files:</span><br><span class="line">        _check_file(modify_times, path)</span><br></pre></td></tr></table></figure><p>Tornado的autoreload模块提供了一个对外的main接口，可以通过下边的方法实现运行test.py程序运行的auto-reload。但是测试了一下，功能有限，相比于django的autorelaod模块（具有较好的封装和较完善的功能）还是有一定的差距。最主要的原因是Tornado中的实现耦合了一些ioloop的功能，因而autoreload不是一个可独立的模块。</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tornado</span></span><br><span class="line">python -m tornado.autoreload test.py [args...]</span><br><span class="line"></span><br><span class="line"><span class="comment"># django</span></span><br><span class="line">from django.utils import autoreload</span><br><span class="line">autoreload.main(your-main-func)</span><br></pre></td></tr></table></figure><h3 id="asynchronous方法"><a href="#asynchronous方法" class="headerlink" title="asynchronous方法"></a>asynchronous方法</h3><p>该方法通常被用为请求处理函数的decorator，以实现异步操作，被@asynchronous修饰后的请求处理为长连接，在调用self.finish之前会一直处于连接等待状态。</p><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><a href="/2013/01/29/tornado-source-analysis-2/" target="_blank">tornado源码分析2</a> 一文中给出了一张tornado httpserver的工作流程图，调用Application发生在HTTPConnection大方框的handle_request椭圆中。那篇文章里使用的是一个简单的请求处理函数handle_request，无论是handle_request还是application，其本质是一个函数（可调用的对象），当服务器接收连接并读取http请求header之后进行调用，进行请求处理和应答。</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http_server = httpserver.HTTPServer(handle_request)</span><br><span class="line">http_server = httpserver.HTTPServer(application)</span><br></pre></td></tr></table></figure>]]></content>
-    
-    
-    <summary type="html">&lt;p&gt;Tornado的web框架在web.py中实现，主要包括RequestHandler类（本质为对http请求处理的封装）和Application类（是一些列请求处理的集合，构成的一个web-application，源代码注释不翻译更容易理解：A collection of request handlers that make up a web application）。&lt;/p&gt;
-&lt;h3 id=&quot;RequestHandler分析&quot;&gt;&lt;a href=&quot;#RequestHandler分析&quot; class=&quot;headerlink&quot; title=&quot;RequestHandler分析&quot;&gt;&lt;/a&gt;RequestHandler分析&lt;/h3&gt;&lt;p&gt;RequestHandler提供了一个针对http请求处理的基类封装，方法比较多，主要有以下功能：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;&lt;p&gt;提供了GET&amp;#x2F;HEAD&amp;#x2F;POST&amp;#x2F;DELETE&amp;#x2F;PATCH&amp;#x2F;PUT&amp;#x2F;OPTIONS等方法的功能接口，具体开发时RequestHandler的子类重写这些方法以支持不同需求的请求处理。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;提供对http请求的处理方法，包括对headers，页面元素，cookie的处理。&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;提供对请求响应的一些列功能，包括redirect，write（将数据写入输出缓冲区），渲染模板（render, reander_string）等&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;其他的一些辅助功能，如结束请求&amp;#x2F;响应，刷新输出缓冲区，对用户授权相关处理等。&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;</summary>
-    
-    
-    
-    <category term="program" scheme="http://amyangfei.me/categories/program/"/>
-    
-    
-    <category term="python" scheme="http://amyangfei.me/tags/python/"/>
-    
-    <category term="tornado" scheme="http://amyangfei.me/tags/tornado/"/>
-    
-    <category term="web framework" scheme="http://amyangfei.me/tags/web-framework/"/>
     
   </entry>
   
