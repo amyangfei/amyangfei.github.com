@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://amyangfei.me/2022/06/26/golang-memory-diagnose/</loc>
+    <lastmod>2022-06-26</lastmod>
+  </url>
+  <url>
+    <loc>http://amyangfei.me/2021/10/07/memory-models/</loc>
+    <lastmod>2022-03-26</lastmod>
+  </url>
+  <url>
     <loc>http://amyangfei.me/2022/02/20/diagnose-slow-sudo/</loc>
     <lastmod>2022-02-20</lastmod>
   </url>
@@ -13,7 +21,7 @@
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2020/12/19/best-practice-with-go-etcd/</loc>
+    <loc>http://amyangfei.me/2013/11/06/apscheduler-source-analyse/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
@@ -21,11 +29,11 @@
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2012/03/26/bide-algorithm/</loc>
+    <loc>http://amyangfei.me/2020/12/19/best-practice-with-go-etcd/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2013/11/06/apscheduler-source-analyse/</loc>
+    <loc>http://amyangfei.me/2012/03/26/bide-algorithm/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
@@ -33,11 +41,11 @@
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2021/02/17/golang-nil-panic/</loc>
+    <loc>http://amyangfei.me/2021/12/05/go-gorouinte-diagnose/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2021/12/05/go-gorouinte-diagnose/</loc>
+    <loc>http://amyangfei.me/2021/02/17/golang-nil-panic/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
@@ -49,19 +57,7 @@
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2012/12/30/how-to-build-this-blog/</loc>
-    <lastmod>2022-02-19</lastmod>
-  </url>
-  <url>
     <loc>http://amyangfei.me/2014/01/10/making-progit-ebook/</loc>
-    <lastmod>2022-02-19</lastmod>
-  </url>
-  <url>
-    <loc>http://amyangfei.me/2021/10/07/memory-models/</loc>
-    <lastmod>2022-02-19</lastmod>
-  </url>
-  <url>
-    <loc>http://amyangfei.me/2014/12/04/python-tips-2/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
@@ -69,11 +65,19 @@
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
+    <loc>http://amyangfei.me/2014/12/04/python-tips-2/</loc>
+    <lastmod>2022-02-19</lastmod>
+  </url>
+  <url>
     <loc>http://amyangfei.me/2014/11/27/python-tips/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2012/11/29/shuffle-algorithm/</loc>
+    <loc>http://amyangfei.me/2012/12/30/how-to-build-this-blog/</loc>
+    <lastmod>2022-02-19</lastmod>
+  </url>
+  <url>
+    <loc>http://amyangfei.me/2016/08/03/redis-module-with-cgo/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
@@ -81,7 +85,7 @@
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2016/08/03/redis-module-with-cgo/</loc>
+    <loc>http://amyangfei.me/2012/11/29/shuffle-algorithm/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
@@ -97,11 +101,11 @@
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2013/01/27/tornado-source-analysis-1/</loc>
+    <loc>http://amyangfei.me/2020/12/27/thinking-about-etcd-lease/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
-    <loc>http://amyangfei.me/2020/12/27/thinking-about-etcd-lease/</loc>
+    <loc>http://amyangfei.me/2013/01/27/tornado-source-analysis-1/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
