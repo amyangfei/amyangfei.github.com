@@ -28,7 +28,7 @@
 <meta property="og:description" content="When we diagnose performance issues of a running system, memory issue is always a must check item, which could affect latency, throughput, jitter from many aspects. This article focuses on memory issu">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-06-25T16:00:00.000Z">
-<meta property="article:modified_time" content="2022-06-26T15:33:00.068Z">
+<meta property="article:modified_time" content="2022-07-02T09:19:30.894Z">
 <meta property="article:author" content="amyangfei">
 <meta property="article:tag" content="golang">
 <meta property="article:tag" content="system diagnose">
@@ -244,7 +244,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Symbols count in article: </span>
-      <span>5.2k</span>
+      <span>5.9k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
@@ -313,8 +313,10 @@
 <h1 id="Common-memory-related-optimization"><a href="#Common-memory-related-optimization" class="headerlink" title="Common memory related optimization"></a>Common memory related optimization</h1><p>Some common optimization ways will be discussed in this part, since GC is not a silver bullet for all scenarios, and golang GC and runtime are changing with every new release, the following optimization ways are suitable for specific scenarios.</p>
 <ul>
 <li>The hack way to leverage cpu usage and GC performance by configuring GOGC. A real case about GOGC optimization is discussed in <a target="_blank" rel="noopener" href="https://eng.uber.com/how-we-saved-70k-cores-across-30-mission-critical-services/">How We Saved 70K Cores Across 30 Mission-Critical Services (Large-Scale, Semi-Automated Go GC Tuning @Uber)</a></li>
+<li>Use go ballast to reduce GC frequency, this is originally used in twitch and described in article <a target="_blank" rel="noopener" href="https://blog.twitch.tv/en/2019/04/10/go-memory-ballast-how-i-learnt-to-stop-worrying-and-love-the-heap/">Go memory ballast: How I learnt to stop worrying and love the heap</a>, there is also a related discussion in <a target="_blank" rel="noopener" href="https://github.com/golang/go/issues/23044">golang&#x2F;go&#x2F;issues&#x2F;23044</a>.</li>
 <li>Have a deep mind about whether memory is allocated in stack or heap, feel comfortable to use memory escape analysis and follow some best practises about variable passing, such as for small data, use pass-by-value instead of pointer, which do not escape to heap and can be recycled in time, in order to reduce GC pressure. Especially the variables passing by code snippet is a hot path. In the article <a target="_blank" rel="noopener" href="https://blog.devgenius.io/in-depth-analysis-of-golang-memory-escape-edfbfb856913">Golang Memory Escape In-Depth Analysis</a> has more details about escape analysis.</li>
 <li>Avoid <a target="_blank" rel="noopener" href="https://go101.org/article/memory-leaking.html">common memory leaking patterns</a>.</li>
+<li>Since go1.19 (which has not been released so far), a new <code>runtime/debug</code> function called <code>SetMemoryLimit</code> will be provided, this feature adds a memory limit that would give the Go runtime the information it needs to both respect users’ memory limits, and allow them to optionally use that memory always, to cut back the cost of garbage collection. It mainly focuses to solve the out-of-memory problem, but note OOM can still happen when memory limit is set. The tracking issue of this feature is <a target="_blank" rel="noopener" href="https://github.com/golang/go/issues/48409">golang&#x2F;go&#x2F;issues&#x2F;48409</a>.</li>
 </ul>
 <h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><ul>
 <li><a target="_blank" rel="noopener" href="https://go.dev/ref/mem">The Go Memory Model</a></li>
@@ -327,6 +329,7 @@
 <li><a target="_blank" rel="noopener" href="https://povilasv.me/prometheus-go-metrics/">prometheus go metrics</a></li>
 <li><a target="_blank" rel="noopener" href="https://go.dev/doc/diagnostics">Tracing and Debugging</a></li>
 <li><a target="_blank" rel="noopener" href="https://eng.uber.com/how-we-saved-70k-cores-across-30-mission-critical-services/">How We Saved 70K Cores Across 30 Mission-Critical Services (Large-Scale, Semi-Automated Go GC Tuning @Uber)</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.twitch.tv/en/2019/04/10/go-memory-ballast-how-i-learnt-to-stop-worrying-and-love-the-heap/">Go memory ballast: How I learnt to stop worrying and love the heap</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.devgenius.io/in-depth-analysis-of-golang-memory-escape-edfbfb856913">Golang Memory Escape In-Depth Analysis</a></li>
 </ul>
 
