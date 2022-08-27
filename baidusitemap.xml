@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://amyangfei.me/2022/02/01/network-regression-affect-to-service/</loc>
+    <lastmod>2022-08-27</lastmod>
+  </url>
+  <url>
+    <loc>http://amyangfei.me/2020/12/19/best-practice-with-go-etcd/</loc>
+    <lastmod>2022-07-16</lastmod>
+  </url>
+  <url>
     <loc>http://amyangfei.me/2022/06/26/golang-memory-diagnose/</loc>
     <lastmod>2022-07-09</lastmod>
   </url>
@@ -26,10 +34,6 @@
   </url>
   <url>
     <loc>http://amyangfei.me/2013/06/17/asynchronous-programming-with-tornado/</loc>
-    <lastmod>2022-02-19</lastmod>
-  </url>
-  <url>
-    <loc>http://amyangfei.me/2020/12/19/best-practice-with-go-etcd/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>
@@ -62,10 +66,6 @@
   </url>
   <url>
     <loc>http://amyangfei.me/2014/01/10/making-progit-ebook/</loc>
-    <lastmod>2022-02-19</lastmod>
-  </url>
-  <url>
-    <loc>http://amyangfei.me/2022/02/01/network-regression-affect-to-service/</loc>
     <lastmod>2022-02-19</lastmod>
   </url>
   <url>

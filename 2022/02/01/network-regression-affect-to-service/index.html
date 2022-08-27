@@ -20,23 +20,26 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"amyangfei.me","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.10.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}}</script><script src="/js/config.js"></script>
 
-  <meta name="description" content="In recent work my team devoted in a cross region data replication solution, a simplified abstraction of the workload is as follows  gRPC service ——(bidirectional gRPC stream)——&gt; data transfer servi">
+  <meta name="description" content="In recent work my team devoted in a cross region data replication solution, a simplified abstraction of the workload is as follows   The gRPC service and downstream MySQL are located in different AWS">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Dive into the network regression affection to network service">
 <meta property="og:url" content="http://amyangfei.me/2022/02/01/network-regression-affect-to-service/index.html">
 <meta property="og:site_name" content="Amyangfei&#39;s Blog">
-<meta property="og:description" content="In recent work my team devoted in a cross region data replication solution, a simplified abstraction of the workload is as follows  gRPC service ——(bidirectional gRPC stream)——&gt; data transfer servi">
+<meta property="og:description" content="In recent work my team devoted in a cross region data replication solution, a simplified abstraction of the workload is as follows   The gRPC service and downstream MySQL are located in different AWS">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://amyangfei.me/images/20220201_service_architecture.png">
 <meta property="og:image" content="http://amyangfei.me/images/20220201_throughput_regression_latency.png">
 <meta property="og:image" content="http://amyangfei.me/images/20220201_throughput_regression_packet_loss.png">
+<meta property="og:image" content="http://amyangfei.me/images/20220201_throughput_stability.png">
+<meta property="og:image" content="http://amyangfei.me/images/20220201_accelerate_with_kcptun.png">
 <meta property="article:published_time" content="2022-01-31T16:00:00.000Z">
-<meta property="article:modified_time" content="2022-02-19T06:30:27.604Z">
+<meta property="article:modified_time" content="2022-08-27T12:51:02.147Z">
 <meta property="article:author" content="amyangfei">
 <meta property="article:tag" content="performance">
 <meta property="article:tag" content="TCP">
 <meta property="article:tag" content="network chaos">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://amyangfei.me/images/20220201_throughput_regression_latency.png">
+<meta name="twitter:image" content="http://amyangfei.me/images/20220201_service_architecture.png">
 
 
 <link rel="canonical" href="http://amyangfei.me/2022/02/01/network-regression-affect-to-service/">
@@ -130,7 +133,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Comparing-different-workloads"><span class="nav-number">1.</span> <span class="nav-text">Comparing different workloads</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Potential-solutions-to-increase-throughput"><span class="nav-number">2.</span> <span class="nav-text">Potential solutions to increase throughput</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-relay-service-solution"><span class="nav-number">2.1.</span> <span class="nav-text">The relay service solution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tuning-the-network-with-kcptun"><span class="nav-number">2.2.</span> <span class="nav-text">Tuning the network with kcptun</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Advices-about-system-performance"><span class="nav-number">3.</span> <span class="nav-text">Advices about system performance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Remaining-problems"><span class="nav-number">4.</span> <span class="nav-text">Remaining problems</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">5.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Comparing-different-workloads"><span class="nav-number">1.</span> <span class="nav-text">Comparing different workloads</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Potential-solutions-to-increase-throughput"><span class="nav-number">2.</span> <span class="nav-text">Potential solutions to increase throughput</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-relay-service-solution"><span class="nav-number">2.1.</span> <span class="nav-text">The relay service solution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tuning-the-network-with-tunnel"><span class="nav-number">2.2.</span> <span class="nav-text">Tuning the network with tunnel</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Advices-about-system-performance"><span class="nav-number">3.</span> <span class="nav-text">Advices about system performance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Remaining-problems"><span class="nav-number">4.</span> <span class="nav-text">Remaining problems</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">5.</span> <span class="nav-text">Reference</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -246,14 +249,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Symbols count in article: </span>
-      <span>8.2k</span>
+      <span>8.9k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>7 mins.</span>
+      <span>8 mins.</span>
     </span>
 </div>
 
@@ -265,10 +268,9 @@
     
     <div class="post-body" itemprop="articleBody">
         <p>In recent work my team devoted in a cross region data replication solution, a simplified abstraction of the workload is as follows</p>
-<blockquote>
-<p>gRPC service ——(bidirectional gRPC stream)——&gt; data transfer service ——(translate to SQL and write to downstream MySQL)——&gt; downstream MySQL</p>
-</blockquote>
-<p>The gRPC service and downstream MySQL are located in different AWS regions(such as one in EU, and the other one in US East), and the average network latency between these two regions is 70ms. We have a choice to deploy the data transfer service in either gRPC service side or downstream MySQL side. After a series of tests we observed that deploying data transfer service in the downstream(the downstream MySQL) side has <strong>much larger throughput</strong> than deploying it in the upstream(the gRPC service) side. This case does not happen by accident, it has a deep reason and deserves to dive into. This article will analyze the root cause, find potential solutions and give some advice about such scenarios.</p>
+<img src="/images/20220201_service_architecture.png">
+
+<p>The gRPC service and downstream MySQL are located in different AWS regions(such as one in EU, and the other one in US East), and the average network latency between these two regions is 70ms. We have a choice to deploy the data transfer service in either gRPC service side or downstream MySQL side. After a series of tests, we observed that deploying data transfer service in the downstream(the downstream MySQL) side has much larger throughput than deploying it in the upstream(the gRPC service) side. This article will analyze the root cause from both benchmark result and principle analysis, try to find potential solutions and give advice about such scenarios.</p>
 <span id="more"></span>
 
 <h2 id="Comparing-different-workloads"><a href="#Comparing-different-workloads" class="headerlink" title="Comparing different workloads"></a>Comparing different workloads</h2><p>Intuitively the impact of network regression (including latency, packet loss etc.) is different in the above scenario, gRPC stream has no regression when having 75ms latency, while MySQL execution throughput drops a lot. In this section I will compare several workloads under network regression. The experiment was conducted on several servers in one IDC, and the network regression was simulated by <a target="_blank" rel="noopener" href="https://github.com/chaos-mesh/chaosd">chaosd</a>. I simulated the network latency and packet loss, which are the most common network regression in the real world. The simulated workloads are as follows:</p>
@@ -284,55 +286,94 @@
 <table>
 <thead>
 <tr>
-<th></th>
-<th>normal network</th>
-<th>latency+50ms</th>
-<th>latency+75ms</th>
-<th>latency+100ms</th>
-<th>packet loss 5%</th>
-<th>packet loss 10%</th>
+<th>Network latency</th>
+<th align="center">0ms</th>
+<th align="center">10ms</th>
+<th align="center">25ms</th>
+<th align="center">50ms</th>
+<th align="center">75ms</th>
+<th align="center">100ms</th>
+<th align="center">150ms</th>
+<th align="center">200ms</th>
 </tr>
 </thead>
 <tbody><tr>
 <td>sysbench insert</td>
-<td>1898</td>
-<td>208</td>
-<td>141</td>
-<td>102</td>
-<td>406</td>
-<td>240</td>
+<td align="center">10732</td>
+<td align="center">2741</td>
+<td align="center">1170</td>
+<td align="center">603</td>
+<td align="center">408</td>
+<td align="center">309</td>
+<td align="center">208</td>
+<td align="center">157</td>
 </tr>
 <tr>
 <td>gRPC bi-stream</td>
-<td>17.28M</td>
-<td>17.28M</td>
-<td>15.67M</td>
-<td>13.18M</td>
-<td>16.02M</td>
-<td>12.42M</td>
+<td align="center">42.4M</td>
+<td align="center">41.9M</td>
+<td align="center">42.3M</td>
+<td align="center">42.0M</td>
+<td align="center">36.1M</td>
+<td align="center">29.3M</td>
+<td align="center">19.8M</td>
+<td align="center">14.9M</td>
 </tr>
 <tr>
 <td>elastic MySQL worker (qps&#x2F;pending workers)</td>
-<td>3998&#x2F;128</td>
-<td>3997&#x2F;623</td>
-<td>3816&#x2F;2256</td>
-<td>3091&#x2F;2322</td>
-<td>3997&#x2F;219</td>
-<td>3999&#x2F;377</td>
+<td align="center">4000&#x2F;0</td>
+<td align="center">4000&#x2F;80</td>
+<td align="center">4000&#x2F;205</td>
+<td align="center">4000&#x2F;420</td>
+<td align="center">4000&#x2F;780</td>
+<td align="center">3380&#x2F;2353</td>
+<td align="center">2314&#x2F;2385</td>
+<td align="center">1682&#x2F;2392</td>
 </tr>
 </tbody></table>
+<img src="/images/20220201_throughput_regression_latency.png">
+
 <table>
 <thead>
 <tr>
-<th></th>
-<th></th>
+<th>packet loss</th>
+<th align="center">0</th>
+<th align="center">2%</th>
+<th align="center">5%</th>
+<th align="center">10%</th>
+<th align="center">15%</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><img src="/images/20220201_throughput_regression_latency.png"></td>
-<td><img src="/images/20220201_throughput_regression_packet_loss.png"></td>
+<td>sysbench insert</td>
+<td align="center">10732</td>
+<td align="center">5502</td>
+<td align="center">2145</td>
+<td align="center">1129</td>
+<td align="center">684</td>
+</tr>
+<tr>
+<td>gRPC bi-stream</td>
+<td align="center">42.4M</td>
+<td align="center">42.1M</td>
+<td align="center">41.1M</td>
+<td align="center">37.6M</td>
+<td align="center">7.7M</td>
+</tr>
+<tr>
+<td>elastic MySQL worker (qps&#x2F;pending workers)</td>
+<td align="center">4000&#x2F;0</td>
+<td align="center">4000&#x2F;20</td>
+<td align="center">4000&#x2F;62</td>
+<td align="center">4000&#x2F;156</td>
+<td align="center">3999&#x2F;297</td>
 </tr>
 </tbody></table>
+<img src="/images/20220201_throughput_regression_packet_loss.png">
+
+<p>In addition to the absolute value of throughput, the jitter of throughput is another important factor of service quality. Given the gRPC bi-stream and network loss scenario, we run each test for 10 minutes, observe throughput every 5 seconds and calculate the standard deviation divided by average throughput of these points to measure the throughput stability, and the test result is as follows.</p>
+<img src="/images/20220201_throughput_stability.png">
+
 <p>It is easy to draw some conclusions from the above benchmark result</p>
 <ul>
 <li><p>The network regression(either latency or packet loss) impact on throughput in sysbench workload is significant. As for the reasons, in sysbench workload the throughput is decided by the thread count (which is a fixed number and configured by <code>--threads</code> when running sysbench) and throughput of a single thread. Each single thread executes transaction serially in a loop until meeting some exit condition(ref: <a target="_blank" rel="noopener" href="https://github.com/akopytov/sysbench/blob/master/src/lua/internal/sysbench.lua#L29-L55">internal&#x2F;sysbench.lua:thread_run</a>). So in the sysbench workload, when response from MySQL is slowed down by network regression, the worker thread will waste a lot of time waiting for SQL execution response and leads to severe regression of throughput.</p>
@@ -340,8 +381,11 @@
 <li><p>The network regression impact on throughput in gRPC bi-stream workload is not significant, which is achieved by the throughput optimization on high latency connections. gRPC-go implements a <a target="_blank" rel="noopener" href="https://grpc.io/blog/grpc-go-perf-improvements/#bdp-estimation-and-dynamic-flow-control-window">BDP estimation and dynamic flow control window</a> feature. This feature calculates the current BDP (Bandwidth Delay Product (BDP) is the bandwidth of a network connection times its round-trip latency. This effectively tells us how many bytes can be “on the wire” at a given moment, if full utilization is achieved) and bandwidth sample and decides if the flow control windows should go up (<a target="_blank" rel="noopener" href="https://docs.google.com/document/d/1Eq4eBEbNt1rc8EYuwqsduQd1ZfcBOCYt9HVSBa--m-E/pub">algorithm</a>). There exists a long issue(<a target="_blank" rel="noopener" href="https://github.com/grpc/grpc-go/issues/1043">grpc-go issue#1043</a>) that discusses this topic, which deserves to take a look.</p>
 </li>
 <li><p>The network regression has no impact on throughput in elastic worker workload when the worker doesn’t reach the upper limit. Since more workers can be spawned when some pending executions are not returned, the SQL execution bandwidth (from the point view of server side) will be fully used, without time wasted in waiting for response to arrive at the client side. Compared with the gRPC scenario, the elastic worker is another kind of dynamic window.</p>
+</li>
+<li><p>Note we can’t achieve performance optimization by increasing worker size or buffer size infinitely. For example in the elastic MySQL worker scenario, when MySQL worker count increases, more lock contention will happend in either client side (more workers lead to heavy workload of runtime) or server side (more transactions lead to more lock conflicts). This can be treated as a kind of <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Bufferbloat">bufferbloat</a>. Known reasons for performance drawbacks include:</p>
 <ul>
-<li>Note we can’t achieve performance optimization by increasing worker size or buffer size infinitely. For example in the elastic MySQL worker scenario, when MySQL worker count increases, more lock contention will happend in either client side (more workers lead to heavy workload of runtime) or server side (more transactions lead to more lock conflicts). This can be treated as a kind of <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Bufferbloat">bufferbloat</a>.</li>
+<li>More lock contention will happen in either the client side (more workers lead to heavy workload of runtime) or server side (more transactions lead to more lock conflicts).</li>
+<li>More clients wait for response from server side leads to longer latency, more waiting clients could cause connection reset by peer because of timeout.</li>
 </ul>
 </li>
 </ul>
@@ -359,39 +403,47 @@
 </ul>
 </li>
 </ul>
-<h3 id="Tuning-the-network-with-kcptun"><a href="#Tuning-the-network-with-kcptun" class="headerlink" title="Tuning the network with kcptun"></a>Tuning the network with kcptun</h3><p>kcptun is a tunnel based on <a target="_blank" rel="noopener" href="https://github.com/skywind3000/kcp/blob/master/README.en.md">KCP</a> with N:M multiplexing and FEC(Forward error correction) for transfer error correction. KCP can achieve the transmission effect of a reduction of the average latency by 30% to 40% and reduction of the maximum delay by a factor of three, at the cost of 10% to 20% more bandwidth wasted than TCP. kcptun can be used in some cross-region scenarios to accelerate TCP stream, in order to verify whether kcptun can help the above scenario, I test the sysbench workload with kcptun again. The basic topology is as follows</p>
-<blockquote>
-<p>sysbench client -&gt; kcptun client -&gt; (network with latency injection) -&gt; kcptun server -&gt; MySQL</p>
-</blockquote>
+<h3 id="Tuning-the-network-with-tunnel"><a href="#Tuning-the-network-with-tunnel" class="headerlink" title="Tuning the network with tunnel"></a>Tuning the network with tunnel</h3><p>kcptun is a tunnel based on <a target="_blank" rel="noopener" href="https://github.com/skywind3000/kcp/blob/master/README.en.md">KCP</a> with N:M multiplexing and FEC(Forward error correction) for transfer error correction. KCP can achieve the transmission effect of a reduction of the average latency by 30% to 40% and reduction of the maximum delay by a factor of three, at the cost of 10% to 20% more bandwidth wasted than TCP. kcptun can be used in some cross-region scenarios to accelerate TCP stream, in order to verify whether kcptun can help the above scenario, I test the sysbench workload with kcptun again. The basic topology is as follows</p>
+<img src="/images/20220201_accelerate_with_kcptun.png">
+
 <table>
 <thead>
 <tr>
 <th></th>
-<th>latency 10ms</th>
-<th>latency 25ms</th>
-<th>latency 75ms</th>
-<th>packet loss 5%</th>
-<th>packet loss 10%</th>
+<th align="center">0-100ms</th>
+<th align="center">0-50ms</th>
+<th align="center">0-25ms</th>
+<th align="center">0-10ms</th>
+<th align="center">100ms</th>
+<th align="center">50ms</th>
+<th align="center">25ms</th>
+<th align="center">10ms</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>MySQL direct write</td>
-<td>869</td>
-<td>405</td>
-<td>141</td>
-<td>259</td>
-<td>144</td>
+<td>Direct write</td>
+<td align="center">969</td>
+<td align="center">2199</td>
+<td align="center">3875</td>
+<td align="center">6274</td>
+<td align="center">309</td>
+<td align="center">603</td>
+<td align="center">1160</td>
+<td align="center">2716</td>
 </tr>
 <tr>
-<td>MySQL write via kcptun</td>
-<td>855</td>
-<td>405</td>
-<td>141</td>
-<td>270</td>
-<td>148</td>
+<td>Write via kcptun</td>
+<td align="center">3730</td>
+<td align="center">4967</td>
+<td align="center">5395</td>
+<td align="center">5948</td>
+<td align="center">308</td>
+<td align="center">596</td>
+<td align="center">1145</td>
+<td align="center">2613</td>
 </tr>
 </tbody></table>
-<p>From the test result, we can see if the network has pure latency, kcptun doesn’t make any sense to improve throughput, and if packet loss exists, using kcptun increases 3%-4% throughput in the sysbench insert scenario. Comparing to the throughput regression, using kuptun is not the silver bullet for such MySQL write scenario.</p>
+<p>From the benchmark result, we can see if the network has a fixed latency, kcptun doesn’t make any sense to improve throughput, even a little regression. On the other hand, if the latency of network is not stable, the larger latency jitter exists, the higher throughput improvement will be gained with  kcptun. Considering the network situation and the overhead of KCP encoding&#x2F;decoding, this strategy is not a silver bullet but can improve performance in part of scenarios.</p>
 <h2 id="Advices-about-system-performance"><a href="#Advices-about-system-performance" class="headerlink" title="Advices about system performance"></a>Advices about system performance</h2><ul>
 <li>The performance of a system should be estimated. It is important to abstract the architecture and estimate the performance indicators based on known knowledge.</li>
 <li>If the estimation is beyond precocious, try to write a minimal demo to simulate the workload.</li>

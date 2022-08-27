@@ -427,14 +427,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Symbols count in article: </span>
-      <span>8.2k</span>
+      <span>8.9k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>7 mins.</span>
+      <span>8 mins.</span>
     </span>
 </div>
 
@@ -446,10 +446,9 @@
     
     <div class="post-body" itemprop="articleBody">
           <p>In recent work my team devoted in a cross region data replication solution, a simplified abstraction of the workload is as follows</p>
-<blockquote>
-<p>gRPC service ——(bidirectional gRPC stream)——&gt; data transfer service ——(translate to SQL and write to downstream MySQL)——&gt; downstream MySQL</p>
-</blockquote>
-<p>The gRPC service and downstream MySQL are located in different AWS regions(such as one in EU, and the other one in US East), and the average network latency between these two regions is 70ms. We have a choice to deploy the data transfer service in either gRPC service side or downstream MySQL side. After a series of tests we observed that deploying data transfer service in the downstream(the downstream MySQL) side has <strong>much larger throughput</strong> than deploying it in the upstream(the gRPC service) side. This case does not happen by accident, it has a deep reason and deserves to dive into. This article will analyze the root cause, find potential solutions and give some advice about such scenarios.</p>
+<img src="/images/20220201_service_architecture.png">
+
+<p>The gRPC service and downstream MySQL are located in different AWS regions(such as one in EU, and the other one in US East), and the average network latency between these two regions is 70ms. We have a choice to deploy the data transfer service in either gRPC service side or downstream MySQL side. After a series of tests, we observed that deploying data transfer service in the downstream(the downstream MySQL) side has much larger throughput than deploying it in the upstream(the gRPC service) side. This article will analyze the root cause from both benchmark result and principle analysis, try to find potential solutions and give advice about such scenarios.</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2022/02/01/network-regression-affect-to-service/#more" rel="contents">
