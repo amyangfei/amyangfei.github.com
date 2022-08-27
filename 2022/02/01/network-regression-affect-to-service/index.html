@@ -32,8 +32,9 @@
 <meta property="og:image" content="http://amyangfei.me/images/20220201_throughput_regression_packet_loss.png">
 <meta property="og:image" content="http://amyangfei.me/images/20220201_throughput_stability.png">
 <meta property="og:image" content="http://amyangfei.me/images/20220201_accelerate_with_kcptun.png">
+<meta property="og:image" content="http://amyangfei.me/images/20220201_throughput_regression_with_kcptun.png">
 <meta property="article:published_time" content="2022-01-31T16:00:00.000Z">
-<meta property="article:modified_time" content="2022-08-27T12:51:02.147Z">
+<meta property="article:modified_time" content="2022-08-27T13:23:21.004Z">
 <meta property="article:author" content="amyangfei">
 <meta property="article:tag" content="performance">
 <meta property="article:tag" content="TCP">
@@ -443,6 +444,8 @@
 <td align="center">2613</td>
 </tr>
 </tbody></table>
+<img src="/images/20220201_throughput_regression_with_kcptun.png">
+
 <p>From the benchmark result, we can see if the network has a fixed latency, kcptun doesn’t make any sense to improve throughput, even a little regression. On the other hand, if the latency of network is not stable, the larger latency jitter exists, the higher throughput improvement will be gained with  kcptun. Considering the network situation and the overhead of KCP encoding&#x2F;decoding, this strategy is not a silver bullet but can improve performance in part of scenarios.</p>
 <h2 id="Advices-about-system-performance"><a href="#Advices-about-system-performance" class="headerlink" title="Advices about system performance"></a>Advices about system performance</h2><ul>
 <li>The performance of a system should be estimated. It is important to abstract the architecture and estimate the performance indicators based on known knowledge.</li>
