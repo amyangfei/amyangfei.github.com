@@ -368,20 +368,6 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/tags/golang/</loc>
-    <lastmod>2023-04-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/etcd/</loc>
-    <lastmod>2023-04-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>http://amyangfei.me/tags/algorithm/</loc>
     <lastmod>2023-04-14</lastmod>
     <changefreq>weekly</changefreq>
@@ -396,6 +382,20 @@
   </url>
   
   <url>
+    <loc>http://amyangfei.me/tags/golang/</loc>
+    <lastmod>2023-04-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/etcd/</loc>
+    <lastmod>2023-04-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>http://amyangfei.me/tags/mysql/</loc>
     <lastmod>2023-04-14</lastmod>
     <changefreq>weekly</changefreq>
@@ -403,7 +403,7 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/tags/NIC-driver/</loc>
+    <loc>http://amyangfei.me/tags/go-mysql/</loc>
     <lastmod>2023-04-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
