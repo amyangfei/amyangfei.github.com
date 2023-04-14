@@ -194,7 +194,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2023/04/14/diagnose-go-mysql-write-timeout/">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2023/04/14/diagnose-go-mysql-execution-timeout/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -207,7 +207,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/14/diagnose-go-mysql-write-timeout/" class="post-title-link" itemprop="url">An investigation of execution timeout with go-mysql</a>
+          <a href="/2023/04/14/diagnose-go-mysql-execution-timeout/" class="post-title-link" itemprop="url">An investigation of execution timeout with go-mysql</a>
         </h2>
 
         <div class="post-meta-container">
@@ -258,7 +258,7 @@
           <p>This is a real case in my recent work with <a target="_blank" rel="noopener" href="https://github.com/go-sql-driver/mysql">go-mysql</a> client. In this scenario, there exits a MySQL connection pool(which maintains multiple database connections) that keeps writing transactions to peer databases, such as a MySQL or TiDB. Each transaction contains several insert, update or delete DMLs, the DML count ranges from 40 to 128. In order to reduce round trip between MySQL client and MySQL server, we adopt the <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/c-api/8.0/en/c-api-multiple-queries.html">multiple statements</a> in transaction, which conbines multiple DMLs in a single SQL statement. A sample code snippet with go-sql-driver is as follows.</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2023/04/14/diagnose-go-mysql-write-timeout/#more" rel="contents">
+              <a class="btn" href="/2023/04/14/diagnose-go-mysql-execution-timeout/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>

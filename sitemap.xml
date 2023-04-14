@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://amyangfei.me/2023/04/14/diagnose-go-mysql-write-timeout/</loc>
+    <loc>http://amyangfei.me/2023/04/14/diagnose-go-mysql-execution-timeout/</loc>
     
     <lastmod>2023-04-14</lastmod>
     
@@ -368,20 +368,6 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/tags/algorithm/</loc>
-    <lastmod>2023-04-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/frequent-sequence-mining/</loc>
-    <lastmod>2023-04-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>http://amyangfei.me/tags/golang/</loc>
     <lastmod>2023-04-14</lastmod>
     <changefreq>weekly</changefreq>
@@ -390,6 +376,20 @@
   
   <url>
     <loc>http://amyangfei.me/tags/etcd/</loc>
+    <lastmod>2023-04-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/algorithm/</loc>
+    <lastmod>2023-04-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/frequent-sequence-mining/</loc>
     <lastmod>2023-04-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
