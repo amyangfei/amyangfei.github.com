@@ -135,7 +135,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-count">34</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -145,7 +145,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-count">48</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -185,6 +185,103 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2023/05/04/lessons-learned-from-ticdc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="amyangfei">
+      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Amyangfei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/04/lessons-learned-from-ticdc/" class="post-title-link" itemprop="url">Lessons learned from TiCDC</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-05-04 00:00:00" itemprop="dateCreated datePublished" datetime="2023-05-04T00:00:00+08:00">2023-05-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Symbols count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Symbols count in article: </span>
+      <span>13k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>11 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><a target="_blank" rel="noopener" href="https://github.com/pingcap/tiflow">TiCDC</a> is a change data capture framework of <a target="_blank" rel="noopener" href="https://github.com/pingcap/tidb">TiDB</a>. It replicates change data to various downstream systems, including MySQL protocol-compatible databases, messaging queue systems such as Kafka, and Object Storage Service such as S3. I developed the first version of TiCDC, used to be the tech leader of this project and I’m the top 1 code contributor of this project. I witnessed the project from sketch to a mature system and running in many product environments, and also led several important architecture evolutions of this project. At this moment, I’m going to leave this project and explore other job opportunities, it is time to retrospect and summarize the lessons I learned from this project.</p>
+<h2 id="Highlights-of-this-system"><a href="#Highlights-of-this-system" class="headerlink" title="Highlights of this system"></a>Highlights of this system</h2><p>In this part I will talk about the highlights of TiCDC, from the perspectives of system architecture, core features, smart design or some engineering implementations.</p>
+<h3 id="A-well-designed-plug-and-play-monolithic-architecture"><a href="#A-well-designed-plug-and-play-monolithic-architecture" class="headerlink" title="A well designed plug-and-play, monolithic architecture"></a>A well designed plug-and-play, monolithic architecture</h3><p>When end users want to replicate row based change data from an existing TiDB cluster, it is very easy to setup a synchronization path. They only need to deploy one or more TiCDC processes that has connected network with upstream TiDB cluster. These processes form a unified cluster automatically if they are connected to the same TiDB cluster, without any topology configuration, deploying meta system or separated components. Different compute components, including the data source part(puller), data sort part(sorter), data encapsulation part(mounter) and data sink part(sink) are running in the same process. That is what I mean it is a plug-and-play system, and it is a classic monolithic architecture. Except for simple deployment modes, TiCDC also provides a good solution for system maintenance, it can handle many high availability scenarios automatically, including the node crashing, upstream failure, network partition etc. The high availability is reflected in two aspects, process level and data level respectively.</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/05/04/lessons-learned-from-ticdc/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1029,102 +1126,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2021/02/17/golang-nil-panic/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://amyangfei.me/2021/01/23/streaming-systems/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="amyangfei">
-      <meta itemprop="description" content="我的个人博客，会在这里记录学习、工作过程中遇到的问题和对技术的思考。">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Amyangfei's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/23/streaming-systems/" class="post-title-link" itemprop="url">Compare concepts described in Streaming Systems and real usage in a cdc project</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2021-01-23 00:00:00" itemprop="dateCreated datePublished" datetime="2021-01-23T00:00:00+08:00">2021-01-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/program/" itemprop="url" rel="index"><span itemprop="name">program</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="Symbols count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Symbols count in article: </span>
-      <span>10k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>10 mins.</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>I have read the first part of book <a target="_blank" rel="noopener" href="https://www.oreilly.com/library/view/streaming-systems/9781491983867/">Streaming Systems</a> recently and learned quite a lot of high level concepts and many useful tips about streaming systems. Many topics that this book discusses are very instructive to the <a target="_blank" rel="noopener" href="https://github.com/pingcap/ticdc">TiCDC</a> project that I was focusing on in the past year, which is a change data capture system that supports to replicate change data from a distributed NewSQL database to various downstreams. In this article I will talk about some core concepts that a streaming system should pay attention to, comparing the opinion that the book Streaming Systems expresses, to some practical experience from the CDC project I participated.</p>
-<h2 id="Concepts-in-change-data-capture-system"><a href="#Concepts-in-change-data-capture-system" class="headerlink" title="Concepts in change data capture system"></a>Concepts in change data capture system</h2><p>The book Stream Systems introduces many concepts to describe a streaming system from different dimensions. I will map these concepts to the change data capture system roughly.</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/01/23/streaming-systems/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
