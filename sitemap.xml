@@ -4,7 +4,7 @@
   <url>
     <loc>http://amyangfei.me/2023/05/04/lessons-learned-from-ticdc/</loc>
     
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -128,7 +128,7 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/2021/12/05/go-gorouinte-diagnose/</loc>
+    <loc>http://amyangfei.me/2021/03/07/dive-into-proxy-usage/</loc>
     
     <lastmod>2022-02-19</lastmod>
     
@@ -137,7 +137,7 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/2021/03/07/dive-into-proxy-usage/</loc>
+    <loc>http://amyangfei.me/2021/12/05/go-gorouinte-diagnose/</loc>
     
     <lastmod>2022-02-19</lastmod>
     
@@ -218,6 +218,15 @@
   </url>
   
   <url>
+    <loc>http://amyangfei.me/2016/01/30/redis-queue-rethink/</loc>
+    
+    <lastmod>2022-02-19</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>http://amyangfei.me/2012/11/29/shuffle-algorithm/</loc>
     
     <lastmod>2022-02-19</lastmod>
@@ -236,7 +245,7 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/2016/01/30/redis-queue-rethink/</loc>
+    <loc>http://amyangfei.me/2013/05/05/stl-heap-llvm-gcc/</loc>
     
     <lastmod>2022-02-19</lastmod>
     
@@ -263,7 +272,7 @@
   </url>
   
   <url>
-    <loc>http://amyangfei.me/2013/05/05/stl-heap-llvm-gcc/</loc>
+    <loc>http://amyangfei.me/2013/01/27/tornado-source-analysis-1/</loc>
     
     <lastmod>2022-02-19</lastmod>
     
@@ -282,15 +291,6 @@
   
   <url>
     <loc>http://amyangfei.me/2013/02/03/tornado-source-analysis-3/</loc>
-    
-    <lastmod>2022-02-19</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/2013/01/27/tornado-source-analysis-1/</loc>
     
     <lastmod>2022-02-19</lastmod>
     
@@ -328,7 +328,7 @@
 
   <url>
     <loc>http://amyangfei.me/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -336,336 +336,336 @@
   
   <url>
     <loc>http://amyangfei.me/tags/android/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/python/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/task-scheduler/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/source-code-reading/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/tornado/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/asynchronous-programming/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/golang/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/etcd/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/algorithm/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/frequent-sequence-mining/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/mysql/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/go-mysql/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/tcpdump/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/strace/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/dns/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/system-diagnose/</loc>
-    <lastmod>2023-05-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/goroutine/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/proxy/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/ptrace/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/goroutine/</loc>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/memory/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/GC/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/static-analysis/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/performance/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/system-latency/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/jekyll/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/ruby/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/cdc/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/scalability/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/high-avavailability/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/memory-models/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/concurrent-programming/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/TCP/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/network-chaos/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/redis/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/redis-module/</loc>
-    <lastmod>2023-05-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/ssh/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/job-queue/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>http://amyangfei.me/tags/streaming-system/</loc>
-    <lastmod>2023-05-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/change-data-capture/</loc>
-    <lastmod>2023-05-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/book-reading-notes/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <loc>http://amyangfei.me/tags/ssh/</loc>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/c/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/stl/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/llvm/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/streaming-system/</loc>
+    <lastmod>2023-05-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/change-data-capture/</loc>
+    <lastmod>2023-05-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/book-reading-notes/</loc>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/web-server-framework/</loc>
-    <lastmod>2023-05-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>http://amyangfei.me/tags/asynchronous-I-O/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/asynchronous/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>http://amyangfei.me/tags/asynchronous-I-O/</loc>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/web-framework/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/tags/virtualization/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -674,14 +674,14 @@
   
   <url>
     <loc>http://amyangfei.me/categories/program/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>http://amyangfei.me/categories/others/</loc>
-    <lastmod>2023-05-05</lastmod>
+    <lastmod>2023-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
